@@ -338,7 +338,7 @@
         </div>
     </div>
 
-    <!-- SKRYPTY FIREBASE I LOGIKA -->
+<!-- SKRYPTY FIREBASE I LOGIKA -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { 
@@ -641,7 +641,6 @@
                 const matches = matchesSnap.exists() ? Object.values(matchesSnap.val()) : [];
                 allMatchesData = matches;
 
-                // Inicjalizacja statystyk dla zatwierdzonych zawodników
                 let stats = {};
                 Object.keys(users).forEach(uid => {
                     const u = users[uid];
@@ -653,7 +652,6 @@
                     }
                 });
 
-                // Obliczanie statystyk z rozegranych meczów
                 matches.forEach(m => {
                     if (stats[m.p1Uid] && stats[m.p2Uid]) {
                         const s1 = parseInt(m.s1), s2 = parseInt(m.s2);
@@ -678,7 +676,6 @@
                     }
                 });
 
-                // Sortowanie: Punkty -> Różnica legów -> Wygrane legi
                 const sortedStats = Object.values(stats).sort((a, b) => {
                     if (b.points !== a.points) return b.points - a.points;
                     const diffA = a.legsWon - a.legsLost;
@@ -687,7 +684,6 @@
                     return b.legsWon - a.legsWon;
                 });
 
-                // Generowanie HTML Tabeli
                 tableBody.innerHTML = "";
                 if (sortedStats.length === 0) {
                     tableBody.innerHTML = '<tr><td colspan="10" style="color: #888;">Brak zatwierdzonych graczy w tabeli.</td></tr>';
@@ -712,7 +708,6 @@
                     });
                 }
 
-                // Generowanie Historii Meczów
                 historyList.innerHTML = "";
                 if (matches.length === 0) {
                     historyList.innerHTML = '<p style="text-align: center; color: #888;">Brak rozegranych meczów.</p>';
@@ -731,7 +726,7 @@
             } catch (err) { console.error(err); }
         }
 
-        // --- PANEL ADMINISTRATORA LOGIKA ---
+        // --- PANEL ADMINISTRATORA LOGIKA (POPRAWIONA) ---
         async function loadAdminPanelData() {
             const listContainer = document.getElementById('admin-players-list');
             const selectP1 = document.getElementById('admin-match-p1');
@@ -753,37 +748,50 @@
                     selectP1.innerHTML = "";
                     selectP2.innerHTML = "";
 
+                    let count = 0;
+
                     Object.keys(users).forEach(uid => {
                         const u = users[uid];
                         if (u.signedUpForSeason1) {
+                            count++;
                             const isApproved = u.statusSeason1 === "approved";
 
-                            // Dodanie do listy weryfikacyjnej
+                            // Tworzenie elementu DOM
                             const item = document.createElement('div');
                             item.className = 'admin-player-item';
-                            item.innerHTML = `
-                                <div>
-                                    <b>${u.firstName || ''} ${u.lastName || ''}</b> (${u.email})
-                                    <br><span style="font-size:12px; color:${isApproved ? '#51cf66' : '#ffd43b'}">Status: ${isApproved ? 'Zatwierdzony' : 'Oczekuje'}</span>
-                                </div>
-                                <div>
-                                    ${!isApproved ? `<button class="btn-sm btn-success" id="approve-${uid}">Zatwierdź</button>` : ''}
-                                    <button class="btn-sm btn-danger" id="reject-${uid}">${isApproved ? 'Cofnij' : 'Odrzuć'}</button>
-                                </div>
+
+                            const infoDiv = document.createElement('div');
+                            infoDiv.innerHTML = `
+                                <b>${u.firstName || ''} ${u.lastName || ''}</b> (${u.email})
+                                <br><span style="font-size:12px; color:${isApproved ? '#51cf66' : '#ffd43b'}">Status: ${isApproved ? 'Zatwierdzony' : 'Oczekuje'}</span>
                             `;
+
+                            const actionsDiv = document.createElement('div');
+
+                            if (!isApproved) {
+                                const btnApprove = document.createElement('button');
+                                btnApprove.className = 'btn-sm btn-success';
+                                btnApprove.style.marginRight = '5px';
+                                btnApprove.innerText = 'Zatwierdź';
+                                btnApprove.onclick = () => setPlayerStatus(uid, "approved", true);
+                                actionsDiv.appendChild(btnApprove);
+                            }
+
+                            const btnReject = document.createElement('button');
+                            btnReject.className = 'btn-sm btn-danger';
+                            btnReject.innerText = isApproved ? 'Cofnij' : 'Odrzuć';
+                            btnReject.onclick = () => setPlayerStatus(uid, "none", false);
+                            actionsDiv.appendChild(btnReject);
+
+                            item.appendChild(infoDiv);
+                            item.appendChild(actionsDiv);
                             listContainer.appendChild(item);
 
-                            setTimeout(() => {
-                                const btnApp = document.getElementById(`approve-${uid}`);
-                                const btnRej = document.getElementById(`reject-${uid}`);
-                                if (btnApp) btnApp.onclick = () => setPlayerStatus(uid, "approved");
-                                if (btnRej) btnRej.onclick = () => setPlayerStatus(uid, "none", false);
-                            }, 50);
-
-                            // Opcje dla zatwierdzonych graczy do meczu
+                            // Opcje dla listy rozwijanej meczów
                             if (isApproved) {
                                 const opt1 = document.createElement('option');
-                                opt1.value = uid; opt1.innerText = `${u.firstName || ''} ${u.lastName || ''}`;
+                                opt1.value = uid; 
+                                opt1.innerText = `${u.firstName || ''} ${u.lastName || ''}`;
                                 const opt2 = opt1.cloneNode(true);
                                 selectP1.appendChild(opt1);
                                 selectP2.appendChild(opt2);
@@ -791,20 +799,26 @@
                         }
                     });
 
-                    if (listContainer.innerHTML === "") listContainer.innerHTML = "<p style='color:#888;'>Brak zgłoszeń do 1. Sezonu.</p>";
+                    if (count === 0) {
+                        listContainer.innerHTML = "<p style='color:#888;'>Brak zgłoszeń do 1. Sezonu.</p>";
+                    }
                 }
-            } catch (err) { console.error(err); }
+            } catch (err) { 
+                console.error(err); 
+            }
         }
 
-        async function setPlayerStatus(uid, status, isSigned = true) {
+        window.setPlayerStatus = async function(uid, status, isSigned) {
             try {
                 await update(dbRef(db, 'users/' + uid), {
                     statusSeason1: status,
                     signedUpForSeason1: isSigned
                 });
-                loadAdminPanelData();
-            } catch (err) { alert("Błąd: " + err.message); }
-        }
+                await loadAdminPanelData();
+            } catch (err) { 
+                alert("Błąd podczas aktualizacji: " + err.message); 
+            }
+        };
 
         // Zapisywanie meczu przez Admina
         document.getElementById('btn-save-match').onclick = async () => {
