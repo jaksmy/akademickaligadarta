@@ -6,34 +6,111 @@
     <title>Akademicka Liga Darta</title>
     <style>
         * { box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; background-color: #121212; color: #fff; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 850px; margin: 0 auto; padding: 20px; background-color: #121212; color: #fff; }
         
         /* NAWIGACJA / ZAKŁADKI */
-        nav { display: flex; gap: 10px; background: #1e1e1e; padding: 10px; border-radius: 12px; margin-bottom: 25px; border: 1px solid #333; }
-        .nav-btn { flex: 1; padding: 12px; background: #2a2a2a; border: 1px solid #444; color: #ccc; border-radius: 8px; cursor: pointer; font-weight: bold; text-align: center; transition: 0.2s; }
+        nav { display: flex; gap: 10px; background: #1e1e1e; padding: 10px; border-radius: 12px; margin-bottom: 25px; border: 1px solid #333; flex-wrap: wrap; }
+        .nav-btn { flex: 1; min-width: 120px; padding: 12px; background: #2a2a2a; border: 1px solid #444; color: #ccc; border-radius: 8px; cursor: pointer; font-weight: bold; text-align: center; transition: 0.2s; }
         .nav-btn:hover { background: #333; color: #fff; }
         .nav-btn.active { background: #1a73e8; color: #fff; border-color: #1a73e8; }
 
-        /* KONTENER PANELU */
-        .box { background: #1e1e1e; padding: 25px; border-radius: 12px; border: 1px solid #333; box-shadow: 0 4px 20px rgba(0,0,0,0.5); max-width: 450px; margin: 0 auto; }
+        /* KONTENERY */
+        .box { background: #1e1e1e; padding: 25px; border-radius: 12px; border: 1px solid #333; box-shadow: 0 4px 20px rgba(0,0,0,0.5); max-width: 500px; margin: 0 auto; }
         .page-content { background: #1e1e1e; padding: 25px; border-radius: 12px; border: 1px solid #333; }
         
         h2, h3 { text-align: center; color: #1a73e8; margin-top: 0; }
         label { font-size: 13px; color: #ccc; margin-top: 10px; display: block; }
-        input, button { width: 100%; padding: 12px; margin: 8px 0 12px 0; border-radius: 6px; border: 1px solid #444; background: #2a2a2a; color: #fff; font-size: 15px; }
+        input, button, select { width: 100%; padding: 12px; margin: 6px 0 12px 0; border-radius: 6px; border: 1px solid #444; background: #2a2a2a; color: #fff; font-size: 15px; }
+        input[type="file"] { padding: 8px; font-size: 13px; }
+        
         button { background: #1a73e8; color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
         button:hover { background: #1557b0; }
         .btn-sec { background: #444; }
         .btn-sec:hover { background: #555; }
+        .btn-danger { background: #c53030; }
+        .btn-danger:hover { background: #9b2c2c; }
         .btn-link { background: none; border: none; color: #1a73e8; text-decoration: underline; padding: 5px; margin: 0 0 10px 0; font-size: 13px; font-weight: normal; }
         .btn-link:hover { background: none; color: #64b5f6; }
+        
         .hidden { display: none !important; }
         .msg { font-size: 14px; text-align: center; margin-top: 10px; font-weight: bold; word-break: break-word; }
         .error { color: #ff6b6b; }
         .success { color: #51cf66; }
         .info { color: #ffd43b; }
 
-        /* Zablokowane okno modalne do aktywacji */
+        /* KARTY ZAWODNIKÓW (GRID) */
+        .players-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .player-card {
+            background: #252525;
+            border: 1px solid #3d3d3d;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        .player-avatar {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #1a73e8;
+            background-color: #121212;
+            margin-bottom: 12px;
+        }
+        .player-name { font-size: 18px; font-weight: bold; color: #fff; margin-bottom: 6px; }
+        .player-info { font-size: 13px; color: #aaa; margin: 3px 0; }
+        .dart-link {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 6px 12px;
+            background: #1a73e8;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .dart-link:hover { background: #1557b0; }
+
+        /* WIDOK PROFILU */
+        .profile-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .profile-avatar-lg {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid #1a73e8;
+            margin: 0 auto 15px auto;
+            display: block;
+            background-color: #2a2a2a;
+        }
+        .profile-details-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        .profile-details-table td {
+            padding: 10px;
+            border-bottom: 1px solid #333;
+        }
+        .profile-details-table td:first-child {
+            color: #888;
+            font-weight: bold;
+            width: 40%;
+        }
+
+        /* MODAL POTWIERDZENIA */
         #modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.92); z-index: 9999;
@@ -52,6 +129,7 @@
     <nav>
         <button id="tab-home" class="nav-btn active">🏠 Strona Główna</button>
         <button id="tab-info" class="nav-btn">ℹ️ O Lidze</button>
+        <button id="tab-players" class="nav-btn">🎯 Zawodnicy</button>
         <button id="tab-account" class="nav-btn">🔑 Konto</button>
     </nav>
 
@@ -59,16 +137,24 @@
     <div id="page-home" class="page-content">
         <h2>🎯 Akademicka Liga Darta</h2>
         <p style="text-align: center; color: #ccc;">Witaj na oficjalnej stronie rozgrywek Akademickiej Ligi Darta!</p>
-        <p style="text-align: center; color: #888;">Wybierz zakładkę <b>Konto</b> z menu wyżej, aby się zalogować lub zarejestrować.</p>
+        <p style="text-align: center; color: #888;">Zarejestruj się lub zaloguj, aby dołączyć do grona zawodników i zarządzać swoim profilem.</p>
     </div>
 
     <!-- ZAKŁADKA 2: INFORMACJE O LIDZE -->
     <div id="page-info" class="page-content hidden">
         <h2>ℹ️ Informacje o Lidze</h2>
-        <p style="color: #ccc;">TUTAJ MOŻESZ DODAĆ INFORMACJE, HARMONOGRAM, REGULAMIN LUB TABELĘ WYNIKÓW.</p>
+        <p style="color: #ccc; text-align: center;">Tabela wyników, harmonogram i regulamin rozgrywek ligowych.</p>
     </div>
 
-    <!-- ZAKŁADKA 3: PANEL KONTA -->
+    <!-- ZAKŁADKA 3: ZAWODNICY -->
+    <div id="page-players" class="page-content hidden">
+        <h2>🎯 Zarejestrowani Zawodnicy</h2>
+        <p style="text-align: center; color: #aaa; font-size: 14px;">Lista graczy biorących udział w rozgrywkach</p>
+        <div id="players-loading" class="msg info">Wczytywanie zawodników...</div>
+        <div id="players-grid" class="players-grid"></div>
+    </div>
+
+    <!-- ZAKŁADKA 4: PANEL KONTA / PROFIL -->
     <div id="page-account" class="hidden">
         
         <!-- 1. PANEL LOGOWANIA -->
@@ -89,31 +175,45 @@
             <div id="login-msg" class="msg"></div>
         </div>
 
-        <!-- 2. PODSTRONA REJESTRACJI -->
+        <!-- 2. REJESTRACJA NOWEGO KONTRA -->
         <div id="view-register" class="box hidden">
-            <h2>🎯 Panel Ligi Darta</h2>
-            <h3>Rejestracja nowego konta</h3>
+            <h2>🎯 Rejestracja Zawodnika</h2>
             
-            <label for="reg-email">E-mail:</label>
+            <label for="reg-email">E-mail *:</label>
             <input type="email" id="reg-email" placeholder="twoj@email.com">
             
-            <label for="reg-pass">Hasło (min. 6 znaków):</label>
+            <label for="reg-pass">Hasło (min. 6 znaków) *:</label>
             <input type="password" id="reg-pass" placeholder="••••••••">
 
-            <label for="reg-pass2">Powtórz hasło:</label>
+            <label for="reg-pass2">Powtórz hasło *:</label>
             <input type="password" id="reg-pass2" placeholder="••••••••">
-            
+
+            <label for="reg-firstname">Imię *:</label>
+            <input type="text" id="reg-firstname" placeholder="Jan">
+
+            <label for="reg-lastname">Nazwisko *:</label>
+            <input type="text" id="reg-lastname" placeholder="Kowalski">
+
+            <label for="reg-birthdate">Data urodzenia *:</label>
+            <input type="date" id="reg-birthdate">
+
+            <label for="reg-city">Miejsce zamieszkania (opcjonalnie):</label>
+            <input type="text" id="reg-city" placeholder="np. Rzeszów">
+
+            <label for="reg-dartcounter">Link do profilu w aplikacji DartCounter *:</label>
+            <input type="url" id="reg-dartcounter" placeholder="https://dartcounter.net/player/...">
+            <small style="color: #888; display: block; margin-top: -8px; margin-bottom: 10px;">Adres musi zawierać domeny 'dartcounter.net' lub 'godartcounter.com'</small>
+
             <button id="btn-register" type="button">ZAREJESTRUJ SIĘ</button>
             <button id="btn-go-login-from-reg" type="button" class="btn-sec">Powrót do logowania</button>
             
             <div id="reg-msg" class="msg"></div>
         </div>
 
-        <!-- 3. PODSTRONA RESETU HASŁA -->
+        <!-- 3. RESET HASŁA -->
         <div id="view-reset" class="box hidden">
-            <h2>🎯 Panel Ligi Darta</h2>
-            <h3>Resetowanie hasła</h3>
-            <p style="font-size: 13px; color: #ccc; text-align: center;">Podaj swój adres e-mail. Wyślemy Ci link do zmiany hasła.</p>
+            <h2>🎯 Resetowanie hasła</h2>
+            <p style="font-size: 13px; color: #ccc; text-align: center;">Podaj e-mail, wyślemy Ci link do zmiany hasła.</p>
             
             <label for="reset-email">E-mail:</label>
             <input type="email" id="reset-email" placeholder="twoj@email.com">
@@ -124,26 +224,80 @@
             <div id="reset-msg" class="msg"></div>
         </div>
 
-        <!-- 4. ZALOGOWANY PANEL SĘDZIEGO -->
-        <div id="view-app" class="box hidden">
-            <h3>Witaj w Panelu!</h3>
-            <p style="text-align: center;">Zalogowano jako: <b id="user-email" style="color: #1a73e8;"></b></p>
-            <button id="btn-logout" type="button" class="btn-sec">Wyloguj się</button>
+        <!-- 4. ZALOGOWANY PROFIL ZAWODNIKA (WIDOK + EDYCJA) -->
+        <div id="view-app" class="box hidden" style="max-width: 600px;">
+            <div id="profile-view-mode">
+                <div class="profile-header">
+                    <img id="prof-img" class="profile-avatar-lg" src="https://via.placeholder.com/150/2a2a2a/ffffff?text=DART" alt="Avatar">
+                    <h2 id="prof-fullname" style="margin-bottom: 5px;">Imię Nazwisko</h2>
+                    <p style="color: #aaa; font-size: 14px;" id="prof-email-display"></p>
+                </div>
+
+                <table class="profile-details-table">
+                    <tr>
+                        <td>Wiek:</td>
+                        <td id="prof-age">-</td>
+                    </tr>
+                    <tr>
+                        <td>Data urodzenia:</td>
+                        <td id="prof-birthdate">-</td>
+                    </tr>
+                    <tr>
+                        <td>Zamieszkanie:</td>
+                        <td id="prof-city">Nie podano</td>
+                    </tr>
+                    <tr>
+                        <td>DartCounter:</td>
+                        <td><a id="prof-dartcounter" href="#" target="_blank" class="dart-link">Otwórz profil DartCounter</a></td>
+                    </tr>
+                </table>
+
+                <button id="btn-edit-profile" type="button" style="margin-top: 15px;">EDYTUJ PROFIL</button>
+                <button id="btn-logout" type="button" class="btn-sec">Wyloguj się</button>
+            </div>
+
+            <!-- FORMULARZ EDYCJI PROFILU -->
+            <div id="profile-edit-mode" class="hidden">
+                <h3>Edycja Profilu</h3>
+
+                <label for="edit-photo">Zmień zdjęcie profilowe:</label>
+                <input type="file" id="edit-photo" accept="image/*">
+
+                <label for="edit-firstname">Imię:</label>
+                <input type="text" id="edit-firstname">
+
+                <label for="edit-lastname">Nazwisko:</label>
+                <input type="text" id="edit-lastname">
+
+                <label for="edit-birthdate">Data urodzenia:</label>
+                <input type="date" id="edit-birthdate">
+
+                <label for="edit-city">Miejsce zamieszkania:</label>
+                <input type="text" id="edit-city">
+
+                <label for="edit-dartcounter">Link do profilu DartCounter:</label>
+                <input type="url" id="edit-dartcounter">
+
+                <button id="btn-save-profile" type="button">ZAPISZ ZMIANY</button>
+                <button id="btn-cancel-edit" type="button" class="btn-sec">Anuluj</button>
+                
+                <div id="edit-msg" class="msg"></div>
+            </div>
         </div>
 
     </div>
 
-    <!-- 5. ZABLOKOWANE OKNO POTWIERDZENIA ADRESU EMAIL -->
+    <!-- 5. OKNO MODALNE DO WERYFIKACJI EMAILA -->
     <div id="modal-overlay" class="hidden">
         <div class="modal-content">
             <h2 style="color: #ffd43b; margin-bottom: 10px;">✉️ Potwierdź adres e-mail</h2>
             <p>Na podany adres e-mail wysłaliśmy link aktywacyjny.</p>
-            <p style="color: #aaa; font-size: 13px;">Otwórz swoją skrzynkę odbiorczą, kliknij w link, a następnie wróć tutaj i odśwież stronę.</p>
+            <p style="color: #aaa; font-size: 13px;">Otwórz swoją skrzynkę odbiorczą, kliknij w link, a następnie odśwież stronę.</p>
             <button onclick="window.location.reload()" style="margin-top: 15px;">Odśwież stronę po aktywacji</button>
         </div>
     </div>
 
-    <!-- LOGIKA ZAKŁADEK I FIREBASE -->
+    <!-- LOGIKA SKRYPTÓW FIREBASE -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { 
@@ -156,7 +310,16 @@
             signOut 
         } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-        // ⬇️ KLUCZE FIREBASE ⬇️
+        import { 
+            getDatabase, 
+            ref, 
+            set, 
+            get, 
+            update, 
+            onValue 
+        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        // Konfiguracja Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyBhCLFBrAqMBqKjPOIc5b0i2EEtZ_WP4M0",
             authDomain: "akademicka-liga-darta.firebaseapp.com",
@@ -170,29 +333,98 @@
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
+        const db = getDatabase(app);
 
-        // --- PRZEŁĄCZANIE ZAKŁADEK ---
+        // Zmienne globalne stanu
+        let currentUserData = null;
+        let currentUserPhotoBase64 = "";
+
+        // --- NAWIGACJA ZAKŁADEK ---
         const tabHome = document.getElementById('tab-home');
         const tabInfo = document.getElementById('tab-info');
+        const tabPlayers = document.getElementById('tab-players');
         const tabAccount = document.getElementById('tab-account');
 
         const pageHome = document.getElementById('page-home');
         const pageInfo = document.getElementById('page-info');
+        const pagePlayers = document.getElementById('page-players');
         const pageAccount = document.getElementById('page-account');
 
         function switchTab(activeBtn, activePage) {
-            [tabHome, tabInfo, tabAccount].forEach(btn => btn.classList.remove('active'));
-            [pageHome, pageInfo, pageAccount].forEach(page => page.classList.add('hidden'));
+            [tabHome, tabInfo, tabPlayers, tabAccount].forEach(btn => btn.classList.remove('active'));
+            [pageHome, pageInfo, pagePlayers, pageAccount].forEach(page => page.classList.add('hidden'));
 
             activeBtn.classList.add('active');
             activePage.classList.remove('hidden');
+
+            if(activePage === pagePlayers) {
+                loadPlayersList();
+            }
         }
 
         tabHome.onclick = () => switchTab(tabHome, pageHome);
         tabInfo.onclick = () => switchTab(tabInfo, pageInfo);
+        tabPlayers.onclick = () => switchTab(tabPlayers, pagePlayers);
         tabAccount.onclick = () => switchTab(tabAccount, pageAccount);
 
-        // --- ELEMENTY PANELU LOGOWANIA ---
+        // --- POMOCNICZE: OBICZANIE WIEKU I WALIDACJA DARTCOUNTER ---
+        function calculateAge(birthDateStr) {
+            if (!birthDateStr) return "Brak danych";
+            const today = new Date();
+            const birthDate = new Date(birthDateStr);
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const monthDiff = today.getMonth() - birthDate.getMonth();
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+            return isNaN(age) ? "Brak danych" : `${age} lat(a)`;
+        }
+
+        function validateDartCounterUrl(url) {
+            try {
+                const parsedUrl = new URL(url);
+                return parsedUrl.hostname.includes('dartcounter.net') || 
+                       parsedUrl.hostname.includes('godartcounter.com') ||
+                       parsedUrl.hostname.includes('dartcounter');
+            } catch (e) {
+                return false;
+            }
+        }
+
+        // Pomocnik do kompresji / zamiany zdjęcia na Base64
+        function fileToBase64(file, callback) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    const maxDim = 200; // Rozmiar miniaturki
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > height) {
+                        if (width > maxDim) {
+                            height *= maxDim / width;
+                            width = maxDim;
+                        }
+                    } else {
+                        if (height > maxDim) {
+                            width *= maxDim / height;
+                            height = maxDim;
+                        }
+                    }
+                    canvas.width = width;
+                    canvas.height = height;
+                    ctx.drawImage(img, 0, 0, width, height);
+                    callback(canvas.toDataURL('image/jpeg', 0.8));
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // --- ELEMENTY PANELU LOGOWANIA / WIDOKÓW ---
         const viewLogin = document.getElementById('view-login');
         const viewRegister = document.getElementById('view-register');
         const viewReset = document.getElementById('view-reset');
@@ -202,12 +434,12 @@
         const loginMsg = document.getElementById('login-msg');
         const regMsg = document.getElementById('reg-msg');
         const resetMsg = document.getElementById('reset-msg');
+        const editMsg = document.getElementById('edit-msg');
 
-        // Nawigacja wewnątrz zakładki Konto
+        // Przełączanie wewnątrz zakładki Konto
         document.getElementById('btn-go-register').onclick = () => {
             document.getElementById('reg-email').value = document.getElementById('login-email').value;
             document.getElementById('reg-pass').value = document.getElementById('login-pass').value;
-            
             viewLogin.classList.add('hidden');
             viewReset.classList.add('hidden');
             viewRegister.classList.remove('hidden');
@@ -215,7 +447,6 @@
 
         document.getElementById('btn-go-reset').onclick = () => {
             document.getElementById('reset-email').value = document.getElementById('login-email').value;
-            
             viewLogin.classList.add('hidden');
             viewRegister.classList.add('hidden');
             viewReset.classList.remove('hidden');
@@ -230,17 +461,23 @@
         document.getElementById('btn-go-login-from-reg').onclick = showLoginView;
         document.getElementById('btn-go-login-from-reset').onclick = showLoginView;
 
-        // --- REJESTRACJA ---
+        // --- REJESTRACJA NOWEGO GRACZA ---
         document.getElementById('btn-register').onclick = async () => {
             const email = document.getElementById('reg-email').value.trim();
             const pass1 = document.getElementById('reg-pass').value;
             const pass2 = document.getElementById('reg-pass2').value;
+            const firstName = document.getElementById('reg-firstname').value.trim();
+            const lastName = document.getElementById('reg-lastname').value.trim();
+            const birthDate = document.getElementById('reg-birthdate').value;
+            const city = document.getElementById('reg-city').value.trim();
+            const dartCounter = document.getElementById('reg-dartcounter').value.trim();
 
             regMsg.className = "msg info";
             
-            if(!email || !pass1 || !pass2) {
+            // Walidacja pół
+            if(!email || !pass1 || !pass2 || !firstName || !lastName || !birthDate || !dartCounter) {
                 regMsg.className = "msg error";
-                regMsg.innerText = "Wypełnij wszystkie pola!";
+                regMsg.innerText = "Wypełnij wszystkie wymagane pola (*)!";
                 return;
             }
             if(pass1 !== pass2) {
@@ -253,14 +490,36 @@
                 regMsg.innerText = "Hasło musi mieć co najmniej 6 znaków!";
                 return;
             }
+            if(!validateDartCounterUrl(dartCounter)) {
+                regMsg.className = "msg error";
+                regMsg.innerText = "Niepoprawny link DartCounter! Podaj prawidłowy link.";
+                return;
+            }
 
-            regMsg.innerText = "Rejestracja i wysyłanie e-maila...";
+            regMsg.innerText = "Rejestracja konta zawodnika...";
 
             try {
+                // Tworzenie użytkownika w Firebase Auth
                 const userCredential = await createUserWithEmailAndPassword(auth, email, pass1);
-                await sendEmailVerification(userCredential.user);
+                const user = userCredential.user;
+
+                // Zapis dodatkowych danych gracza w Firebase Database
+                await set(ref(db, 'users/' + user.uid), {
+                    firstName: firstName,
+                    lastName: lastName,
+                    birthDate: birthDate,
+                    city: city || "",
+                    dartCounter: dartCounter,
+                    photoUrl: "",
+                    email: email,
+                    createdAt: new Date().toISOString()
+                });
+
+                // Wysyłanie e-maila weryfikacyjnego
+                await sendEmailVerification(user);
                 await signOut(auth);
                 modalOverlay.classList.remove('hidden');
+
             } catch (err) {
                 regMsg.className = "msg error";
                 if(err.code === 'auth/email-already-in-use') {
@@ -291,7 +550,7 @@
                 if (!user.emailVerified) {
                     await signOut(auth);
                     loginMsg.className = "msg error";
-                    loginMsg.innerText = "aktywuj konto";
+                    loginMsg.innerText = "Proszę aktywować konto z wysłanego linku e-mail.";
                 } else {
                     loginMsg.innerText = "";
                 }
@@ -320,28 +579,174 @@
                 resetMsg.innerText = "Link do resetowania hasła został wysłany na Twój e-mail!";
             } catch (err) {
                 resetMsg.className = "msg error";
-                if(err.code === 'auth/user-not-found') {
-                    resetMsg.innerText = "Nie znaleziono konta z tym adresem e-mail.";
-                } else if(err.code === 'auth/invalid-email') {
-                    resetMsg.innerText = "Niepoprawny format adresu e-mail.";
-                } else {
-                    resetMsg.innerText = "Błąd: " + err.message;
-                }
+                resetMsg.innerText = "Błąd przy wysyłaniu linka.";
             }
         };
+
+        // --- ŁADOWANIE DANYCH PROFILU ZALOGOWANEGO ZAWODNIKA ---
+        async function loadUserProfile(uid) {
+            const userRef = ref(db, 'users/' + uid);
+            const snapshot = await get(userRef);
+            
+            if (snapshot.exists()) {
+                currentUserData = snapshot.val();
+                
+                // Wypełnianie widoku profilu
+                document.getElementById('prof-fullname').innerText = `${currentUserData.firstName} ${currentUserData.lastName}`;
+                document.getElementById('prof-email-display').innerText = currentUserData.email;
+                document.getElementById('prof-age').innerText = calculateAge(currentUserData.birthDate);
+                document.getElementById('prof-birthdate').innerText = currentUserData.birthDate || "-";
+                document.getElementById('prof-city').innerText = currentUserData.city || "Nie podano";
+                
+                const dcLink = document.getElementById('prof-dartcounter');
+                dcLink.href = currentUserData.dartCounter || "#";
+
+                const defaultAvatar = "https://via.placeholder.com/150/2a2a2a/ffffff?text=" + (currentUserData.firstName ? currentUserData.firstName[0] : 'D');
+                document.getElementById('prof-img').src = currentUserData.photoUrl || defaultAvatar;
+                currentUserPhotoBase64 = currentUserData.photoUrl || "";
+
+            }
+        }
+
+        // --- EDYCJA PROFILU ---
+        const profileViewMode = document.getElementById('profile-view-mode');
+        const profileEditMode = document.getElementById('profile-edit-mode');
+
+        document.getElementById('btn-edit-profile').onclick = () => {
+            if(!currentUserData) return;
+            
+            document.getElementById('edit-firstname').value = currentUserData.firstName || "";
+            document.getElementById('edit-lastname').value = currentUserData.lastName || "";
+            document.getElementById('edit-birthdate').value = currentUserData.birthDate || "";
+            document.getElementById('edit-city').value = currentUserData.city || "";
+            document.getElementById('edit-dartcounter').value = currentUserData.dartCounter || "";
+            editMsg.innerText = "";
+
+            profileViewMode.classList.add('hidden');
+            profileEditMode.classList.remove('hidden');
+        };
+
+        document.getElementById('btn-cancel-edit').onclick = () => {
+            profileEditMode.classList.add('hidden');
+            profileViewMode.classList.remove('hidden');
+        };
+
+        // Podgląd / odczyt zdjęcia przy wyboże pliku
+        document.getElementById('edit-photo').onchange = (e) => {
+            const file = e.target.files[0];
+            if(file) {
+                fileToBase64(file, (base64) => {
+                    currentUserPhotoBase64 = base64;
+                });
+            }
+        };
+
+        // Zapis zmian w profilu
+        document.getElementById('btn-save-profile').onclick = async () => {
+            const user = auth.currentUser;
+            if(!user) return;
+
+            const firstName = document.getElementById('edit-firstname').value.trim();
+            const lastName = document.getElementById('edit-lastname').value.trim();
+            const birthDate = document.getElementById('edit-birthdate').value;
+            const city = document.getElementById('edit-city').value.trim();
+            const dartCounter = document.getElementById('edit-dartcounter').value.trim();
+
+            if(!firstName || !lastName || !birthDate || !dartCounter) {
+                editMsg.className = "msg error";
+                editMsg.innerText = "Imię, nazwisko, data urodzenia oraz link DartCounter są wymagane!";
+                return;
+            }
+
+            if(!validateDartCounterUrl(dartCounter)) {
+                editMsg.className = "msg error";
+                editMsg.innerText = "Niepoprawny link DartCounter!";
+                return;
+            }
+
+            editMsg.className = "msg info";
+            editMsg.innerText = "Zapisywanie danych...";
+
+            try {
+                const updatedData = {
+                    firstName: firstName,
+                    lastName: lastName,
+                    birthDate: birthDate,
+                    city: city,
+                    dartCounter: dartCounter,
+                    photoUrl: currentUserPhotoBase64
+                };
+
+                await update(ref(db, 'users/' + user.uid), updatedData);
+                
+                // Odświeżenie widoku
+                await loadUserProfile(user.uid);
+                
+                profileEditMode.classList.add('hidden');
+                profileViewMode.classList.remove('hidden');
+            } catch (err) {
+                editMsg.className = "msg error";
+                editMsg.innerText = "Błąd podczas zapisu: " + err.message;
+            }
+        };
+
+        // --- ŁADOWANIE LISTY ZAWODNIKÓW DO ZAKŁADKI "ZAWODNICY" ---
+        function loadPlayersList() {
+            const playersGrid = document.getElementById('players-grid');
+            const loadingMsg = document.getElementById('players-loading');
+            
+            loadingMsg.classList.remove('hidden');
+            playersGrid.innerHTML = "";
+
+            onValue(ref(db, 'users'), (snapshot) => {
+                loadingMsg.classList.add('hidden');
+                playersGrid.innerHTML = "";
+
+                if(snapshot.exists()) {
+                    const users = snapshot.val();
+                    Object.keys(users).forEach(uid => {
+                        const player = users[uid];
+                        
+                        const defaultAvatar = "https://via.placeholder.com/150/2a2a2a/ffffff?text=" + (player.firstName ? player.firstName[0] : 'D');
+                        const photo = player.photoUrl || defaultAvatar;
+                        const ageStr = calculateAge(player.birthDate);
+                        const cityStr = player.city ? `📍 ${player.city}` : "📍 Nie podano";
+
+                        const cardHTML = `
+                            <div class="player-card">
+                                <img class="player-avatar" src="${photo}" alt="${player.firstName}">
+                                <div class="player-name">${player.firstName} ${player.lastName}</div>
+                                <div class="player-info">🎂 Wiek: ${ageStr}</div>
+                                <div class="player-info">${cityStr}</div>
+                                ${player.dartCounter ? `<a class="dart-link" href="${player.dartCounter}" target="_blank">Profil DartCounter</a>` : ''}
+                            </div>
+                        `;
+                        playersGrid.innerHTML += cardHTML;
+                    });
+                } else {
+                    playersGrid.innerHTML = "<p style='text-align:center; grid-column: 1/-1; color: #888;'>Brak zarejestrowanych zawodników.</p>";
+                }
+            }, { onlyOnce: true });
+        }
 
         // Wylogowanie
         document.getElementById('btn-logout').onclick = () => signOut(auth);
 
-        // Automatyczne zarządzanie widokami na podstawie statusu zalogowania
-        onAuthStateChanged(auth, (user) => {
+        // --- OBSŁUGA STANU ZALOGOWANIA ---
+        onAuthStateChanged(auth, async (user) => {
             if (user && user.emailVerified) {
+                // Zalogowany i aktywowany zawodnik
+                tabAccount.innerText = "👤 PROFIL";
                 viewLogin.classList.add('hidden');
                 viewRegister.classList.add('hidden');
                 viewReset.classList.add('hidden');
                 viewApp.classList.remove('hidden');
-                document.getElementById('user-email').innerText = user.email;
+
+                await loadUserProfile(user.uid);
             } else {
+                // Niezalogowany
+                tabAccount.innerText = "🔑 Konto";
+                currentUserData = null;
                 viewApp.classList.add('hidden');
                 showLoginView();
             }
