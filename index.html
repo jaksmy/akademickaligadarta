@@ -338,7 +338,7 @@
         </div>
     </div>
 
-<!-- SKRYPTY FIREBASE I LOGIKA -->
+    <!-- SKRYPTY FIREBASE I LOGIKA -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { 
@@ -365,7 +365,7 @@
         const auth = getAuth(app);
         const db = getDatabase(app);
 
-        // TUTAJ WPISZ TWÓJ E-MAIL ADMINA:
+        // E-MAIL ADMINA:
         const ADMIN_EMAIL = "smyczkuba@wp.pl"; 
 
         const PRESET_AVATARS = [
@@ -497,6 +497,22 @@
             } catch (err) {
                 document.getElementById('reg-msg').className = "msg error";
                 document.getElementById('reg-msg').innerText = err.message;
+            }
+        };
+
+        document.getElementById('btn-reset-pass').onclick = async () => {
+            const email = document.getElementById('reset-email').value.trim();
+            if (!email) {
+                alert("Podaj e-mail!");
+                return;
+            }
+            try {
+                await sendPasswordResetEmail(auth, email);
+                alert("Link do resetu hasła został wysłany!");
+                viewReset.classList.add('hidden');
+                viewLogin.classList.remove('hidden');
+            } catch (err) {
+                alert("Błąd: " + err.message);
             }
         };
 
@@ -726,7 +742,7 @@
             } catch (err) { console.error(err); }
         }
 
-        // --- PANEL ADMINISTRATORA LOGIKA (POPRAWIONA) ---
+        // --- PANEL ADMINISTRATORA LOGIKA ---
         async function loadAdminPanelData() {
             const listContainer = document.getElementById('admin-players-list');
             const selectP1 = document.getElementById('admin-match-p1');
@@ -756,7 +772,6 @@
                             count++;
                             const isApproved = u.statusSeason1 === "approved";
 
-                            // Tworzenie elementu DOM
                             const item = document.createElement('div');
                             item.className = 'admin-player-item';
 
@@ -787,7 +802,6 @@
                             item.appendChild(actionsDiv);
                             listContainer.appendChild(item);
 
-                            // Opcje dla listy rozwijanej meczów
                             if (isApproved) {
                                 const opt1 = document.createElement('option');
                                 opt1.value = uid; 
@@ -808,7 +822,7 @@
             }
         }
 
-        window.setPlayerStatus = async function(uid, status, isSigned) {
+        async function setPlayerStatus(uid, status, isSigned) {
             try {
                 await update(dbRef(db, 'users/' + uid), {
                     statusSeason1: status,
@@ -818,7 +832,7 @@
             } catch (err) { 
                 alert("Błąd podczas aktualizacji: " + err.message); 
             }
-        };
+        }
 
         // Zapisywanie meczu przez Admina
         document.getElementById('btn-save-match').onclick = async () => {
