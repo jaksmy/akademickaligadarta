@@ -6,22 +6,24 @@
     <title>Akademicka Liga Darta</title>
     <style>
         * { box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 850px; margin: 0 auto; padding: 20px; background-color: #121212; color: #fff; }
-        
-        /* NAWIGACJA / ZAKŁADKI */
-        nav { display: flex; gap: 10px; background: #1e1e1e; padding: 10px; border-radius: 12px; margin-bottom: 25px; border: 1px solid #333; flex-wrap: wrap; }
-        .nav-btn { flex: 1; min-width: 120px; padding: 12px; background: #2a2a2a; border: 1px solid #444; color: #ccc; border-radius: 8px; cursor: pointer; font-weight: bold; text-align: center; transition: 0.2s; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 900px; margin: 0 auto; padding: 20px; background-color: #121212; color: #fff; }
+
+        /* NAWIGACJA */
+        nav { display: flex; gap: 8px; background: #1e1e1e; padding: 10px; border-radius: 12px; margin-bottom: 25px; border: 1px solid #333; flex-wrap: wrap; }
+        .nav-btn { flex: 1; min-width: 110px; padding: 12px 8px; background: #2a2a2a; border: 1px solid #444; color: #ccc; border-radius: 8px; cursor: pointer; font-weight: bold; text-align: center; transition: 0.2s; font-size: 13px; }
         .nav-btn:hover { background: #333; color: #fff; }
         .nav-btn.active { background: #1a73e8; color: #fff; border-color: #1a73e8; }
+        .nav-btn.admin-tab { background: #d93025; color: #fff; border-color: #d93025; }
+        .nav-btn.admin-tab:hover { background: #b31412; }
 
         /* KONTENERY */
-        .box { background: #1e1e1e; padding: 25px; border-radius: 12px; border: 1px solid #333; box-shadow: 0 4px 20px rgba(0,0,0,0.5); max-width: 500px; margin: 0 auto; }
-        .page-content { background: #1e1e1e; padding: 25px; border-radius: 12px; border: 1px solid #333; }
-        
+        .box { background: #1e1e1e; padding: 25px; border-radius: 12px; border: 1px solid #333; box-shadow: 0 4px 20px rgba(0,0,0,0.5); max-width: 500px; margin: 0 auto 20px auto; }
+        .page-content { background: #1e1e1e; padding: 25px; border-radius: 12px; border: 1px solid #333; margin-bottom: 20px; }
+
         h2, h3 { text-align: center; color: #1a73e8; margin-top: 0; }
         label { font-size: 13px; color: #ccc; margin-top: 10px; display: block; }
-        input, button, select { width: 100%; padding: 12px; margin: 6px 0 12px 0; border-radius: 6px; border: 1px solid #444; background: #2a2a2a; color: #fff; font-size: 15px; }
-        
+        input, button, select, textarea { width: 100%; padding: 12px; margin: 6px 0 12px 0; border-radius: 6px; border: 1px solid #444; background: #2a2a2a; color: #fff; font-size: 15px; }
+
         button { background: #1a73e8; color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
         button:hover { background: #1557b0; }
         .btn-sec { background: #444; }
@@ -30,9 +32,10 @@
         .btn-danger:hover { background: #b31412; }
         .btn-success { background: #28a745; }
         .btn-success:hover { background: #218838; }
+        .btn-sm { padding: 6px 12px; margin: 0; font-size: 12px; width: auto; display: inline-block; }
         .btn-link { background: none; border: none; color: #1a73e8; text-decoration: underline; padding: 5px; margin: 0 0 10px 0; font-size: 13px; font-weight: normal; }
         .btn-link:hover { background: none; color: #64b5f6; }
-        
+
         .hidden { display: none !important; }
         .msg { font-size: 14px; text-align: center; margin-top: 10px; font-weight: bold; word-break: break-word; }
         .error { color: #ff6b6b; }
@@ -40,21 +43,28 @@
         .info { color: #ffd43b; }
 
         /* KARTY ZAWODNIKÓW */
-        .players-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; margin-top: 20px; }
+        .players-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; margin-top: 20px; }
         .player-card { background: #252525; border: 1px solid #3d3d3d; border-radius: 12px; padding: 20px; text-align: center; display: flex; flex-direction: column; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3); cursor: pointer; transition: transform 0.2s, border-color 0.2s; }
         .player-card:hover { transform: translateY(-4px); border-color: #1a73e8; }
-        .player-avatar { width: 90px; height: 90px; border-radius: 50%; object-fit: cover; border: 3px solid #1a73e8; background-color: #121212; margin-bottom: 12px; }
-        .player-name { font-size: 18px; font-weight: bold; color: #fff; margin-bottom: 6px; }
-        .player-info { font-size: 13px; color: #aaa; margin: 3px 0; }
+        .player-avatar { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid #1a73e8; background-color: #121212; margin-bottom: 12px; }
+        .player-name { font-size: 16px; font-weight: bold; color: #fff; margin-bottom: 6px; }
+        .player-info { font-size: 13px; color: #aaa; margin: 2px 0; }
 
-        /* LINKI W PROFILU */
+        /* TABELA LIGOWA */
+        .table-container { overflow-x: auto; margin-top: 15px; }
+        .league-table { width: 100%; border-collapse: collapse; text-align: center; font-size: 14px; }
+        .league-table th, .league-table td { padding: 10px 8px; border-bottom: 1px solid #333; }
+        .league-table th { background: #252525; color: #1a73e8; }
+        .league-table tr:hover { background: #222; }
+        .league-table td.player-cell { text-align: left; font-weight: bold; display: flex; align-items: center; gap: 8px; }
+        .table-avatar { width: 28px; height: 28px; border-radius: 50%; }
+
+        /* PROFIL & LINKI */
         .dart-link { display: inline-block; margin-top: 10px; padding: 10px 16px; background: #1a73e8; color: #fff; text-decoration: none; border-radius: 6px; font-size: 14px; font-weight: bold; text-align: center; }
         .dart-link:hover { background: #1557b0; }
         .dart-link.disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
-
-        /* PROFIL */
         .profile-header { text-align: center; margin-bottom: 20px; }
-        .profile-avatar-lg { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid #1a73e8; margin: 0 auto 15px auto; display: block; background-color: #2a2a2a; }
+        .profile-avatar-lg { width: 110px; height: 110px; border-radius: 50%; object-fit: cover; border: 4px solid #1a73e8; margin: 0 auto 15px auto; display: block; background-color: #2a2a2a; }
         .profile-details-table { width: 100%; border-collapse: collapse; margin: 15px 0; }
         .profile-details-table td { padding: 10px; border-bottom: 1px solid #333; }
         .profile-details-table td:first-child { color: #888; font-weight: bold; width: 40%; }
@@ -66,8 +76,14 @@
         .form-group { text-align: left; margin-bottom: 10px; }
         .modal-actions { display: flex; gap: 10px; margin-top: 15px; }
         .season-badge { background: #1557b0; color: #fff; font-size: 12px; padding: 4px 10px; border-radius: 12px; display: inline-block; margin-top: 5px; }
+        .badge-pending { background: #d97706; }
+        .badge-approved { background: #16a34a; }
 
-        /* SIATKA WYBORU AWATARÓW AI */
+        /* LISTY DLA ADMINA */
+        .admin-player-item { display: flex; align-items: center; justify-content: space-between; background: #252525; padding: 10px 15px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #333; }
+        .match-item { background: #252525; padding: 12px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #333; text-align: center; }
+
+        /* AWATARY AI GRID */
         .avatar-picker-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 10px 0 15px 0; max-height: 180px; overflow-y: auto; padding: 5px; background: #222; border-radius: 8px; border: 1px solid #333; }
         .avatar-option { width: 100%; aspect-ratio: 1/1; border-radius: 50%; object-fit: cover; border: 2px solid transparent; cursor: pointer; transition: transform 0.2s, border-color 0.2s; background: #181818; }
         .avatar-option:hover { transform: scale(1.08); border-color: #888; }
@@ -79,26 +95,59 @@
     <!-- PASEK NAWIGACYJNY -->
     <nav>
         <button id="tab-home" class="nav-btn active">🏠 Strona Główna</button>
-        <button id="tab-info" class="nav-btn">ℹ️ O Lidze</button>
-        <button id="tab-players" class="nav-btn">🎯 Zawodnicy (1. Sezon)</button>
+        <button id="tab-info" class="nav-btn">📊 Tabela & Regulamin</button>
+        <button id="tab-players" class="nav-btn">🎯 Zawodnicy</button>
         <button id="tab-account" class="nav-btn">🔑 Konto</button>
+        <button id="tab-admin" class="nav-btn admin-tab hidden">🛡️ Panel Admina</button>
     </nav>
 
     <!-- ZAKŁADKA 1: STRONA GŁÓWNA -->
     <div id="page-home" class="page-content">
         <h2>🎯 Akademicka Liga Darta</h2>
-        <p style="text-align: center; color: #ccc;">Witaj na oficjalnej stronie rozgrywek Akademickiej Ligi Darta!</p>
+        <div id="home-text-display" style="text-align: center; color: #ccc; line-height: 1.6; white-space: pre-line;">
+            Witaj na oficjalnej stronie rozgrywek Akademickiej Ligi Darta!
+        </div>
     </div>
 
-    <!-- ZAKŁADKA 2: INFORMACJE O LIDZE -->
+    <!-- ZAKŁADKA 2: TABELA LIGOWA I O LIDZE -->
     <div id="page-info" class="page-content hidden">
-        <h2>ℹ️ Informacje o Lidze</h2>
-        <p style="color: #ccc; text-align: center;">Tabela wyników i regulamin rozgrywek.</p>
+        <h2>🏆 Tabela 1. Sezonu</h2>
+        <div class="table-container">
+            <table class="league-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th style="text-align: left;">Zawodnik</th>
+                        <th>M</th>
+                        <th>W</th>
+                        <th>R</th>
+                        <th>P</th>
+                        <th>Legi</th>
+                        <th>+/-</th>
+                        <th>Śr. Legów</th>
+                        <th>PKT</th>
+                    </tr>
+                </thead>
+                <tbody id="league-table-body">
+                    <tr><td colspan="10" style="color: #888;">Wczytywanie tabeli...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h3 style="margin-top: 35px;">⚔️ Ostatnie mecze</h3>
+        <div id="matches-history-list">
+            <p style="text-align: center; color: #888;">Brak rozegranych meczów.</p>
+        </div>
+
+        <h3 style="margin-top: 35px;">ℹ️ O Lidze / Regulamin</h3>
+        <div id="info-text-display" style="color: #ccc; line-height: 1.6; white-space: pre-line; background: #222; padding: 15px; border-radius: 8px; border: 1px solid #333;">
+            Zasady punktacji: Wygrana = 3 pkt, Remis = 1 pkt, Porażka = 0 pkt.
+        </div>
     </div>
 
     <!-- ZAKŁADKA 3: ZAWODNICY -->
     <div id="page-players" class="page-content hidden">
-        <h2>🎯 Zawodnicy 1. Sezonu</h2>
+        <h2>🎯 Zatwierdzeni Zawodnicy 1. Sezonu</h2>
         <p style="text-align: center; color: #aaa; font-size: 14px;">Kliknij gracza, aby zobaczyć jego pełny profil</p>
         <div id="players-loading" class="msg info">Wczytywanie zawodników...</div>
         <div id="players-grid" class="players-grid"></div>
@@ -181,48 +230,88 @@
 
     </div>
 
-    <!-- MODAL 1: EDYCJA PROFILU Z WYBOREM AWATARA AI -->
+    <!-- ZAKŁADKA 5: PANEL ADMINISTRATORA -->
+    <div id="page-admin" class="page-content hidden">
+        <h2>🛡️ Panel Administratora</h2>
+
+        <!-- SEKCJA: DODAWANIE WYNIKU MECZU -->
+        <div class="box" style="max-width: 100%; margin-bottom: 25px;">
+            <h3>➕ Wprowadź wynik meczu</h3>
+            <div style="display: grid; grid-template-columns: 1fr 80px 80px 1fr; gap: 10px; align-items: center;">
+                <div>
+                    <label>Gracz 1 (Gospodarz):</label>
+                    <select id="admin-match-p1"></select>
+                </div>
+                <div>
+                    <label>Legi G1:</label>
+                    <input type="number" id="admin-match-score1" min="0" value="0">
+                </div>
+                <div>
+                    <label>Legi G2:</label>
+                    <input type="number" id="admin-match-score2" min="0" value="0">
+                </div>
+                <div>
+                    <label>Gracz 2 (Gość):</label>
+                    <select id="admin-match-p2"></select>
+                </div>
+            </div>
+            <button id="btn-save-match" type="button" class="btn-success" style="margin-top: 10px;">Zapisz wynik meczu</button>
+            <div id="admin-match-msg" class="msg"></div>
+        </div>
+
+        <!-- SEKCJA: WERYFIKACJA ZAWODNIKÓW -->
+        <div class="box" style="max-width: 100%; margin-bottom: 25px;">
+            <h3>👥 Zarządzanie uczestnikami 1. Sezonu</h3>
+            <div id="admin-players-list">Wczytywanie listy...</div>
+        </div>
+
+        <!-- SEKCJA: EDYCJA TREŚCI STRONY -->
+        <div class="box" style="max-width: 100%;">
+            <h3>📝 Edycja opisu na stronie</h3>
+            <label for="admin-text-home">Tekst na Stronie Główniej:</label>
+            <textarea id="admin-text-home" rows="3"></textarea>
+            
+            <label for="admin-text-info">Tekst w zakładce O Lidze / Regulamin:</label>
+            <textarea id="admin-text-info" rows="4"></textarea>
+            
+            <button id="btn-save-content" type="button" class="btn-success" style="margin-top: 10px;">Zapisz treści</button>
+            <div id="admin-content-msg" class="msg"></div>
+        </div>
+    </div>
+
+    <!-- MODAL 1: EDYCJA PROFILU -->
     <div id="modal-edit-profile" class="modal-overlay hidden">
         <div class="modal-content">
             <h3>Edycja Profilu</h3>
-            
             <div class="form-group">
                 <label>Wybierz awatar AI:</label>
                 <div id="avatar-picker" class="avatar-picker-grid"></div>
             </div>
-
             <div class="form-group">
                 <label for="edit-photo-url">Lub wklej własny link URL do zdjęcia:</label>
-                <input type="url" id="edit-photo-url" placeholder="https://example.com/zdjecie.jpg">
+                <input type="url" id="edit-photo-url">
             </div>
-
             <div class="form-group">
                 <label for="edit-firstname">Imię *:</label>
                 <input type="text" id="edit-firstname">
             </div>
-
             <div class="form-group">
                 <label for="edit-lastname">Nazwisko *:</label>
                 <input type="text" id="edit-lastname">
             </div>
-
             <div class="form-group">
                 <label for="edit-birthdate">Data urodzenia:</label>
                 <input type="date" id="edit-birthdate">
             </div>
-
             <div class="form-group">
                 <label for="edit-city">Miejscowość:</label>
                 <input type="text" id="edit-city">
             </div>
-
             <div class="form-group">
                 <label for="edit-dartcounter">Link do profilu DartCounter:</label>
                 <input type="url" id="edit-dartcounter">
             </div>
-
             <div id="edit-msg" class="msg"></div>
-
             <div class="modal-actions">
                 <button id="btn-save-profile" type="button">Zapisz zmiany</button>
                 <button id="btn-cancel-edit" type="button" class="btn-sec">Anuluj</button>
@@ -230,50 +319,37 @@
         </div>
     </div>
 
-    <!-- MODAL 2: PODGLĄD INNEGO ZAWODNIKA -->
+    <!-- MODAL 2: PODGLĄD ZAWODNIKA -->
     <div id="modal-view-player" class="modal-overlay hidden">
-        <div class="modal-content" style="max-width: 500px;">
+        <div class="modal-content">
             <div class="profile-header">
                 <img id="view-player-photo" class="profile-avatar-lg" src="" alt="Avatar">
                 <h2 id="view-player-fullname" style="margin-bottom: 5px;">-</h2>
-                <div class="season-badge">Zawodnik 1. Sezonu</div>
+                <div class="season-badge">Zatwierdzony Zawodnik 1. Sezonu</div>
             </div>
-
             <table class="profile-details-table">
                 <tr><td>Wiek:</td><td><span id="view-player-age">-</span> lat</td></tr>
                 <tr><td>Miejscowość:</td><td><a id="view-player-city-link" href="#" target="_blank" rel="noopener noreferrer">-</a></td></tr>
             </table>
-
             <div style="margin: 20px 0; text-align: center;">
                 <a id="view-player-dartcounter-btn" href="#" target="_blank" rel="noopener noreferrer" class="dart-link">Otwórz profil w DartCounter</a>
             </div>
-
             <button id="btn-close-view-player" type="button" class="btn-sec">Zamknij</button>
         </div>
     </div>
 
-    <!-- SKRYPT FIREBASE -->
+    <!-- SKRYPTY FIREBASE I LOGIKA -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { 
-            getAuth, 
-            signInWithEmailAndPassword, 
-            createUserWithEmailAndPassword, 
-            sendEmailVerification,
-            sendPasswordResetEmail,
-            onAuthStateChanged, 
-            signOut 
+            getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, 
+            sendEmailVerification, sendPasswordResetEmail, onAuthStateChanged, signOut 
         } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-
         import { 
-            getDatabase, 
-            ref as dbRef, 
-            set, 
-            get, 
-            update 
+            getDatabase, ref as dbRef, set, get, update, push 
         } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-        // Konfiguracja Firebase
+        // CONFIG FIREBASE
         const firebaseConfig = {
             apiKey: "AIzaSyBhCLFBrAqMBqKjPOIc5b0i2EEtZ_WP4M0",
             authDomain: "akademicka-liga-darta.firebaseapp.com",
@@ -289,10 +365,9 @@
         const auth = getAuth(app);
         const db = getDatabase(app);
 
-        let currentUserProfileData = null;
-        let allPlayersData = {};
+        // TUTAJ WPISZ TWÓJ E-MAIL ADMINA:
+        const ADMIN_EMAIL = "twoj_email@domena.com"; 
 
-        // Baza darmowych, gotowych awatarów generowanych dynamicznie (Dicebear API)
         const PRESET_AVATARS = [
             "https://api.dicebear.com/7.x/bottts/svg?seed=Dart1",
             "https://api.dicebear.com/7.x/bottts/svg?seed=Dart2",
@@ -303,38 +378,38 @@
             "https://api.dicebear.com/7.x/avataaars/svg?seed=Mark",
             "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah",
             "https://api.dicebear.com/7.x/micah/svg?seed=Alex",
-            "https://api.dicebear.com/7.x/micah/svg?seed=Taylor",
-            "https://api.dicebear.com/7.x/micah/svg?seed=Jordan",
-            "https://api.dicebear.com/7.x/micah/svg?seed=Morgan"
+            "https://api.dicebear.com/7.x/micah/svg?seed=Taylor"
         ];
 
+        let currentUserProfileData = null;
+        let allUsersData = {};
+        let allMatchesData = [];
+
         // --- NAWIGACJA ZAKŁADEK ---
-        const tabHome = document.getElementById('tab-home');
-        const tabInfo = document.getElementById('tab-info');
-        const tabPlayers = document.getElementById('tab-players');
-        const tabAccount = document.getElementById('tab-account');
+        const tabs = {
+            home: { btn: document.getElementById('tab-home'), page: document.getElementById('page-home') },
+            info: { btn: document.getElementById('tab-info'), page: document.getElementById('page-info') },
+            players: { btn: document.getElementById('tab-players'), page: document.getElementById('page-players') },
+            account: { btn: document.getElementById('tab-account'), page: document.getElementById('page-account') },
+            admin: { btn: document.getElementById('tab-admin'), page: document.getElementById('page-admin') }
+        };
 
-        const pageHome = document.getElementById('page-home');
-        const pageInfo = document.getElementById('page-info');
-        const pagePlayers = document.getElementById('page-players');
-        const pageAccount = document.getElementById('page-account');
+        function switchTab(activeKey) {
+            Object.keys(tabs).forEach(key => {
+                tabs[key].btn.classList.remove('active');
+                tabs[key].page.classList.add('hidden');
+            });
+            tabs[activeKey].btn.classList.add('active');
+            tabs[activeKey].page.classList.remove('hidden');
 
-        function switchTab(activeBtn, activePage) {
-            [tabHome, tabInfo, tabPlayers, tabAccount].forEach(btn => btn.classList.remove('active'));
-            [pageHome, pageInfo, pagePlayers, pageAccount].forEach(page => page.classList.add('hidden'));
-
-            activeBtn.classList.add('active');
-            activePage.classList.remove('hidden');
-
-            if(activePage === pagePlayers) {
-                loadPlayersList();
-            }
+            if (activeKey === 'players') loadApprovedPlayers();
+            if (activeKey === 'info') loadTableAndMatches();
+            if (activeKey === 'admin') loadAdminPanelData();
         }
 
-        tabHome.onclick = () => switchTab(tabHome, pageHome);
-        tabInfo.onclick = () => switchTab(tabInfo, pageInfo);
-        tabPlayers.onclick = () => switchTab(tabPlayers, pagePlayers);
-        tabAccount.onclick = () => switchTab(tabAccount, pageAccount);
+        Object.keys(tabs).forEach(key => {
+            tabs[key].btn.onclick = () => switchTab(key);
+        });
 
         function calculateAge(birthDateString) {
             if (!birthDateString) return "-";
@@ -342,159 +417,129 @@
             const birthDate = new Date(birthDateString);
             let age = today.getFullYear() - birthDate.getFullYear();
             const monthDiff = today.getMonth() - birthDate.getMonth();
-            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-                age--;
-            }
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) age--;
             return age >= 0 ? age : "-";
         }
 
-        // --- WIDOKI KONTA ---
+        // --- AUTH OBSŁUGA ---
         const viewLogin = document.getElementById('view-login');
         const viewRegister = document.getElementById('view-register');
         const viewReset = document.getElementById('view-reset');
         const viewApp = document.getElementById('view-app');
 
-        const loginMsg = document.getElementById('login-msg');
-        const regMsg = document.getElementById('reg-msg');
-        const resetMsg = document.getElementById('reset-msg');
-
-        document.getElementById('btn-go-register').onclick = () => {
-            viewLogin.classList.add('hidden');
-            viewRegister.classList.remove('hidden');
-        };
-
-        document.getElementById('btn-go-reset').onclick = () => {
-            viewLogin.classList.add('hidden');
-            viewReset.classList.remove('hidden');
-        };
-
-        const showLoginView = () => {
-            viewRegister.classList.add('hidden');
-            viewReset.classList.add('hidden');
-            viewLogin.classList.remove('hidden');
-        };
-
-        document.getElementById('btn-go-login-from-reg').onclick = showLoginView;
-        document.getElementById('btn-go-login-from-reset').onclick = showLoginView;
-
-        // --- OBSŁUGA AUTH ---
         onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                if (user.emailVerified) {
-                    viewLogin.classList.add('hidden');
-                    viewRegister.classList.add('hidden');
-                    viewReset.classList.add('hidden');
-                    viewApp.classList.remove('hidden');
-                    await loadUserProfile(user.uid);
+            if (user && user.emailVerified) {
+                viewLogin.classList.add('hidden');
+                viewRegister.classList.add('hidden');
+                viewReset.classList.add('hidden');
+                viewApp.classList.remove('hidden');
+                
+                await loadUserProfile(user.uid);
+
+                if (user.email === ADMIN_EMAIL) {
+                    tabs.admin.btn.classList.remove('hidden');
                 } else {
-                    viewApp.classList.add('hidden');
-                    showLoginView();
+                    tabs.admin.btn.classList.add('hidden');
                 }
             } else {
                 currentUserProfileData = null;
                 viewApp.classList.add('hidden');
-                showLoginView();
+                tabs.admin.btn.classList.add('hidden');
+                viewLogin.classList.remove('hidden');
             }
         });
 
+        document.getElementById('btn-go-register').onclick = () => { viewLogin.classList.add('hidden'); viewRegister.classList.remove('hidden'); };
+        document.getElementById('btn-go-reset').onclick = () => { viewLogin.classList.add('hidden'); viewReset.classList.remove('hidden'); };
+        document.getElementById('btn-go-login-from-reg').onclick = () => { viewRegister.classList.add('hidden'); viewLogin.classList.remove('hidden'); };
+        document.getElementById('btn-go-login-from-reset').onclick = () => { viewReset.classList.add('hidden'); viewLogin.classList.remove('hidden'); };
         document.getElementById('btn-logout').onclick = () => signOut(auth);
 
-        // --- REJESTRACJA ---
+        // LOGOWANIE I REJESTRACJA
+        document.getElementById('btn-login').onclick = async () => {
+            try {
+                const userCred = await signInWithEmailAndPassword(auth, document.getElementById('login-email').value.trim(), document.getElementById('login-pass').value);
+                if (!userCred.user.emailVerified) {
+                    await signOut(auth);
+                    document.getElementById('login-msg').className = "msg error";
+                    document.getElementById('login-msg').innerText = "Aktywuj konto klikając link w mailu!";
+                }
+            } catch (err) {
+                document.getElementById('login-msg').className = "msg error";
+                document.getElementById('login-msg').innerText = "Błędny email lub hasło.";
+            }
+        };
+
         document.getElementById('btn-register').onclick = async () => {
             const email = document.getElementById('reg-email').value.trim();
             const pass1 = document.getElementById('reg-pass').value;
             const pass2 = document.getElementById('reg-pass2').value;
-            const firstName = document.getElementById('reg-firstname').value.trim();
-            const lastName = document.getElementById('reg-lastname').value.trim();
-            const birthDate = document.getElementById('reg-birthdate').value;
-            const city = document.getElementById('reg-city').value.trim();
-            const dartCounter = document.getElementById('reg-dartcounter').value.trim();
+            const fn = document.getElementById('reg-firstname').value.trim();
+            const ln = document.getElementById('reg-lastname').value.trim();
 
-            if (!email || !pass1 || !firstName || !lastName || pass1 !== pass2) {
-                regMsg.className = "msg error";
-                regMsg.innerText = "Sprawdź poprawność wszystkich danych!";
+            if (!email || !pass1 || !fn || !ln || pass1 !== pass2) {
+                document.getElementById('reg-msg').className = "msg error";
+                document.getElementById('reg-msg').innerText = "Sprawdź poprawność danych!";
                 return;
             }
 
             try {
-                const userCredential = await createUserWithEmailAndPassword(auth, email, pass1);
-                const user = userCredential.user;
-
-                // Przypisanie losowego awatara domyślnego
+                const cred = await createUserWithEmailAndPassword(auth, email, pass1);
                 const randomAvatar = PRESET_AVATARS[Math.floor(Math.random() * PRESET_AVATARS.length)];
-
-                await set(dbRef(db, 'users/' + user.uid), {
-                    firstName, lastName, birthDate: birthDate || "", city: city || "",
-                    dartCounter: dartCounter || "", photoUrl: randomAvatar, email, signedUpForSeason1: false
+                await set(dbRef(db, 'users/' + cred.user.uid), {
+                    firstName: fn, lastName: ln, birthDate: document.getElementById('reg-birthdate').value || "",
+                    city: document.getElementById('reg-city').value.trim() || "", dartCounter: document.getElementById('reg-dartcounter').value.trim() || "",
+                    photoUrl: randomAvatar, email: email, signedUpForSeason1: false, statusSeason1: "none"
                 });
-
-                await sendEmailVerification(user);
-                alert("Konto utworzone! Potwierdź e-mail z wysłanego linku.");
+                await sendEmailVerification(cred.user);
+                alert("Konto utworzone! Potwierdź e-mail linkiem aktywacyjnym.");
                 await signOut(auth);
             } catch (err) {
-                regMsg.className = "msg error";
-                regMsg.innerText = err.message;
+                document.getElementById('reg-msg').className = "msg error";
+                document.getElementById('reg-msg').innerText = err.message;
             }
         };
 
-        // --- LOGOWANIE ---
-        document.getElementById('btn-login').onclick = async () => {
-            const email = document.getElementById('login-email').value.trim();
-            const pass = document.getElementById('login-pass').value;
-
-            try {
-                const userCredential = await signInWithEmailAndPassword(auth, email, pass);
-                if (!userCredential.user.emailVerified) {
-                    await signOut(auth);
-                    loginMsg.className = "msg error";
-                    loginMsg.innerText = "Aktywuj konto klikając link w mailu!";
-                }
-            } catch (err) {
-                loginMsg.className = "msg error";
-                loginMsg.innerText = "Błędne dane logowania.";
-            }
-        };
-
-        // --- LOAD PROFIL ---
+        // LOAD PROFIL
         async function loadUserProfile(uid) {
             try {
-                const snapshot = await get(dbRef(db, 'users/' + uid));
-                if (snapshot.exists()) {
-                    const data = snapshot.val();
+                const snap = await get(dbRef(db, 'users/' + uid));
+                if (snap.exists()) {
+                    const data = snap.val();
                     currentUserProfileData = data;
 
-                    document.getElementById('prof-fullname').innerText = `${data.firstName || ''} ${data.lastName || ''}`.trim() || "Zawodnik";
+                    document.getElementById('prof-fullname').innerText = `${data.firstName || ''} ${data.lastName || ''}`;
                     document.getElementById('prof-email-display').innerText = data.email || "";
-                    document.getElementById('prof-photo').src = (data.photoUrl && data.photoUrl.trim() !== "") ? data.photoUrl : PRESET_AVATARS[0];
+                    document.getElementById('prof-photo').src = data.photoUrl || PRESET_AVATARS[0];
                     document.getElementById('prof-age').innerText = calculateAge(data.birthDate);
 
                     const cityLink = document.getElementById('prof-city-link');
-                    if (data.city && data.city.trim() !== "") {
+                    if (data.city) {
                         cityLink.innerText = data.city;
                         cityLink.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(data.city)}`;
                         cityLink.style.pointerEvents = "auto";
                     } else {
-                        cityLink.innerText = "Brak danych";
-                        cityLink.removeAttribute('href');
+                        cityLink.innerText = "Brak";
                         cityLink.style.pointerEvents = "none";
                     }
 
                     const dartBtn = document.getElementById('prof-dartcounter-btn');
-                    if (data.dartCounter && data.dartCounter.trim() !== "") {
+                    if (data.dartCounter) {
                         dartBtn.href = data.dartCounter.startsWith('http') ? data.dartCounter : `https://${data.dartCounter}`;
-                        dartBtn.style.pointerEvents = "auto";
                         dartBtn.classList.remove('disabled');
                     } else {
-                        dartBtn.href = "#";
-                        dartBtn.style.pointerEvents = "none";
                         dartBtn.classList.add('disabled');
                     }
 
                     const btnToggleSeason = document.getElementById('btn-toggle-season');
                     const badgeContainer = document.getElementById('prof-status-badge');
 
-                    if (data.signedUpForSeason1 === true || data.signedUpForSeason1 === "true") {
-                        badgeContainer.innerHTML = '<span class="season-badge">Zapisany na 1. Sezon</span>';
+                    if (data.signedUpForSeason1) {
+                        if (data.statusSeason1 === "approved") {
+                            badgeContainer.innerHTML = '<span class="season-badge badge-approved">Zatwierdzony w 1. Sezonie</span>';
+                        } else {
+                            badgeContainer.innerHTML = '<span class="season-badge badge-pending">Zgłoszono (Oczekuje na weryfikację)</span>';
+                        }
                         btnToggleSeason.innerText = "Wypisz się z 1. Sezonu";
                         btnToggleSeason.className = "btn-danger";
                     } else {
@@ -503,199 +548,330 @@
                         btnToggleSeason.className = "btn-success";
                     }
                 }
-            } catch (err) {
-                console.error("Błąd profilu:", err);
-            }
+            } catch (err) { console.error(err); }
         }
 
-        // --- ZAPIS/WYPIS Z SEZONU ---
         document.getElementById('btn-toggle-season').onclick = async () => {
             const user = auth.currentUser;
             if (!user || !currentUserProfileData) return;
-
-            const isSignedUp = currentUserProfileData.signedUpForSeason1 === true || currentUserProfileData.signedUpForSeason1 === "true";
-            
+            const isSigned = !!currentUserProfileData.signedUpForSeason1;
             try {
                 await update(dbRef(db, 'users/' + user.uid), {
-                    signedUpForSeason1: !isSignedUp
+                    signedUpForSeason1: !isSigned,
+                    statusSeason1: !isSigned ? "pending" : "none"
                 });
                 await loadUserProfile(user.uid);
-            } catch (err) {
-                alert("Błąd: " + err.message);
-            }
+            } catch (err) { alert(err.message); }
         };
 
-        // --- GENEROWANIE SIATKI WYBORU AWATARÓW AI ---
-        function renderAvatarPicker(currentUrl) {
-            const pickerContainer = document.getElementById('avatar-picker');
-            pickerContainer.innerHTML = "";
-
-            PRESET_AVATARS.forEach(url => {
-                const img = document.createElement('img');
-                img.src = url;
-                img.className = 'avatar-option' + (currentUrl === url ? ' selected' : '');
-                img.onclick = () => {
-                    document.querySelectorAll('.avatar-option').forEach(el => el.classList.remove('selected'));
-                    img.classList.add('selected');
-                    document.getElementById('edit-photo-url').value = url;
-                };
-                pickerContainer.appendChild(img);
-            });
-        }
-
-        // --- EDYCJA PROFILU ---
-        document.getElementById('btn-edit-profile').onclick = () => {
-            if (!currentUserProfileData) return;
-            const photoUrl = currentUserProfileData.photoUrl || PRESET_AVATARS[0];
-            
-            document.getElementById('edit-photo-url').value = photoUrl;
-            document.getElementById('edit-firstname').value = currentUserProfileData.firstName || '';
-            document.getElementById('edit-lastname').value = currentUserProfileData.lastName || '';
-            document.getElementById('edit-birthdate').value = currentUserProfileData.birthDate || '';
-            document.getElementById('edit-city').value = currentUserProfileData.city || '';
-            document.getElementById('edit-dartcounter').value = currentUserProfileData.dartCounter || '';
-            
-            renderAvatarPicker(photoUrl);
-            document.getElementById('modal-edit-profile').classList.remove('hidden');
-        };
-
-        document.getElementById('btn-cancel-edit').onclick = () => {
-            document.getElementById('modal-edit-profile').classList.add('hidden');
-        };
-
-        document.getElementById('btn-save-profile').onclick = async () => {
-            const user = auth.currentUser;
-            if (!user) return;
-
-            const editMsg = document.getElementById('edit-msg');
-            const photoUrl = document.getElementById('edit-photo-url').value.trim();
-            const firstName = document.getElementById('edit-firstname').value.trim();
-            const lastName = document.getElementById('edit-lastname').value.trim();
-
-            if (!firstName || !lastName) {
-                editMsg.className = "msg error";
-                editMsg.innerText = "Imię i nazwisko są wymagane!";
-                return;
-            }
-
-            editMsg.className = "msg info";
-            editMsg.innerText = "Zapisywanie...";
+        // --- ZAWODNICY (PUBLICZNE) ---
+        async function loadApprovedPlayers() {
+            const grid = document.getElementById('players-grid');
+            const loading = document.getElementById('players-loading');
+            loading.classList.remove('hidden');
+            grid.innerHTML = "";
 
             try {
-                const updatedData = {
-                    photoUrl: photoUrl,
-                    firstName: firstName,
-                    lastName: lastName,
-                    birthDate: document.getElementById('edit-birthdate').value,
-                    city: document.getElementById('edit-city').value.trim(),
-                    dartCounter: document.getElementById('edit-dartcounter').value.trim()
-                };
-
-                await update(dbRef(db, 'users/' + user.uid), updatedData);
-                document.getElementById('modal-edit-profile').classList.add('hidden');
-                await loadUserProfile(user.uid);
-
-            } catch (err) {
-                editMsg.className = "msg error";
-                editMsg.innerText = "Błąd zapisu: " + err.message;
-            }
-        };
-
-        // --- WCZYTYWANIE LISTY ZAWODNIKÓW ---
-        async function loadPlayersList() {
-            const playersGrid = document.getElementById('players-grid');
-            const loadingMsg = document.getElementById('players-loading');
-            
-            if (loadingMsg) loadingMsg.classList.remove('hidden');
-            playersGrid.innerHTML = "";
-
-            try {
-                const snapshot = await get(dbRef(db, 'users'));
-                if (loadingMsg) loadingMsg.classList.add('hidden');
-
-                if (snapshot.exists()) {
-                    const users = snapshot.val();
-                    let seasonPlayerCount = 0;
-                    allPlayersData = {};
+                const snap = await get(dbRef(db, 'users'));
+                loading.classList.add('hidden');
+                if (snap.exists()) {
+                    const users = snap.val();
+                    allUsersData = users;
+                    let count = 0;
 
                     Object.keys(users).forEach(uid => {
-                        const player = users[uid];
-                        const isSignedUp = player.signedUpForSeason1 === true || player.signedUpForSeason1 === "true";
-
-                        if (isSignedUp) {
-                            seasonPlayerCount++;
-                            allPlayersData[uid] = player;
-
-                            const firstName = player.firstName || "Zawodnik";
-                            const lastName = player.lastName || "";
-                            const photo = (player.photoUrl && player.photoUrl.trim() !== "") ? player.photoUrl : PRESET_AVATARS[0];
-                            const ageStr = calculateAge(player.birthDate);
-                            const cityStr = player.city ? `📍 ${player.city}` : "📍 Nie podano";
-
+                        const p = users[uid];
+                        if (p.signedUpForSeason1 && p.statusSeason1 === "approved") {
+                            count++;
                             const card = document.createElement('div');
                             card.className = 'player-card';
                             card.innerHTML = `
-                                <img class="player-avatar" src="${photo}" alt="${firstName}">
-                                <div class="player-name">${firstName} ${lastName}</div>
-                                <div class="player-info">🎂 Wiek: ${ageStr} lat</div>
-                                <div class="player-info">${cityStr}</div>
+                                <img class="player-avatar" src="${p.photoUrl || PRESET_AVATARS[0]}">
+                                <div class="player-name">${p.firstName || ''} ${p.lastName || ''}</div>
+                                <div class="player-info">🎂 Wiek: ${calculateAge(p.birthDate)} lat</div>
+                                <div class="player-info">📍 ${p.city || 'Nie podano'}</div>
                             `;
-                            
-                            card.addEventListener('click', () => openPlayerModal(uid));
-                            playersGrid.appendChild(card);
+                            card.onclick = () => openPlayerModal(p);
+                            grid.appendChild(card);
                         }
                     });
 
-                    if (seasonPlayerCount === 0) {
-                        playersGrid.innerHTML = "<p style='grid-column: 1/-1; text-align: center; color: #888;'>Brak zapisanych zawodników na 1. Sezon.</p>";
-                    }
-                } else {
-                    playersGrid.innerHTML = "<p style='grid-column: 1/-1; text-align: center; color: #888;'>Brak danych w bazie użytkowników.</p>";
+                    if (count === 0) grid.innerHTML = "<p style='grid-column: 1/-1; text-align: center; color: #888;'>Brak zatwierdzonych zawodników w 1. Sezonie.</p>";
                 }
             } catch (err) {
-                console.error("Błąd pobierania graczy:", err);
-                if (loadingMsg) loadingMsg.classList.add('hidden');
-                playersGrid.innerHTML = `<p style='grid-column: 1/-1; text-align: center; color: #ff6b6b;'>Błąd wczytywania danych: ${err.message}</p>`;
+                loading.classList.add('hidden');
+                grid.innerHTML = "<p style='color:red;'>Błąd wczytywania danych.</p>";
             }
         }
 
-        // --- PODGLĄD INNEGO GRACZA ---
-        function openPlayerModal(uid) {
-            const player = allPlayersData[uid];
-            if (!player) return;
-
-            document.getElementById('view-player-fullname').innerText = `${player.firstName || ''} ${player.lastName || ''}`.trim();
-            document.getElementById('view-player-photo').src = (player.photoUrl && player.photoUrl.trim() !== "") ? player.photoUrl : PRESET_AVATARS[0];
+        function openPlayerModal(player) {
+            document.getElementById('view-player-fullname').innerText = `${player.firstName || ''} ${player.lastName || ''}`;
+            document.getElementById('view-player-photo').src = player.photoUrl || PRESET_AVATARS[0];
             document.getElementById('view-player-age').innerText = calculateAge(player.birthDate);
-
+            
             const cityLink = document.getElementById('view-player-city-link');
-            if (player.city && player.city.trim() !== "") {
+            if (player.city) {
                 cityLink.innerText = player.city;
                 cityLink.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(player.city)}`;
                 cityLink.style.pointerEvents = "auto";
-            } else {
-                cityLink.innerText = "Brak danych";
-                cityLink.removeAttribute('href');
-                cityLink.style.pointerEvents = "none";
-            }
+            } else { cityLink.innerText = "Brak"; cityLink.style.pointerEvents = "none"; }
 
             const dartBtn = document.getElementById('view-player-dartcounter-btn');
-            if (player.dartCounter && player.dartCounter.trim() !== "") {
+            if (player.dartCounter) {
                 dartBtn.href = player.dartCounter.startsWith('http') ? player.dartCounter : `https://${player.dartCounter}`;
-                dartBtn.style.pointerEvents = "auto";
                 dartBtn.classList.remove('disabled');
-            } else {
-                dartBtn.href = "#";
-                dartBtn.style.pointerEvents = "none";
-                dartBtn.classList.add('disabled');
-            }
+            } else { dartBtn.classList.add('disabled'); }
 
             document.getElementById('modal-view-player').classList.remove('hidden');
         }
+        document.getElementById('btn-close-view-player').onclick = () => document.getElementById('modal-view-player').classList.add('hidden');
 
-        document.getElementById('btn-close-view-player').onclick = () => {
-            document.getElementById('modal-view-player').classList.add('hidden');
+        // --- TABELA I MECZE ---
+        async function loadTableAndMatches() {
+            const tableBody = document.getElementById('league-table-body');
+            const historyList = document.getElementById('matches-history-list');
+
+            try {
+                const usersSnap = await get(dbRef(db, 'users'));
+                const matchesSnap = await get(dbRef(db, 'matches'));
+                
+                if (!usersSnap.exists()) return;
+
+                const users = usersSnap.val();
+                const matches = matchesSnap.exists() ? Object.values(matchesSnap.val()) : [];
+                allMatchesData = matches;
+
+                // Inicjalizacja statystyk dla zatwierdzonych zawodników
+                let stats = {};
+                Object.keys(users).forEach(uid => {
+                    const u = users[uid];
+                    if (u.signedUpForSeason1 && u.statusSeason1 === "approved") {
+                        stats[uid] = {
+                            uid, name: `${u.firstName || ''} ${u.lastName || ''}`, photo: u.photoUrl || PRESET_AVATARS[0],
+                            matches: 0, wins: 0, draws: 0, losses: 0, legsWon: 0, legsLost: 0, points: 0
+                        };
+                    }
+                });
+
+                // Obliczanie statystyk z rozegranych meczów
+                matches.forEach(m => {
+                    if (stats[m.p1Uid] && stats[m.p2Uid]) {
+                        const s1 = parseInt(m.s1), s2 = parseInt(m.s2);
+                        
+                        stats[m.p1Uid].matches++;
+                        stats[m.p2Uid].matches++;
+                        stats[m.p1Uid].legsWon += s1;
+                        stats[m.p1Uid].legsLost += s2;
+                        stats[m.p2Uid].legsWon += s2;
+                        stats[m.p2Uid].legsLost += s1;
+
+                        if (s1 > s2) {
+                            stats[m.p1Uid].wins++; stats[m.p1Uid].points += 3;
+                            stats[m.p2Uid].losses++;
+                        } else if (s2 > s1) {
+                            stats[m.p2Uid].wins++; stats[m.p2Uid].points += 3;
+                            stats[m.p1Uid].losses++;
+                        } else {
+                            stats[m.p1Uid].draws++; stats[m.p1Uid].points += 1;
+                            stats[m.p2Uid].draws++; stats[m.p2Uid].points += 1;
+                        }
+                    }
+                });
+
+                // Sortowanie: Punkty -> Różnica legów -> Wygrane legi
+                const sortedStats = Object.values(stats).sort((a, b) => {
+                    if (b.points !== a.points) return b.points - a.points;
+                    const diffA = a.legsWon - a.legsLost;
+                    const diffB = b.legsWon - b.legsLost;
+                    if (diffB !== diffA) return diffB - diffA;
+                    return b.legsWon - a.legsWon;
+                });
+
+                // Generowanie HTML Tabeli
+                tableBody.innerHTML = "";
+                if (sortedStats.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="10" style="color: #888;">Brak zatwierdzonych graczy w tabeli.</td></tr>';
+                } else {
+                    sortedStats.forEach((s, idx) => {
+                        const diff = s.legsWon - s.legsLost;
+                        const avgLegs = s.matches > 0 ? (s.legsWon / s.matches).toFixed(2) : "0.00";
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td><b>${idx + 1}</b></td>
+                            <td class="player-cell"><img src="${s.photo}" class="table-avatar"> ${s.name}</td>
+                            <td>${s.matches}</td>
+                            <td>${s.wins}</td>
+                            <td>${s.draws}</td>
+                            <td>${s.losses}</td>
+                            <td>${s.legsWon}:${s.legsLost}</td>
+                            <td style="color:${diff > 0 ? '#51cf66' : (diff < 0 ? '#ff6b6b' : '#ccc')}">${diff > 0 ? '+' + diff : diff}</td>
+                            <td>${avgLegs}</td>
+                            <td style="color:#1a73e8; font-weight:bold;">${s.points}</td>
+                        `;
+                        tableBody.appendChild(tr);
+                    });
+                }
+
+                // Generowanie Historii Meczów
+                historyList.innerHTML = "";
+                if (matches.length === 0) {
+                    historyList.innerHTML = '<p style="text-align: center; color: #888;">Brak rozegranych meczów.</p>';
+                } else {
+                    matches.slice().reverse().forEach(m => {
+                        const item = document.createElement('div');
+                        item.className = 'match-item';
+                        item.innerHTML = `
+                            <b>${m.p1Name}</b> <span style="color:#1a73e8; font-size:18px; margin: 0 10px;">${m.s1} : ${m.s2}</span> <b>${m.p2Name}</b>
+                            <div style="font-size:11px; color:#888; margin-top:4px;">${m.date || ''}</div>
+                        `;
+                        historyList.appendChild(item);
+                    });
+                }
+
+            } catch (err) { console.error(err); }
+        }
+
+        // --- PANEL ADMINISTRATORA LOGIKA ---
+        async function loadAdminPanelData() {
+            const listContainer = document.getElementById('admin-players-list');
+            const selectP1 = document.getElementById('admin-match-p1');
+            const selectP2 = document.getElementById('admin-match-p2');
+
+            try {
+                const snap = await get(dbRef(db, 'users'));
+                const contentSnap = await get(dbRef(db, 'siteContent'));
+
+                if (contentSnap.exists()) {
+                    const c = contentSnap.val();
+                    document.getElementById('admin-text-home').value = c.homeText || "";
+                    document.getElementById('admin-text-info').value = c.infoText || "";
+                }
+
+                if (snap.exists()) {
+                    const users = snap.val();
+                    listContainer.innerHTML = "";
+                    selectP1.innerHTML = "";
+                    selectP2.innerHTML = "";
+
+                    Object.keys(users).forEach(uid => {
+                        const u = users[uid];
+                        if (u.signedUpForSeason1) {
+                            const isApproved = u.statusSeason1 === "approved";
+
+                            // Dodanie do listy weryfikacyjnej
+                            const item = document.createElement('div');
+                            item.className = 'admin-player-item';
+                            item.innerHTML = `
+                                <div>
+                                    <b>${u.firstName || ''} ${u.lastName || ''}</b> (${u.email})
+                                    <br><span style="font-size:12px; color:${isApproved ? '#51cf66' : '#ffd43b'}">Status: ${isApproved ? 'Zatwierdzony' : 'Oczekuje'}</span>
+                                </div>
+                                <div>
+                                    ${!isApproved ? `<button class="btn-sm btn-success" id="approve-${uid}">Zatwierdź</button>` : ''}
+                                    <button class="btn-sm btn-danger" id="reject-${uid}">${isApproved ? 'Cofnij' : 'Odrzuć'}</button>
+                                </div>
+                            `;
+                            listContainer.appendChild(item);
+
+                            setTimeout(() => {
+                                const btnApp = document.getElementById(`approve-${uid}`);
+                                const btnRej = document.getElementById(`reject-${uid}`);
+                                if (btnApp) btnApp.onclick = () => setPlayerStatus(uid, "approved");
+                                if (btnRej) btnRej.onclick = () => setPlayerStatus(uid, "none", false);
+                            }, 50);
+
+                            // Opcje dla zatwierdzonych graczy do meczu
+                            if (isApproved) {
+                                const opt1 = document.createElement('option');
+                                opt1.value = uid; opt1.innerText = `${u.firstName || ''} ${u.lastName || ''}`;
+                                const opt2 = opt1.cloneNode(true);
+                                selectP1.appendChild(opt1);
+                                selectP2.appendChild(opt2);
+                            }
+                        }
+                    });
+
+                    if (listContainer.innerHTML === "") listContainer.innerHTML = "<p style='color:#888;'>Brak zgłoszeń do 1. Sezonu.</p>";
+                }
+            } catch (err) { console.error(err); }
+        }
+
+        async function setPlayerStatus(uid, status, isSigned = true) {
+            try {
+                await update(dbRef(db, 'users/' + uid), {
+                    statusSeason1: status,
+                    signedUpForSeason1: isSigned
+                });
+                loadAdminPanelData();
+            } catch (err) { alert("Błąd: " + err.message); }
+        }
+
+        // Zapisywanie meczu przez Admina
+        document.getElementById('btn-save-match').onclick = async () => {
+            const p1Uid = document.getElementById('admin-match-p1').value;
+            const p2Uid = document.getElementById('admin-match-p2').value;
+            const s1 = document.getElementById('admin-match-score1').value;
+            const s2 = document.getElementById('admin-match-score2').value;
+            const msg = document.getElementById('admin-match-msg');
+
+            if (!p1Uid || !p2Uid || p1Uid === p2Uid) {
+                msg.className = "msg error";
+                msg.innerText = "Wybierz dwóch różnych zawodników!";
+                return;
+            }
+
+            try {
+                const u1Snap = await get(dbRef(db, 'users/' + p1Uid));
+                const u2Snap = await get(dbRef(db, 'users/' + p2Uid));
+                const u1 = u1Snap.val(), u2 = u2Snap.val();
+
+                await push(dbRef(db, 'matches'), {
+                    p1Uid, p1Name: `${u1.firstName || ''} ${u1.lastName || ''}`,
+                    p2Uid, p2Name: `${u2.firstName || ''} ${u2.lastName || ''}`,
+                    s1: parseInt(s1), s2: parseInt(s2),
+                    date: new Date().toLocaleString('pl-PL')
+                });
+
+                msg.className = "msg success";
+                msg.innerText = "Mecz został dodany!";
+                document.getElementById('admin-match-score1').value = 0;
+                document.getElementById('admin-match-score2').value = 0;
+            } catch (err) {
+                msg.className = "msg error";
+                msg.innerText = "Błąd: " + err.message;
+            }
         };
+
+        // Zapisywanie treści strony
+        document.getElementById('btn-save-content').onclick = async () => {
+            const homeText = document.getElementById('admin-text-home').value;
+            const infoText = document.getElementById('admin-text-info').value;
+            const msg = document.getElementById('admin-content-msg');
+
+            try {
+                await update(dbRef(db, 'siteContent'), { homeText, infoText });
+                msg.className = "msg success";
+                msg.innerText = "Zapisano treści!";
+                loadPublicContent();
+            } catch (err) {
+                msg.className = "msg error";
+                msg.innerText = "Błąd zapisu: " + err.message;
+            }
+        };
+
+        async function loadPublicContent() {
+            try {
+                const snap = await get(dbRef(db, 'siteContent'));
+                if (snap.exists()) {
+                    const data = snap.val();
+                    if (data.homeText) document.getElementById('home-text-display').innerText = data.homeText;
+                    if (data.infoText) document.getElementById('info-text-display').innerText = data.infoText;
+                }
+            } catch (err) { console.error(err); }
+        }
+
+        // STARTUJEMY APKI
+        loadPublicContent();
     </script>
 </body>
 </html>
