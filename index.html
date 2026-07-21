@@ -26,6 +26,10 @@
         button:hover { background: #1557b0; }
         .btn-sec { background: #444; }
         .btn-sec:hover { background: #555; }
+        .btn-danger { background: #d93025; }
+        .btn-danger:hover { background: #b31412; }
+        .btn-success { background: #28a745; }
+        .btn-success:hover { background: #218838; }
         .btn-link { background: none; border: none; color: #1a73e8; text-decoration: underline; padding: 5px; margin: 0 0 10px 0; font-size: 13px; font-weight: normal; }
         .btn-link:hover { background: none; color: #64b5f6; }
         
@@ -52,6 +56,12 @@
             flex-direction: column;
             align-items: center;
             box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            cursor: pointer;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .player-card:hover {
+            transform: translateY(-4px);
+            border-color: #1a73e8;
         }
         .player-avatar {
             width: 90px;
@@ -129,6 +139,16 @@
         }
         .form-group { text-align: left; margin-bottom: 10px; }
         .modal-actions { display: flex; gap: 10px; margin-top: 15px; }
+
+        .season-badge {
+            background: #1557b0;
+            color: #fff;
+            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            display: inline-block;
+            margin-top: 5px;
+        }
     </style>
 </head>
 <body>
@@ -137,7 +157,7 @@
     <nav>
         <button id="tab-home" class="nav-btn active">🏠 Strona Główna</button>
         <button id="tab-info" class="nav-btn">ℹ️ O Lidze</button>
-        <button id="tab-players" class="nav-btn">🎯 Zawodnicy</button>
+        <button id="tab-players" class="nav-btn">🎯 Zawodnicy (1. Sezon)</button>
         <button id="tab-account" class="nav-btn">🔑 Konto</button>
     </nav>
 
@@ -156,8 +176,8 @@
 
     <!-- ZAKŁADKA 3: ZAWODNICY -->
     <div id="page-players" class="page-content hidden">
-        <h2>🎯 Zarejestrowani Zawodnicy</h2>
-        <p style="text-align: center; color: #aaa; font-size: 14px;">Lista graczy biorących udział w rozgrywkach</p>
+        <h2>🎯 Zawodnicy 1. Sezonu</h2>
+        <p style="text-align: center; color: #aaa; font-size: 14px;">Kliknij gracza, aby zobaczyć jego pełny profil i statystyki</p>
         <div id="players-loading" class="msg info">Wczytywanie zawodników...</div>
         <div id="players-grid" class="players-grid"></div>
     </div>
@@ -237,7 +257,11 @@
                 <img id="prof-photo" class="profile-avatar-lg" src="https://via.placeholder.com/150/2a2a2a/ffffff?text=DART" alt="Avatar">
                 <h2 id="prof-fullname" style="margin-bottom: 5px;">Imię Nazwisko</h2>
                 <p style="color: #aaa; font-size: 14px;" id="prof-email-display"></p>
+                <div id="prof-status-badge"></div>
             </div>
+
+            <!-- PRZYCISK REJESTRACJI NA SEZON 1 -->
+            <button id="btn-toggle-season" type="button" class="btn-success" style="margin-bottom: 15px;">Zapisz się na 1. Sezon!</button>
 
             <table class="profile-details-table">
                 <tr>
@@ -260,7 +284,7 @@
 
     </div>
 
-    <!-- MODAL 1: WERYFIKACJA EMAILA (OKIENKO WYSKAKUJĄCE) -->
+    <!-- MODAL 1: WERYFIKACJA EMAILA -->
     <div id="modal-overlay" class="modal-overlay hidden">
         <div class="modal-content">
             <h2 style="color: #ffd43b; margin-bottom: 10px;">✉️ Potwierdź adres e-mail</h2>
@@ -311,6 +335,34 @@
                 <button id="btn-save-profile" type="button">Zapisz zmiany</button>
                 <button id="btn-cancel-edit" type="button" class="btn-sec">Anuluj</button>
             </div>
+        </div>
+    </div>
+
+    <!-- MODAL 3: PODGLĄD PROFILU INNEGO ZAWODNIKA (TYLKO DO ODCZYTU) -->
+    <div id="modal-view-player" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="profile-header">
+                <img id="view-player-photo" class="profile-avatar-lg" src="" alt="Avatar">
+                <h2 id="view-player-fullname" style="margin-bottom: 5px;">-</h2>
+                <div class="season-badge">Zawodnik 1. Sezonu</div>
+            </div>
+
+            <table class="profile-details-table">
+                <tr>
+                    <td>Wiek:</td>
+                    <td><span id="view-player-age">-</span> lat</td>
+                </tr>
+                <tr>
+                    <td>Miejscowość:</td>
+                    <td><a id="view-player-city-link" href="#" target="_blank" rel="noopener noreferrer">-</a></td>
+                </tr>
+            </table>
+
+            <div style="margin: 20px 0; text-align: center;">
+                <a id="view-player-dartcounter-btn" href="#" target="_blank" rel="noopener noreferrer" class="dart-link">Otwórz profil w DartCounter</a>
+            </div>
+
+            <button id="btn-close-view-player" type="button" class="btn-sec">Zamknij</button>
         </div>
     </div>
 
@@ -497,6 +549,7 @@
                     dartCounter: dartCounter || "",
                     photoUrl: "",
                     email: email,
+                    signedUpForSeason1: false,
                     createdAt: new Date().toISOString()
                 });
 
@@ -612,11 +665,43 @@
                         dartBtn.style.pointerEvents = "none";
                         dartBtn.classList.add('disabled');
                     }
+
+                    // 5. Obsługa statusu zapisu na 1. Sezon
+                    const btnToggleSeason = document.getElementById('btn-toggle-season');
+                    const badgeContainer = document.getElementById('prof-status-badge');
+
+                    if (data.signedUpForSeason1) {
+                        badgeContainer.innerHTML = '<span class="season-badge">Zapisany na 1. Sezon</span>';
+                        btnToggleSeason.innerText = "Wypisz się z 1. Sezonu";
+                        btnToggleSeason.className = "btn-danger";
+                    } else {
+                        badgeContainer.innerHTML = '';
+                        btnToggleSeason.innerText = "Zapisz się na 1. Sezon!";
+                        btnToggleSeason.className = "btn-success";
+                    }
                 }
             } catch (err) {
                 console.error("Błąd ładowania profilu:", err);
             }
         }
+
+        // --- ZAPIS / WYPISANIE Z 1. SEZONU ---
+        document.getElementById('btn-toggle-season').onclick = async () => {
+            const user = auth.currentUser;
+            if (!user || !currentUserProfileData) return;
+
+            const isSignedUp = !!currentUserProfileData.signedUpForSeason1;
+            const newStatus = !isSignedUp;
+
+            try {
+                await update(ref(db, 'users/' + user.uid), {
+                    signedUpForSeason1: newStatus
+                });
+                await loadUserProfile(user.uid);
+            } catch (err) {
+                alert("Błąd aktualizacji zapisu: " + err.message);
+            }
+        };
 
         // --- EDYCJA PROFILU ---
         document.getElementById('btn-edit-profile').onclick = () => {
@@ -664,7 +749,9 @@
             }
         };
 
-        // --- ŁADOWANIE LISTY ZAWODNIKÓW ---
+        // --- ŁADOWANIE LISTY ZAWODNIKÓW (TYLKO ZAPISANI NA 1. SEZON) ---
+        let allPlayersData = {};
+
         function loadPlayersList() {
             const playersGrid = document.getElementById('players-grid');
             const loadingMsg = document.getElementById('players-loading');
@@ -675,33 +762,85 @@
             onValue(ref(db, 'users'), (snapshot) => {
                 loadingMsg.classList.add('hidden');
                 playersGrid.innerHTML = "";
+                allPlayersData = {};
 
-                if(snapshot.exists()) {
+                if (snapshot.exists()) {
                     const users = snapshot.val();
+                    let seasonPlayerCount = 0;
+
                     Object.keys(users).forEach(uid => {
                         const player = users[uid];
                         
-                        const defaultAvatar = "https://via.placeholder.com/150/2a2a2a/ffffff?text=" + (player.firstName ? player.firstName[0] : 'D');
-                        const photo = player.photoUrl || defaultAvatar;
-                        const ageStr = calculateAge(player.birthDate);
-                        const cityStr = player.city ? `📍 ${player.city}` : "📍 Nie podano";
+                        // Pokazujemy tylko zawodników zapisanych na 1. Sezon
+                        if (player.signedUpForSeason1) {
+                            seasonPlayerCount++;
+                            allPlayersData[uid] = player;
 
-                        const cardHTML = `
-                            <div class="player-card">
-                                <img class="player-avatar" src="${photo}" alt="${player.firstName}">
-                                <div class="player-name">${player.firstName} ${player.lastName}</div>
-                                <div class="player-info">🎂 Wiek: ${ageStr} lat</div>
-                                <div class="player-info">${cityStr}</div>
-                                ${player.dartCounter ? `<a class="dart-link" href="${player.dartCounter.startsWith('http') ? player.dartCounter : 'https://' + player.dartCounter}" target="_blank">Profil DartCounter</a>` : ''}
-                            </div>
-                        `;
-                        playersGrid.innerHTML += cardHTML;
+                            const defaultAvatar = "https://via.placeholder.com/150/2a2a2a/ffffff?text=" + (player.firstName ? player.firstName[0] : 'D');
+                            const photo = player.photoUrl || defaultAvatar;
+                            const ageStr = calculateAge(player.birthDate);
+                            const cityStr = player.city ? `📍 ${player.city}` : "📍 Nie podano";
+
+                            const cardHTML = `
+                                <div class="player-card" onclick="window.openPlayerModal('${uid}')">
+                                    <img class="player-avatar" src="${photo}" alt="${player.firstName}">
+                                    <div class="player-name">${player.firstName} ${player.lastName}</div>
+                                    <div class="player-info">🎂 Wiek: ${ageStr} lat</div>
+                                    <div class="player-info">${cityStr}</div>
+                                </div>
+                            `;
+                            playersGrid.innerHTML += cardHTML;
+                        }
                     });
+
+                    if (seasonPlayerCount === 0) {
+                        playersGrid.innerHTML = "<p style='grid-column: 1/-1; text-align: center; color: #888;'>Brak zapisanych zawodników na 1. Sezon.</p>";
+                    }
                 } else {
                     playersGrid.innerHTML = "<p style='grid-column: 1/-1; text-align: center; color: #888;'>Brak zarejestrowanych zawodników.</p>";
                 }
             });
         }
+
+        // --- PODGLĄD PROFILU INNEGO ZAWODNIKA (MODAL) ---
+        window.openPlayerModal = function(uid) {
+            const player = allPlayersData[uid];
+            if (!player) return;
+
+            document.getElementById('view-player-fullname').innerText = `${player.firstName || ''} ${player.lastName || ''}`.trim();
+            document.getElementById('view-player-photo').src = (player.photoUrl && player.photoUrl.trim() !== "") ? player.photoUrl : "https://via.placeholder.com/150/2a2a2a/ffffff?text=DART";
+            document.getElementById('view-player-age').innerText = calculateAge(player.birthDate);
+
+            // Google Maps
+            const cityLink = document.getElementById('view-player-city-link');
+            if (player.city && player.city.trim() !== "") {
+                cityLink.innerText = player.city;
+                cityLink.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(player.city)}`;
+                cityLink.style.pointerEvents = "auto";
+            } else {
+                cityLink.innerText = "Brak danych";
+                cityLink.removeAttribute('href');
+                cityLink.style.pointerEvents = "none";
+            }
+
+            // DartCounter
+            const dartBtn = document.getElementById('view-player-dartcounter-btn');
+            if (player.dartCounter && player.dartCounter.trim() !== "") {
+                dartBtn.href = player.dartCounter.startsWith('http') ? player.dartCounter : `https://${player.dartCounter}`;
+                dartBtn.style.pointerEvents = "auto";
+                dartBtn.classList.remove('disabled');
+            } else {
+                dartBtn.href = "#";
+                dartBtn.style.pointerEvents = "none";
+                dartBtn.classList.add('disabled');
+            }
+
+            document.getElementById('modal-view-player').classList.remove('hidden');
+        };
+
+        document.getElementById('btn-close-view-player').onclick = () => {
+            document.getElementById('modal-view-player').classList.add('hidden');
+        };
     </script>
 </body>
 </html>
