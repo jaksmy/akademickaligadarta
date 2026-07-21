@@ -263,6 +263,7 @@
         <div class="box" style="max-width: 100%; margin-bottom: 25px;">
             <h3>👥 Zarządzanie uczestnikami 1. Sezonu</h3>
             <div id="admin-players-list">Wczytywanie listy...</div>
+            <div id="admin-players-msg" class="msg"></div>
         </div>
 
         <!-- SEKCJA: EDYCJA TREŚCI STRONY -->
@@ -823,14 +824,19 @@
         }
 
         async function setPlayerStatus(uid, status, isSigned) {
+            const msg = document.getElementById('admin-players-msg');
             try {
                 await update(dbRef(db, 'users/' + uid), {
                     statusSeason1: status,
                     signedUpForSeason1: isSigned
                 });
+                msg.className = "msg success";
+                msg.innerText = "Status zawodnika został pomyślnie zaktualizowany!";
                 await loadAdminPanelData();
             } catch (err) { 
-                alert("Błąd podczas aktualizacji: " + err.message); 
+                msg.className = "msg error";
+                msg.innerText = "Błąd zapisu (sprawdź reguły Firebase): " + err.message;
+                console.error(err);
             }
         }
 
