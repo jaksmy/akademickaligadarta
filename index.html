@@ -39,116 +39,39 @@
         .success { color: #51cf66; }
         .info { color: #ffd43b; }
 
-        /* KARTY ZAWODNIKÓW (GRID) */
-        .players-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
-        }
-        .player-card {
-            background: #252525;
-            border: 1px solid #3d3d3d;
-            border-radius: 12px;
-            padding: 20px;
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            cursor: pointer;
-            transition: transform 0.2s, border-color 0.2s;
-        }
-        .player-card:hover {
-            transform: translateY(-4px);
-            border-color: #1a73e8;
-        }
-        .player-avatar {
-            width: 90px;
-            height: 90px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 3px solid #1a73e8;
-            background-color: #121212;
-            margin-bottom: 12px;
-        }
+        /* KARTY ZAWODNIKÓW */
+        .players-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; margin-top: 20px; }
+        .player-card { background: #252525; border: 1px solid #3d3d3d; border-radius: 12px; padding: 20px; text-align: center; display: flex; flex-direction: column; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3); cursor: pointer; transition: transform 0.2s, border-color 0.2s; }
+        .player-card:hover { transform: translateY(-4px); border-color: #1a73e8; }
+        .player-avatar { width: 90px; height: 90px; border-radius: 50%; object-fit: cover; border: 3px solid #1a73e8; background-color: #121212; margin-bottom: 12px; }
         .player-name { font-size: 18px; font-weight: bold; color: #fff; margin-bottom: 6px; }
         .player-info { font-size: 13px; color: #aaa; margin: 3px 0; }
 
         /* LINKI W PROFILU */
-        .dart-link {
-            display: inline-block;
-            margin-top: 10px;
-            padding: 10px 16px;
-            background: #1a73e8;
-            color: #fff;
-            text-decoration: none;
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: bold;
-            text-align: center;
-        }
+        .dart-link { display: inline-block; margin-top: 10px; padding: 10px 16px; background: #1a73e8; color: #fff; text-decoration: none; border-radius: 6px; font-size: 14px; font-weight: bold; text-align: center; }
         .dart-link:hover { background: #1557b0; }
         .dart-link.disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
 
-        /* WIDOK PROFILU */
-        .profile-header {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        .profile-avatar-lg {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 4px solid #1a73e8;
-            margin: 0 auto 15px auto;
-            display: block;
-            background-color: #2a2a2a;
-        }
-        .profile-details-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 15px 0;
-        }
-        .profile-details-table td {
-            padding: 10px;
-            border-bottom: 1px solid #333;
-        }
-        .profile-details-table td:first-child {
-            color: #888;
-            font-weight: bold;
-            width: 40%;
-        }
-        .profile-details-table a {
-            color: #1a73e8;
-            text-decoration: underline;
-        }
+        /* PROFIL */
+        .profile-header { text-align: center; margin-bottom: 20px; }
+        .profile-avatar-lg { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid #1a73e8; margin: 0 auto 15px auto; display: block; background-color: #2a2a2a; }
+        .profile-details-table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        .profile-details-table td { padding: 10px; border-bottom: 1px solid #333; }
+        .profile-details-table td:first-child { color: #888; font-weight: bold; width: 40%; }
+        .profile-details-table a { color: #1a73e8; text-decoration: underline; }
 
-        /* MODALE (OKNA WYSKAKUJĄCE) */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.92); z-index: 9999;
-            display: flex; justify-content: center; align-items: center; padding: 20px;
-        }
-        .modal-content {
-            background: #1e1e1e; border: 2px solid #1a73e8; padding: 30px;
-            border-radius: 12px; text-align: center; max-width: 450px; width: 100%;
-            box-shadow: 0 0 25px rgba(26, 115, 232, 0.4);
-            max-height: 90vh; overflow-y: auto;
-        }
+        /* MODALE */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.92); z-index: 9999; display: flex; justify-content: center; align-items: center; padding: 20px; }
+        .modal-content { background: #1e1e1e; border: 2px solid #1a73e8; padding: 25px; border-radius: 12px; text-align: center; max-width: 500px; width: 100%; box-shadow: 0 0 25px rgba(26, 115, 232, 0.4); max-height: 90vh; overflow-y: auto; }
         .form-group { text-align: left; margin-bottom: 10px; }
         .modal-actions { display: flex; gap: 10px; margin-top: 15px; }
+        .season-badge { background: #1557b0; color: #fff; font-size: 12px; padding: 4px 10px; border-radius: 12px; display: inline-block; margin-top: 5px; }
 
-        .season-badge {
-            background: #1557b0;
-            color: #fff;
-            font-size: 12px;
-            padding: 4px 10px;
-            border-radius: 12px;
-            display: inline-block;
-            margin-top: 5px;
-        }
+        /* SIATKA WYBORU AWATARÓW AI */
+        .avatar-picker-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 10px 0 15px 0; max-height: 180px; overflow-y: auto; padding: 5px; background: #222; border-radius: 8px; border: 1px solid #333; }
+        .avatar-option { width: 100%; aspect-ratio: 1/1; border-radius: 50%; object-fit: cover; border: 2px solid transparent; cursor: pointer; transition: transform 0.2s, border-color 0.2s; background: #181818; }
+        .avatar-option:hover { transform: scale(1.08); border-color: #888; }
+        .avatar-option.selected { border-color: #1a73e8; transform: scale(1.1); box-shadow: 0 0 10px rgba(26, 115, 232, 0.8); }
     </style>
 </head>
 <body>
@@ -165,113 +88,87 @@
     <div id="page-home" class="page-content">
         <h2>🎯 Akademicka Liga Darta</h2>
         <p style="text-align: center; color: #ccc;">Witaj na oficjalnej stronie rozgrywek Akademickiej Ligi Darta!</p>
-        <p style="text-align: center; color: #888;">Zarejestruj się lub zaloguj, aby dołączyć do grona zawodników i zarządzać swoim profilem.</p>
     </div>
 
     <!-- ZAKŁADKA 2: INFORMACJE O LIDZE -->
     <div id="page-info" class="page-content hidden">
         <h2>ℹ️ Informacje o Lidze</h2>
-        <p style="color: #ccc; text-align: center;">Tabela wyników, harmonogram i regulamin rozgrywek ligowych.</p>
+        <p style="color: #ccc; text-align: center;">Tabela wyników i regulamin rozgrywek.</p>
     </div>
 
     <!-- ZAKŁADKA 3: ZAWODNICY -->
     <div id="page-players" class="page-content hidden">
         <h2>🎯 Zawodnicy 1. Sezonu</h2>
-        <p style="text-align: center; color: #aaa; font-size: 14px;">Kliknij gracza, aby zobaczyć jego pełny profil i statystyki</p>
+        <p style="text-align: center; color: #aaa; font-size: 14px;">Kliknij gracza, aby zobaczyć jego pełny profil</p>
         <div id="players-loading" class="msg info">Wczytywanie zawodników...</div>
         <div id="players-grid" class="players-grid"></div>
     </div>
 
-    <!-- ZAKŁADKA 4: PANEL KONTA / PROFIL -->
+    <!-- ZAKŁADKA 4: PANEL KONTA -->
     <div id="page-account" class="hidden">
         
-        <!-- 1. PANEL LOGOWANIA -->
+        <!-- LOGOWANIE -->
         <div id="view-login" class="box">
             <h2>🎯 Panel Ligi Darta</h2>
             <h3>Zaloguj się</h3>
-            
             <label for="login-email">E-mail:</label>
             <input type="email" id="login-email" placeholder="twoj@email.com">
-            
             <label for="login-pass">Hasło:</label>
             <input type="password" id="login-pass" placeholder="••••••••">
-            
             <button id="btn-login" type="button">ZALOGUJ SIĘ</button>
             <button id="btn-go-reset" type="button" class="btn-link">Zapomniałeś hasła?</button>
             <button id="btn-go-register" type="button" class="btn-sec">Nie masz konta? Zarejestruj się</button>
-            
             <div id="login-msg" class="msg"></div>
         </div>
 
-        <!-- 2. REJESTRACJA NOWEGO KONTRA -->
+        <!-- REJESTRACJA -->
         <div id="view-register" class="box hidden">
             <h2>🎯 Rejestracja Zawodnika</h2>
-            
             <label for="reg-email">E-mail *:</label>
-            <input type="email" id="reg-email" placeholder="twoj@email.com">
-            
-            <label for="reg-pass">Hasło (min. 6 znaków) *:</label>
-            <input type="password" id="reg-pass" placeholder="••••••••">
-
+            <input type="email" id="reg-email">
+            <label for="reg-pass">Hasło *:</label>
+            <input type="password" id="reg-pass">
             <label for="reg-pass2">Powtórz hasło *:</label>
-            <input type="password" id="reg-pass2" placeholder="••••••••">
-
+            <input type="password" id="reg-pass2">
             <label for="reg-firstname">Imię *:</label>
-            <input type="text" id="reg-firstname" placeholder="Jan">
-
+            <input type="text" id="reg-firstname">
             <label for="reg-lastname">Nazwisko *:</label>
-            <input type="text" id="reg-lastname" placeholder="Kowalski">
-
+            <input type="text" id="reg-lastname">
             <label for="reg-birthdate">Data urodzenia *:</label>
             <input type="date" id="reg-birthdate">
-
-            <label for="reg-city">Miejsce zamieszkania (opcjonalnie):</label>
-            <input type="text" id="reg-city" placeholder="np. Jarosław">
-
-            <label for="reg-dartcounter">Link do profilu w aplikacji DartCounter:</label>
-            <input type="url" id="reg-dartcounter" placeholder="https://dartcounter.net/player/...">
-
+            <label for="reg-city">Miejscowość:</label>
+            <input type="text" id="reg-city">
+            <label for="reg-dartcounter">Link DartCounter:</label>
+            <input type="url" id="reg-dartcounter">
             <button id="btn-register" type="button">ZAREJESTRUJ SIĘ</button>
-            <button id="btn-go-login-from-reg" type="button" class="btn-sec">Powrót do logowania</button>
-            
+            <button id="btn-go-login-from-reg" type="button" class="btn-sec">Powrót</button>
             <div id="reg-msg" class="msg"></div>
         </div>
 
-        <!-- 3. RESET HASŁA -->
+        <!-- RESET HASŁA -->
         <div id="view-reset" class="box hidden">
             <h2>🎯 Resetowanie hasła</h2>
-            <p style="font-size: 13px; color: #ccc; text-align: center;">Podaj e-mail, wyślemy Ci link do zmiany hasła.</p>
-            
             <label for="reset-email">E-mail:</label>
-            <input type="email" id="reset-email" placeholder="twoj@email.com">
-            
-            <button id="btn-reset-pass" type="button">WYŚLIJ LINK RESETUJĄCY</button>
-            <button id="btn-go-login-from-reset" type="button" class="btn-sec">Powrót do logowania</button>
-            
+            <input type="email" id="reset-email">
+            <button id="btn-reset-pass" type="button">WYŚLIJ LINK</button>
+            <button id="btn-go-login-from-reset" type="button" class="btn-sec">Powrót</button>
             <div id="reset-msg" class="msg"></div>
         </div>
 
-        <!-- 4. ZALOGOWANY PROFIL ZAWODNIKA -->
+        <!-- ZALOGOWANY PROFIL -->
         <div id="view-app" class="box hidden" style="max-width: 600px;">
             <div class="profile-header">
-                <img id="prof-photo" class="profile-avatar-lg" src="https://via.placeholder.com/150/2a2a2a/ffffff?text=DART" alt="Avatar">
+                <img id="prof-photo" class="profile-avatar-lg" src="https://api.dicebear.com/7.x/bottts/svg?seed=Dart1" alt="Avatar">
                 <h2 id="prof-fullname" style="margin-bottom: 5px;">Imię Nazwisko</h2>
                 <p style="color: #aaa; font-size: 14px;" id="prof-email-display"></p>
                 <div id="prof-status-badge"></div>
             </div>
 
-            <!-- PRZYCISK REJESTRACJI NA SEZON 1 -->
             <button id="btn-toggle-season" type="button" class="btn-success" style="margin-bottom: 15px;">Zapisz się na 1. Sezon!</button>
 
             <table class="profile-details-table">
-                <tr>
-                    <td>Wiek:</td>
-                    <td><span id="prof-age">-</span> lat</td>
-                </tr>
-                <tr>
-                    <td>Miejscowość:</td>
-                    <td><a id="prof-city-link" href="#" target="_blank" rel="noopener noreferrer">-</a></td>
-                </tr>
+                <tr><td>Wiek:</td><td><span id="prof-age">-</span> lat</td></tr>
+                <tr><td>Miejscowość:</td><td><a id="prof-city-link" href="#" target="_blank" rel="noopener noreferrer">-</a></td></tr>
             </table>
 
             <div style="margin: 20px 0; text-align: center;">
@@ -284,33 +181,28 @@
 
     </div>
 
-    <!-- MODAL 1: WERYFIKACJA EMAILA -->
-    <div id="modal-overlay" class="modal-overlay hidden">
-        <div class="modal-content">
-            <h2 style="color: #ffd43b; margin-bottom: 10px;">✉️ Potwierdź adres e-mail</h2>
-            <p>Na podany adres e-mail wysłaliśmy link aktywacyjny.</p>
-            <p style="color: #aaa; font-size: 13px;">Otwórz swoją skrzynkę odbiorczą, kliknij w link, a następnie odśwież stronę i zaloguj się.</p>
-            <button onclick="window.location.reload()" style="margin-top: 15px;">Odśwież stronę po aktywacji</button>
-        </div>
-    </div>
-
-    <!-- MODAL 2: EDYCJA PROFILU -->
+    <!-- MODAL 1: EDYCJA PROFILU Z WYBOREM AWATARA AI -->
     <div id="modal-edit-profile" class="modal-overlay hidden">
         <div class="modal-content">
             <h3>Edycja Profilu</h3>
             
             <div class="form-group">
-                <label for="edit-photo-url">URL Zdjęcia Profilowego:</label>
+                <label>Wybierz awatar AI:</label>
+                <div id="avatar-picker" class="avatar-picker-grid"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="edit-photo-url">Lub wklej własny link URL do zdjęcia:</label>
                 <input type="url" id="edit-photo-url" placeholder="https://example.com/zdjecie.jpg">
             </div>
 
             <div class="form-group">
-                <label for="edit-firstname">Imię:</label>
+                <label for="edit-firstname">Imię *:</label>
                 <input type="text" id="edit-firstname">
             </div>
 
             <div class="form-group">
-                <label for="edit-lastname">Nazwisko:</label>
+                <label for="edit-lastname">Nazwisko *:</label>
                 <input type="text" id="edit-lastname">
             </div>
 
@@ -338,7 +230,7 @@
         </div>
     </div>
 
-    <!-- MODAL 3: PODGLĄD PROFILU INNEGO ZAWODNIKA -->
+    <!-- MODAL 2: PODGLĄD INNEGO ZAWODNIKA -->
     <div id="modal-view-player" class="modal-overlay hidden">
         <div class="modal-content" style="max-width: 500px;">
             <div class="profile-header">
@@ -348,14 +240,8 @@
             </div>
 
             <table class="profile-details-table">
-                <tr>
-                    <td>Wiek:</td>
-                    <td><span id="view-player-age">-</span> lat</td>
-                </tr>
-                <tr>
-                    <td>Miejscowość:</td>
-                    <td><a id="view-player-city-link" href="#" target="_blank" rel="noopener noreferrer">-</a></td>
-                </tr>
+                <tr><td>Wiek:</td><td><span id="view-player-age">-</span> lat</td></tr>
+                <tr><td>Miejscowość:</td><td><a id="view-player-city-link" href="#" target="_blank" rel="noopener noreferrer">-</a></td></tr>
             </table>
 
             <div style="margin: 20px 0; text-align: center;">
@@ -366,7 +252,7 @@
         </div>
     </div>
 
-    <!-- LOGIKA FIREBASE -->
+    <!-- SKRYPT FIREBASE -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { 
@@ -381,11 +267,10 @@
 
         import { 
             getDatabase, 
-            ref, 
+            ref as dbRef, 
             set, 
             get, 
-            update, 
-            onValue 
+            update 
         } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         // Konfiguracja Firebase
@@ -406,6 +291,22 @@
 
         let currentUserProfileData = null;
         let allPlayersData = {};
+
+        // Baza darmowych, gotowych awatarów generowanych dynamicznie (Dicebear API)
+        const PRESET_AVATARS = [
+            "https://api.dicebear.com/7.x/bottts/svg?seed=Dart1",
+            "https://api.dicebear.com/7.x/bottts/svg?seed=Dart2",
+            "https://api.dicebear.com/7.x/bottts/svg?seed=Bullseye",
+            "https://api.dicebear.com/7.x/bottts/svg?seed=ProGamer",
+            "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix",
+            "https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka",
+            "https://api.dicebear.com/7.x/avataaars/svg?seed=Mark",
+            "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah",
+            "https://api.dicebear.com/7.x/micah/svg?seed=Alex",
+            "https://api.dicebear.com/7.x/micah/svg?seed=Taylor",
+            "https://api.dicebear.com/7.x/micah/svg?seed=Jordan",
+            "https://api.dicebear.com/7.x/micah/svg?seed=Morgan"
+        ];
 
         // --- NAWIGACJA ZAKŁADEK ---
         const tabHome = document.getElementById('tab-home');
@@ -435,7 +336,6 @@
         tabPlayers.onclick = () => switchTab(tabPlayers, pagePlayers);
         tabAccount.onclick = () => switchTab(tabAccount, pageAccount);
 
-        // --- POMOCNICZE: OBLICZANIE WIEKU ---
         function calculateAge(birthDateString) {
             if (!birthDateString) return "-";
             const today = new Date();
@@ -453,24 +353,18 @@
         const viewRegister = document.getElementById('view-register');
         const viewReset = document.getElementById('view-reset');
         const viewApp = document.getElementById('view-app');
-        const modalOverlay = document.getElementById('modal-overlay');
 
         const loginMsg = document.getElementById('login-msg');
         const regMsg = document.getElementById('reg-msg');
         const resetMsg = document.getElementById('reset-msg');
 
         document.getElementById('btn-go-register').onclick = () => {
-            document.getElementById('reg-email').value = document.getElementById('login-email').value;
-            document.getElementById('reg-pass').value = document.getElementById('login-pass').value;
             viewLogin.classList.add('hidden');
-            viewReset.classList.add('hidden');
             viewRegister.classList.remove('hidden');
         };
 
         document.getElementById('btn-go-reset').onclick = () => {
-            document.getElementById('reset-email').value = document.getElementById('login-email').value;
             viewLogin.classList.add('hidden');
-            viewRegister.classList.add('hidden');
             viewReset.classList.remove('hidden');
         };
 
@@ -483,7 +377,7 @@
         document.getElementById('btn-go-login-from-reg').onclick = showLoginView;
         document.getElementById('btn-go-login-from-reset').onclick = showLoginView;
 
-        // --- OBSŁUGA STANU LOGOWANIA ---
+        // --- OBSŁUGA AUTH ---
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 if (user.emailVerified) {
@@ -505,7 +399,7 @@
 
         document.getElementById('btn-logout').onclick = () => signOut(auth);
 
-        // --- REJESTRACJA NOWEGO GRACZA ---
+        // --- REJESTRACJA ---
         document.getElementById('btn-register').onclick = async () => {
             const email = document.getElementById('reg-email').value.trim();
             const pass1 = document.getElementById('reg-pass').value;
@@ -516,54 +410,30 @@
             const city = document.getElementById('reg-city').value.trim();
             const dartCounter = document.getElementById('reg-dartcounter').value.trim();
 
-            regMsg.className = "msg info";
-            
-            if (!email || !pass1 || !pass2 || !firstName || !lastName) {
+            if (!email || !pass1 || !firstName || !lastName || pass1 !== pass2) {
                 regMsg.className = "msg error";
-                regMsg.innerText = "Wypełnij wymagane pola (Email, Hasła, Imię, Nazwisko)!";
+                regMsg.innerText = "Sprawdź poprawność wszystkich danych!";
                 return;
             }
-            if (pass1 !== pass2) {
-                regMsg.className = "msg error";
-                regMsg.innerText = "Hasła nie są identyczne!";
-                return;
-            }
-            if (pass1.length < 6) {
-                regMsg.className = "msg error";
-                regMsg.innerText = "Hasło musi mieć co najmniej 6 znaków!";
-                return;
-            }
-
-            regMsg.innerText = "Tworzenie konta...";
 
             try {
                 const userCredential = await createUserWithEmailAndPassword(auth, email, pass1);
                 const user = userCredential.user;
 
-                await set(ref(db, 'users/' + user.uid), {
-                    firstName: firstName,
-                    lastName: lastName,
-                    birthDate: birthDate || "",
-                    city: city || "",
-                    dartCounter: dartCounter || "",
-                    photoUrl: "",
-                    email: email,
-                    signedUpForSeason1: false,
-                    createdAt: new Date().toISOString()
+                // Przypisanie losowego awatara domyślnego
+                const randomAvatar = PRESET_AVATARS[Math.floor(Math.random() * PRESET_AVATARS.length)];
+
+                await set(dbRef(db, 'users/' + user.uid), {
+                    firstName, lastName, birthDate: birthDate || "", city: city || "",
+                    dartCounter: dartCounter || "", photoUrl: randomAvatar, email, signedUpForSeason1: false
                 });
 
                 await sendEmailVerification(user);
-                modalOverlay.classList.remove('hidden');
+                alert("Konto utworzone! Potwierdź e-mail z wysłanego linku.");
                 await signOut(auth);
-
             } catch (err) {
-                console.error("Błąd rejestracji:", err);
                 regMsg.className = "msg error";
-                if (err.code === 'auth/email-already-in-use') {
-                    regMsg.innerText = "Ten e-mail jest już w użyciu!";
-                } else {
-                    regMsg.innerText = "Błąd: " + err.message;
-                }
+                regMsg.innerText = err.message;
             }
         };
 
@@ -571,67 +441,31 @@
         document.getElementById('btn-login').onclick = async () => {
             const email = document.getElementById('login-email').value.trim();
             const pass = document.getElementById('login-pass').value;
-            loginMsg.className = "msg info";
-            loginMsg.innerText = "Sprawdzanie danych...";
-
-            if(!email || !pass) {
-                loginMsg.className = "msg error";
-                loginMsg.innerText = "Wpisz e-mail i hasło!";
-                return;
-            }
 
             try {
                 const userCredential = await signInWithEmailAndPassword(auth, email, pass);
-                const user = userCredential.user;
-
-                if (!user.emailVerified) {
+                if (!userCredential.user.emailVerified) {
                     await signOut(auth);
                     loginMsg.className = "msg error";
-                    loginMsg.innerText = "Proszę aktywować konto z wysłanego linku e-mail.";
-                } else {
-                    loginMsg.innerText = "";
+                    loginMsg.innerText = "Aktywuj konto klikając link w mailu!";
                 }
             } catch (err) {
                 loginMsg.className = "msg error";
-                loginMsg.innerText = "Błędny e-mail lub hasło.";
+                loginMsg.innerText = "Błędne dane logowania.";
             }
         };
 
-        // --- RESET HASŁA ---
-        document.getElementById('btn-reset-pass').onclick = async () => {
-            const email = document.getElementById('reset-email').value.trim();
-            resetMsg.className = "msg info";
-
-            if(!email) {
-                resetMsg.className = "msg error";
-                resetMsg.innerText = "Wpisz swój adres e-mail!";
-                return;
-            }
-
-            resetMsg.innerText = "Wysyłanie linku resetującego...";
-
-            try {
-                await sendPasswordResetEmail(auth, email);
-                resetMsg.className = "msg success";
-                resetMsg.innerText = "Link do resetowania hasła został wysłany na Twój e-mail!";
-            } catch (err) {
-                resetMsg.className = "msg error";
-                resetMsg.innerText = "Błąd przy wysyłaniu linka.";
-            }
-        };
-
-        // --- POBIERANIE DANYCH PROFILU ---
+        // --- LOAD PROFIL ---
         async function loadUserProfile(uid) {
             try {
-                const snapshot = await get(ref(db, 'users/' + uid));
+                const snapshot = await get(dbRef(db, 'users/' + uid));
                 if (snapshot.exists()) {
                     const data = snapshot.val();
                     currentUserProfileData = data;
 
                     document.getElementById('prof-fullname').innerText = `${data.firstName || ''} ${data.lastName || ''}`.trim() || "Zawodnik";
                     document.getElementById('prof-email-display').innerText = data.email || "";
-                    document.getElementById('prof-photo').src = (data.photoUrl && data.photoUrl.trim() !== "") ? data.photoUrl : "https://via.placeholder.com/150/2a2a2a/ffffff?text=DART";
-                    
+                    document.getElementById('prof-photo').src = (data.photoUrl && data.photoUrl.trim() !== "") ? data.photoUrl : PRESET_AVATARS[0];
                     document.getElementById('prof-age').innerText = calculateAge(data.birthDate);
 
                     const cityLink = document.getElementById('prof-city-link');
@@ -659,7 +493,7 @@
                     const btnToggleSeason = document.getElementById('btn-toggle-season');
                     const badgeContainer = document.getElementById('prof-status-badge');
 
-                    if (data.signedUpForSeason1 === true) {
+                    if (data.signedUpForSeason1 === true || data.signedUpForSeason1 === "true") {
                         badgeContainer.innerHTML = '<span class="season-badge">Zapisany na 1. Sezon</span>';
                         btnToggleSeason.innerText = "Wypisz się z 1. Sezonu";
                         btnToggleSeason.className = "btn-danger";
@@ -670,37 +504,58 @@
                     }
                 }
             } catch (err) {
-                console.error("Błąd ładowania profilu:", err);
+                console.error("Błąd profilu:", err);
             }
         }
 
-        // --- ZAPIS / WYPISANIE Z 1. SEZONU ---
+        // --- ZAPIS/WYPIS Z SEZONU ---
         document.getElementById('btn-toggle-season').onclick = async () => {
             const user = auth.currentUser;
             if (!user || !currentUserProfileData) return;
 
-            const isSignedUp = currentUserProfileData.signedUpForSeason1 === true;
-            const newStatus = !isSignedUp;
-
+            const isSignedUp = currentUserProfileData.signedUpForSeason1 === true || currentUserProfileData.signedUpForSeason1 === "true";
+            
             try {
-                await update(ref(db, 'users/' + user.uid), {
-                    signedUpForSeason1: newStatus
+                await update(dbRef(db, 'users/' + user.uid), {
+                    signedUpForSeason1: !isSignedUp
                 });
                 await loadUserProfile(user.uid);
             } catch (err) {
-                alert("Błąd aktualizacji zapisu: " + err.message);
+                alert("Błąd: " + err.message);
             }
         };
+
+        // --- GENEROWANIE SIATKI WYBORU AWATARÓW AI ---
+        function renderAvatarPicker(currentUrl) {
+            const pickerContainer = document.getElementById('avatar-picker');
+            pickerContainer.innerHTML = "";
+
+            PRESET_AVATARS.forEach(url => {
+                const img = document.createElement('img');
+                img.src = url;
+                img.className = 'avatar-option' + (currentUrl === url ? ' selected' : '');
+                img.onclick = () => {
+                    document.querySelectorAll('.avatar-option').forEach(el => el.classList.remove('selected'));
+                    img.classList.add('selected');
+                    document.getElementById('edit-photo-url').value = url;
+                };
+                pickerContainer.appendChild(img);
+            });
+        }
 
         // --- EDYCJA PROFILU ---
         document.getElementById('btn-edit-profile').onclick = () => {
             if (!currentUserProfileData) return;
-            document.getElementById('edit-photo-url').value = currentUserProfileData.photoUrl || '';
+            const photoUrl = currentUserProfileData.photoUrl || PRESET_AVATARS[0];
+            
+            document.getElementById('edit-photo-url').value = photoUrl;
             document.getElementById('edit-firstname').value = currentUserProfileData.firstName || '';
             document.getElementById('edit-lastname').value = currentUserProfileData.lastName || '';
             document.getElementById('edit-birthdate').value = currentUserProfileData.birthDate || '';
             document.getElementById('edit-city').value = currentUserProfileData.city || '';
             document.getElementById('edit-dartcounter').value = currentUserProfileData.dartCounter || '';
+            
+            renderAvatarPicker(photoUrl);
             document.getElementById('modal-edit-profile').classList.remove('hidden');
         };
 
@@ -713,99 +568,104 @@
             if (!user) return;
 
             const editMsg = document.getElementById('edit-msg');
-            const updatedData = {
-                photoUrl: document.getElementById('edit-photo-url').value.trim(),
-                firstName: document.getElementById('edit-firstname').value.trim(),
-                lastName: document.getElementById('edit-lastname').value.trim(),
-                birthDate: document.getElementById('edit-birthdate').value,
-                city: document.getElementById('edit-city').value.trim(),
-                dartCounter: document.getElementById('edit-dartcounter').value.trim()
-            };
+            const photoUrl = document.getElementById('edit-photo-url').value.trim();
+            const firstName = document.getElementById('edit-firstname').value.trim();
+            const lastName = document.getElementById('edit-lastname').value.trim();
 
-            if (!updatedData.firstName || !updatedData.lastName) {
+            if (!firstName || !lastName) {
                 editMsg.className = "msg error";
                 editMsg.innerText = "Imię i nazwisko są wymagane!";
                 return;
             }
 
+            editMsg.className = "msg info";
+            editMsg.innerText = "Zapisywanie...";
+
             try {
-                await update(ref(db, 'users/' + user.uid), updatedData);
+                const updatedData = {
+                    photoUrl: photoUrl,
+                    firstName: firstName,
+                    lastName: lastName,
+                    birthDate: document.getElementById('edit-birthdate').value,
+                    city: document.getElementById('edit-city').value.trim(),
+                    dartCounter: document.getElementById('edit-dartcounter').value.trim()
+                };
+
+                await update(dbRef(db, 'users/' + user.uid), updatedData);
                 document.getElementById('modal-edit-profile').classList.add('hidden');
                 await loadUserProfile(user.uid);
+
             } catch (err) {
                 editMsg.className = "msg error";
                 editMsg.innerText = "Błąd zapisu: " + err.message;
             }
         };
 
-        // --- ŁADOWANIE LISTY ZAWODNIKÓW ---
-async function loadPlayersList() {
-    const playersGrid = document.getElementById('players-grid');
-    const loadingMsg = document.getElementById('players-loading');
-    
-    if (loadingMsg) loadingMsg.classList.remove('hidden');
-    playersGrid.innerHTML = "";
+        // --- WCZYTYWANIE LISTY ZAWODNIKÓW ---
+        async function loadPlayersList() {
+            const playersGrid = document.getElementById('players-grid');
+            const loadingMsg = document.getElementById('players-loading');
+            
+            if (loadingMsg) loadingMsg.classList.remove('hidden');
+            playersGrid.innerHTML = "";
 
-    try {
-        const snapshot = await get(ref(db, 'users'));
-        if (loadingMsg) loadingMsg.classList.add('hidden');
+            try {
+                const snapshot = await get(dbRef(db, 'users'));
+                if (loadingMsg) loadingMsg.classList.add('hidden');
 
-        if (snapshot.exists()) {
-            const users = snapshot.val();
-            let seasonPlayerCount = 0;
-            allPlayersData = {};
+                if (snapshot.exists()) {
+                    const users = snapshot.val();
+                    let seasonPlayerCount = 0;
+                    allPlayersData = {};
 
-            Object.keys(users).forEach(uid => {
-                const player = users[uid];
-                
-                // Sprawdzamy zarówno boolean jak i ewentualny string "true"
-                const isSignedUp = player.signedUpForSeason1 === true || player.signedUpForSeason1 === "true";
+                    Object.keys(users).forEach(uid => {
+                        const player = users[uid];
+                        const isSignedUp = player.signedUpForSeason1 === true || player.signedUpForSeason1 === "true";
 
-                if (isSignedUp) {
-                    seasonPlayerCount++;
-                    allPlayersData[uid] = player;
+                        if (isSignedUp) {
+                            seasonPlayerCount++;
+                            allPlayersData[uid] = player;
 
-                    const firstName = player.firstName || "Zawodnik";
-                    const lastName = player.lastName || "";
-                    const defaultAvatar = "https://via.placeholder.com/150/2a2a2a/ffffff?text=" + firstName[0];
-                    const photo = (player.photoUrl && player.photoUrl.trim() !== "") ? player.photoUrl : defaultAvatar;
-                    const ageStr = calculateAge(player.birthDate);
-                    const cityStr = player.city ? `📍 ${player.city}` : "📍 Nie podano";
+                            const firstName = player.firstName || "Zawodnik";
+                            const lastName = player.lastName || "";
+                            const photo = (player.photoUrl && player.photoUrl.trim() !== "") ? player.photoUrl : PRESET_AVATARS[0];
+                            const ageStr = calculateAge(player.birthDate);
+                            const cityStr = player.city ? `📍 ${player.city}` : "📍 Nie podano";
 
-                    const card = document.createElement('div');
-                    card.className = 'player-card';
-                    card.innerHTML = `
-                        <img class="player-avatar" src="${photo}" alt="${firstName}">
-                        <div class="player-name">${firstName} ${lastName}</div>
-                        <div class="player-info">🎂 Wiek: ${ageStr} lat</div>
-                        <div class="player-info">${cityStr}</div>
-                    `;
-                    
-                    card.addEventListener('click', () => openPlayerModal(uid));
-                    playersGrid.appendChild(card);
+                            const card = document.createElement('div');
+                            card.className = 'player-card';
+                            card.innerHTML = `
+                                <img class="player-avatar" src="${photo}" alt="${firstName}">
+                                <div class="player-name">${firstName} ${lastName}</div>
+                                <div class="player-info">🎂 Wiek: ${ageStr} lat</div>
+                                <div class="player-info">${cityStr}</div>
+                            `;
+                            
+                            card.addEventListener('click', () => openPlayerModal(uid));
+                            playersGrid.appendChild(card);
+                        }
+                    });
+
+                    if (seasonPlayerCount === 0) {
+                        playersGrid.innerHTML = "<p style='grid-column: 1/-1; text-align: center; color: #888;'>Brak zapisanych zawodników na 1. Sezon.</p>";
+                    }
+                } else {
+                    playersGrid.innerHTML = "<p style='grid-column: 1/-1; text-align: center; color: #888;'>Brak danych w bazie użytkowników.</p>";
                 }
-            });
-
-            if (seasonPlayerCount === 0) {
-                playersGrid.innerHTML = "<p style='grid-column: 1/-1; text-align: center; color: #888;'>Brak zapisanych zawodników na 1. Sezon.</p>";
+            } catch (err) {
+                console.error("Błąd pobierania graczy:", err);
+                if (loadingMsg) loadingMsg.classList.add('hidden');
+                playersGrid.innerHTML = `<p style='grid-column: 1/-1; text-align: center; color: #ff6b6b;'>Błąd wczytywania danych: ${err.message}</p>`;
             }
-        } else {
-            playersGrid.innerHTML = "<p style='grid-column: 1/-1; text-align: center; color: #888;'>Brak danych w bazie użytkowników.</p>";
         }
-    } catch (err) {
-        console.error("Błąd pobierania graczy:", err);
-        if (loadingMsg) loadingMsg.classList.add('hidden');
-        playersGrid.innerHTML = `<p style='grid-column: 1/-1; text-align: center; color: #ff6b6b;'>Błąd wczytywania danych: ${err.message}<br><small>Sprawdź reguły Firebase Realtime Database!</small></p>`;
-    }
-}
 
-        // --- PODGLĄD PROFILU INNEGO ZAWODNIKA (MODAL) ---
+        // --- PODGLĄD INNEGO GRACZA ---
         function openPlayerModal(uid) {
             const player = allPlayersData[uid];
             if (!player) return;
 
             document.getElementById('view-player-fullname').innerText = `${player.firstName || ''} ${player.lastName || ''}`.trim();
-            document.getElementById('view-player-photo').src = (player.photoUrl && player.photoUrl.trim() !== "") ? player.photoUrl : "https://via.placeholder.com/150/2a2a2a/ffffff?text=DART";
+            document.getElementById('view-player-photo').src = (player.photoUrl && player.photoUrl.trim() !== "") ? player.photoUrl : PRESET_AVATARS[0];
             document.getElementById('view-player-age').innerText = calculateAge(player.birthDate);
 
             const cityLink = document.getElementById('view-player-city-link');
