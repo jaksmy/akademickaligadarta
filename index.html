@@ -133,7 +133,7 @@
 </head>
 <body>
 
-    <!-- PASEK NAWIGACYJNY (ZAKŁADKI) -->
+    <!-- PASEK NAWIGACYJNY -->
     <nav>
         <button id="tab-home" class="nav-btn active">🏠 Strona Główna</button>
         <button id="tab-info" class="nav-btn">ℹ️ O Lidze</button>
@@ -265,7 +265,7 @@
         <div class="modal-content">
             <h2 style="color: #ffd43b; margin-bottom: 10px;">✉️ Potwierdź adres e-mail</h2>
             <p>Na podany adres e-mail wysłaliśmy link aktywacyjny.</p>
-            <p style="color: #aaa; font-size: 13px;">Otwórz swoją skrzynkę odbiorczą, kliknij w link, a następnie odśwież stronę.</p>
+            <p style="color: #aaa; font-size: 13px;">Otwórz swoją skrzynkę odbiorczą, kliknij w link, a następnie odśwież stronę i zaloguj się.</p>
             <button onclick="window.location.reload()" style="margin-top: 15px;">Odśwież stronę po aktywacji</button>
         </div>
     </div>
@@ -314,7 +314,7 @@
         </div>
     </div>
 
-    <!-- LOGIKA SKRYPTÓW FIREBASE -->
+    <!-- LOGIKA FIREBASE -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { 
@@ -382,7 +382,7 @@
         tabPlayers.onclick = () => switchTab(tabPlayers, pagePlayers);
         tabAccount.onclick = () => switchTab(tabAccount, pageAccount);
 
-        // --- POMOCNICZE: OBICZANIE WIEKU ---
+        // --- POMOCNICZE: OBLICZANIE WIEKU ---
         function calculateAge(birthDateString) {
             if (!birthDateString) return "-";
             const today = new Date();
@@ -438,6 +438,7 @@
                     viewRegister.classList.add('hidden');
                     viewReset.classList.add('hidden');
                     viewApp.classList.remove('hidden');
+                    // Pobieramy i automatycznie uzupełniamy dane w panelu
                     await loadUserProfile(user.uid);
                 } else {
                     viewApp.classList.add('hidden');
@@ -484,30 +485,26 @@
             regMsg.innerText = "Tworzenie konta...";
 
             try {
+                // 1. Stwórz konto w Firebase Auth
                 const userCredential = await createUserWithEmailAndPassword(auth, email, pass1);
                 const user = userCredential.user;
 
-                try {
-                    await set(ref(db, 'users/' + user.uid), {
-                        firstName: firstName,
-                        lastName: lastName,
-                        birthDate: birthDate || "",
-                        city: city || "",
-                        dartCounter: dartCounter || "",
-                        photoUrl: "",
-                        email: email,
-                        createdAt: new Date().toISOString()
-                    });
-                } catch (dbError) {
-                    console.error("Błąd zapisu profilu:", dbError);
-                }
+                // 2. Zapisz dane użytkownika w Firebase Realtime Database
+                await set(ref(db, 'users/' + user.uid), {
+                    firstName: firstName,
+                    lastName: lastName,
+                    birthDate: birthDate || "",
+                    city: city || "",
+                    dartCounter: dartCounter || "",
+                    photoUrl: "",
+                    email: email,
+                    createdAt: new Date().toISOString()
+                });
 
-                try {
-                    await sendEmailVerification(user);
-                } catch (mailError) {
-                    console.error("Błąd wysyłki maila:", mailError);
-                }
+                // 3. Wyślij e-mail weryfikacyjny
+                await sendEmailVerification(user);
 
+                // 4. Wyloguj i pokaż modal aktywacyjny
                 await signOut(auth);
                 modalOverlay.classList.remove('hidden');
 
@@ -575,7 +572,7 @@
             }
         };
 
-        // --- WYŚWIETLANIE I ŁADOWANIE PROFILU ---
+        // --- AUTOMATYCZNE POBIERANIE DANYCH PO ZALOGOWANIU ---
         async function loadUserProfile(uid) {
             try {
                 const snapshot = await get(ref(db, 'users/' + uid));
@@ -583,24 +580,27 @@
                     const data = snapshot.val();
                     currentUserProfileData = data;
 
+                    // 1. Imię i Nazwisko
                     document.getElementById('prof-fullname').innerText = `${data.firstName || ''} ${data.lastName || ''}`.trim() || "Zawodnik";
                     document.getElementById('prof-email-display').innerText = data.email || "";
                     document.getElementById('prof-photo').src = (data.photoUrl && data.photoUrl.trim() !== "") ? data.photoUrl : "https://via.placeholder.com/150/2a2a2a/ffffff?text=DART";
+                    
+                    // 2. Przeliczony wiek
                     document.getElementById('prof-age').innerText = calculateAge(data.birthDate);
 
-                    // Link do Google Maps dla miejscowości
+                    // 3. Miejscowość z automatycznym linkiem do Google Maps
                     const cityLink = document.getElementById('prof-city-link');
                     if (data.city && data.city.trim() !== "") {
                         cityLink.innerText = data.city;
                         cityLink.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(data.city)}`;
                         cityLink.style.pointerEvents = "auto";
                     } else {
-                        cityLink.innerText = "Nie podano";
+                        cityLink.innerText = "Brak danych";
                         cityLink.removeAttribute('href');
                         cityLink.style.pointerEvents = "none";
                     }
 
-                    // Przycisk DartCounter
+                    // 4. Przycisk DartCounter
                     const dartBtn = document.getElementById('prof-dartcounter-btn');
                     if (data.dartCounter && data.dartCounter.trim() !== "") {
                         dartBtn.href = data.dartCounter.startsWith('http') ? data.dartCounter : `https://${data.dartCounter}`;
@@ -691,7 +691,7 @@
                                 <div class="player-name">${player.firstName} ${player.lastName}</div>
                                 <div class="player-info">🎂 Wiek: ${ageStr} lat</div>
                                 <div class="player-info">${cityStr}</div>
-                                ${player.dartCounter ? `<a class="dart-link" href="${player.dartCounter}" target="_blank">Profil DartCounter</a>` : ''}
+                                ${player.dartCounter ? `<a class="dart-link" href="${player.dartCounter.startsWith('http') ? player.dartCounter : 'https://' + player.dartCounter}" target="_blank">Profil DartCounter</a>` : ''}
                             </div>
                         `;
                         playersGrid.innerHTML += cardHTML;
