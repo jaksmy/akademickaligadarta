@@ -739,56 +739,65 @@
         };
 
         // --- ŁADOWANIE LISTY ZAWODNIKÓW ---
-        function loadPlayersList() {
-            const playersGrid = document.getElementById('players-grid');
-            const loadingMsg = document.getElementById('players-loading');
-            
-            loadingMsg.classList.remove('hidden');
-            playersGrid.innerHTML = "";
+async function loadPlayersList() {
+    const playersGrid = document.getElementById('players-grid');
+    const loadingMsg = document.getElementById('players-loading');
+    
+    if (loadingMsg) loadingMsg.classList.remove('hidden');
+    playersGrid.innerHTML = "";
 
-            onValue(ref(db, 'users'), (snapshot) => {
-                loadingMsg.classList.add('hidden');
-                playersGrid.innerHTML = "";
-                allPlayersData = {};
+    try {
+        const snapshot = await get(ref(db, 'users'));
+        if (loadingMsg) loadingMsg.classList.add('hidden');
 
-                if (snapshot.exists()) {
-                    const users = snapshot.val();
-                    let seasonPlayerCount = 0;
+        if (snapshot.exists()) {
+            const users = snapshot.val();
+            let seasonPlayerCount = 0;
+            allPlayersData = {};
 
-                    Object.keys(users).forEach(uid => {
-                        const player = users[uid];
-                        
-                        // Przypadek gdy zawodnik jest zapisany na 1. sezon
-                        if (player.signedUpForSeason1 === true) {
-                            seasonPlayerCount++;
-                            allPlayersData[uid] = player;
+            Object.keys(users).forEach(uid => {
+                const player = users[uid];
+                
+                // Sprawdzamy zarówno boolean jak i ewentualny string "true"
+                const isSignedUp = player.signedUpForSeason1 === true || player.signedUpForSeason1 === "true";
 
-                            const defaultAvatar = "https://via.placeholder.com/150/2a2a2a/ffffff?text=" + (player.firstName ? player.firstName[0] : 'D');
-                            const photo = (player.photoUrl && player.photoUrl.trim() !== "") ? player.photoUrl : defaultAvatar;
-                            const ageStr = calculateAge(player.birthDate);
-                            const cityStr = player.city ? `📍 ${player.city}` : "📍 Nie podano";
+                if (isSignedUp) {
+                    seasonPlayerCount++;
+                    allPlayersData[uid] = player;
 
-                            const card = document.createElement('div');
-                            card.className = 'player-card';
-                            card.innerHTML = `
-                                <img class="player-avatar" src="${photo}" alt="${player.firstName}">
-                                <div class="player-name">${player.firstName} ${player.lastName}</div>
-                                <div class="player-info">🎂 Wiek: ${ageStr} lat</div>
-                                <div class="player-info">${cityStr}</div>
-                            `;
-                            card.addEventListener('click', () => openPlayerModal(uid));
-                            playersGrid.appendChild(card);
-                        }
-                    });
+                    const firstName = player.firstName || "Zawodnik";
+                    const lastName = player.lastName || "";
+                    const defaultAvatar = "https://via.placeholder.com/150/2a2a2a/ffffff?text=" + firstName[0];
+                    const photo = (player.photoUrl && player.photoUrl.trim() !== "") ? player.photoUrl : defaultAvatar;
+                    const ageStr = calculateAge(player.birthDate);
+                    const cityStr = player.city ? `📍 ${player.city}` : "📍 Nie podano";
 
-                    if (seasonPlayerCount === 0) {
-                        playersGrid.innerHTML = "<p style='grid-column: 1/-1; text-align: center; color: #888;'>Brak zapisanych zawodników na 1. Sezon.</p>";
-                    }
-                } else {
-                    playersGrid.innerHTML = "<p style='grid-column: 1/-1; text-align: center; color: #888;'>Brak zarejestrowanych zawodników.</p>";
+                    const card = document.createElement('div');
+                    card.className = 'player-card';
+                    card.innerHTML = `
+                        <img class="player-avatar" src="${photo}" alt="${firstName}">
+                        <div class="player-name">${firstName} ${lastName}</div>
+                        <div class="player-info">🎂 Wiek: ${ageStr} lat</div>
+                        <div class="player-info">${cityStr}</div>
+                    `;
+                    
+                    card.addEventListener('click', () => openPlayerModal(uid));
+                    playersGrid.appendChild(card);
                 }
             });
+
+            if (seasonPlayerCount === 0) {
+                playersGrid.innerHTML = "<p style='grid-column: 1/-1; text-align: center; color: #888;'>Brak zapisanych zawodników na 1. Sezon.</p>";
+            }
+        } else {
+            playersGrid.innerHTML = "<p style='grid-column: 1/-1; text-align: center; color: #888;'>Brak danych w bazie użytkowników.</p>";
         }
+    } catch (err) {
+        console.error("Błąd pobierania graczy:", err);
+        if (loadingMsg) loadingMsg.classList.add('hidden');
+        playersGrid.innerHTML = `<p style='grid-column: 1/-1; text-align: center; color: #ff6b6b;'>Błąd wczytywania danych: ${err.message}<br><small>Sprawdź reguły Firebase Realtime Database!</small></p>`;
+    }
+}
 
         // --- PODGLĄD PROFILU INNEGO ZAWODNIKA (MODAL) ---
         function openPlayerModal(uid) {
