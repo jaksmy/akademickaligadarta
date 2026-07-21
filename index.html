@@ -461,6 +461,29 @@
         document.getElementById('btn-go-login-from-reg').onclick = showLoginView;
         document.getElementById('btn-go-login-from-reset').onclick = showLoginView;
 
+        // --- OBSŁUGA STANU LOGOWANIA (AUTH STATE) ---
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                if (user.emailVerified) {
+                    viewLogin.classList.add('hidden');
+                    viewRegister.classList.add('hidden');
+                    viewReset.classList.add('hidden');
+                    viewApp.classList.remove('hidden');
+                    await loadUserProfile(user.uid);
+                } else {
+                    viewApp.classList.add('hidden');
+                    showLoginView();
+                }
+            } else {
+                currentUserData = null;
+                viewApp.classList.add('hidden');
+                showLoginView();
+            }
+        });
+
+        // WYLOGOWANIE
+        document.getElementById('btn-logout').onclick = () => signOut(auth);
+
         // --- REJESTRACJA NOWEGO GRACZA ---
         document.getElementById('btn-register').onclick = async () => {
             const email = document.getElementById('reg-email').value.trim();
@@ -474,7 +497,7 @@
 
             regMsg.className = "msg info";
             
-            // Walidacja pół
+            // Walidacja pól
             if(!email || !pass1 || !pass2 || !firstName || !lastName || !birthDate || !dartCounter) {
                 regMsg.className = "msg error";
                 regMsg.innerText = "Wypełnij wszystkie wymagane pola (*)!";
@@ -631,7 +654,7 @@
             profileViewMode.classList.remove('hidden');
         };
 
-        // Podgląd / odczyt zdjęcia przy wyboże pliku
+        // Podgląd / odczyt zdjęcia przy wyborze pliku
         document.getElementById('edit-photo').onchange = (e) => {
             const file = e.target.files[0];
             if(file) {
@@ -724,33 +747,10 @@
                         playersGrid.innerHTML += cardHTML;
                     });
                 } else {
-                    playersGrid.innerHTML = "<p style='text-align:center; grid-column: 1/-1; color: #888;'>Brak zarejestrowanych zawodników.</p>";
+                    playersGrid.innerHTML = "<p style='grid-column: 1/-1; text-align: center; color: #888;'>Brak zarejestrowanych zawodników.</p>";
                 }
-            }, { onlyOnce: true });
+            });
         }
-
-        // Wylogowanie
-        document.getElementById('btn-logout').onclick = () => signOut(auth);
-
-        // --- OBSŁUGA STANU ZALOGOWANIA ---
-        onAuthStateChanged(auth, async (user) => {
-            if (user && user.emailVerified) {
-                // Zalogowany i aktywowany zawodnik
-                tabAccount.innerText = "👤 PROFIL";
-                viewLogin.classList.add('hidden');
-                viewRegister.classList.add('hidden');
-                viewReset.classList.add('hidden');
-                viewApp.classList.remove('hidden');
-
-                await loadUserProfile(user.uid);
-            } else {
-                // Niezalogowany
-                tabAccount.innerText = "🔑 Konto";
-                currentUserData = null;
-                viewApp.classList.add('hidden');
-                showLoginView();
-            }
-        });
     </script>
 </body>
 </html>
