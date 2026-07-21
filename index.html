@@ -260,7 +260,7 @@
 
     </div>
 
-    <!-- MODAL 1: WERYFIKACJA EMAILA -->
+    <!-- MODAL 1: WERYFIKACJA EMAILA (OKIENKO WYSKAKUJĄCE) -->
     <div id="modal-overlay" class="modal-overlay hidden">
         <div class="modal-content">
             <h2 style="color: #ffd43b; margin-bottom: 10px;">✉️ Potwierdź adres e-mail</h2>
@@ -438,7 +438,6 @@
                     viewRegister.classList.add('hidden');
                     viewReset.classList.add('hidden');
                     viewApp.classList.remove('hidden');
-                    // Pobieramy i automatycznie uzupełniamy dane w panelu
                     await loadUserProfile(user.uid);
                 } else {
                     viewApp.classList.add('hidden');
@@ -485,11 +484,11 @@
             regMsg.innerText = "Tworzenie konta...";
 
             try {
-                // 1. Stwórz konto w Firebase Auth
+                // 1. Rejestracja w Auth
                 const userCredential = await createUserWithEmailAndPassword(auth, email, pass1);
                 const user = userCredential.user;
 
-                // 2. Zapisz dane użytkownika w Firebase Realtime Database
+                // 2. Zapis w Bazie Danych
                 await set(ref(db, 'users/' + user.uid), {
                     firstName: firstName,
                     lastName: lastName,
@@ -501,12 +500,14 @@
                     createdAt: new Date().toISOString()
                 });
 
-                // 3. Wyślij e-mail weryfikacyjny
+                // 3. Wysyłka e-maila
                 await sendEmailVerification(user);
 
-                // 4. Wyloguj i pokaż modal aktywacyjny
-                await signOut(auth);
+                // 4. Pokazanie okienka modalnego PRZED wylogowaniem
                 modalOverlay.classList.remove('hidden');
+
+                // 5. Wylogowanie w tle
+                await signOut(auth);
 
             } catch (err) {
                 console.error("Błąd rejestracji:", err);
@@ -572,7 +573,7 @@
             }
         };
 
-        // --- AUTOMATYCZNE POBIERANIE DANYCH PO ZALOGOWANIU ---
+        // --- POBIERANIE DANYCH PROFILU ---
         async function loadUserProfile(uid) {
             try {
                 const snapshot = await get(ref(db, 'users/' + uid));
