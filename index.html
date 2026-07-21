@@ -338,7 +338,7 @@
         </div>
     </div>
 
-    <!-- MODAL 3: PODGLĄD PROFILU INNEGO ZAWODNIKA (TYLKO DO ODCZYTU) -->
+    <!-- MODAL 3: PODGLĄD PROFILU INNEGO ZAWODNIKA -->
     <div id="modal-view-player" class="modal-overlay hidden">
         <div class="modal-content" style="max-width: 500px;">
             <div class="profile-header">
@@ -405,6 +405,7 @@
         const db = getDatabase(app);
 
         let currentUserProfileData = null;
+        let allPlayersData = {};
 
         // --- NAWIGACJA ZAKŁADEK ---
         const tabHome = document.getElementById('tab-home');
@@ -536,11 +537,9 @@
             regMsg.innerText = "Tworzenie konta...";
 
             try {
-                // 1. Rejestracja w Auth
                 const userCredential = await createUserWithEmailAndPassword(auth, email, pass1);
                 const user = userCredential.user;
 
-                // 2. Zapis w Bazie Danych
                 await set(ref(db, 'users/' + user.uid), {
                     firstName: firstName,
                     lastName: lastName,
@@ -553,13 +552,8 @@
                     createdAt: new Date().toISOString()
                 });
 
-                // 3. Wysyłka e-maila
                 await sendEmailVerification(user);
-
-                // 4. Pokazanie okienka modalnego PRZED wylogowaniem
                 modalOverlay.classList.remove('hidden');
-
-                // 5. Wylogowanie w tle
                 await signOut(auth);
 
             } catch (err) {
@@ -634,15 +628,12 @@
                     const data = snapshot.val();
                     currentUserProfileData = data;
 
-                    // 1. Imię i Nazwisko
                     document.getElementById('prof-fullname').innerText = `${data.firstName || ''} ${data.lastName || ''}`.trim() || "Zawodnik";
                     document.getElementById('prof-email-display').innerText = data.email || "";
                     document.getElementById('prof-photo').src = (data.photoUrl && data.photoUrl.trim() !== "") ? data.photoUrl : "https://via.placeholder.com/150/2a2a2a/ffffff?text=DART";
                     
-                    // 2. Przeliczony wiek
                     document.getElementById('prof-age').innerText = calculateAge(data.birthDate);
 
-                    // 3. Miejscowość z automatycznym linkiem do Google Maps
                     const cityLink = document.getElementById('prof-city-link');
                     if (data.city && data.city.trim() !== "") {
                         cityLink.innerText = data.city;
@@ -654,7 +645,6 @@
                         cityLink.style.pointerEvents = "none";
                     }
 
-                    // 4. Przycisk DartCounter
                     const dartBtn = document.getElementById('prof-dartcounter-btn');
                     if (data.dartCounter && data.dartCounter.trim() !== "") {
                         dartBtn.href = data.dartCounter.startsWith('http') ? data.dartCounter : `https://${data.dartCounter}`;
@@ -666,11 +656,10 @@
                         dartBtn.classList.add('disabled');
                     }
 
-                    // 5. Obsługa statusu zapisu na 1. Sezon
                     const btnToggleSeason = document.getElementById('btn-toggle-season');
                     const badgeContainer = document.getElementById('prof-status-badge');
 
-                    if (data.signedUpForSeason1) {
+                    if (data.signedUpForSeason1 === true) {
                         badgeContainer.innerHTML = '<span class="season-badge">Zapisany na 1. Sezon</span>';
                         btnToggleSeason.innerText = "Wypisz się z 1. Sezonu";
                         btnToggleSeason.className = "btn-danger";
@@ -690,7 +679,7 @@
             const user = auth.currentUser;
             if (!user || !currentUserProfileData) return;
 
-            const isSignedUp = !!currentUserProfileData.signedUpForSeason1;
+            const isSignedUp = currentUserProfileData.signedUpForSeason1 === true;
             const newStatus = !isSignedUp;
 
             try {
@@ -749,9 +738,7 @@
             }
         };
 
-        // --- ŁADOWANIE LISTY ZAWODNIKÓW (TYLKO ZAPISANI NA 1. SEZON) ---
-        let allPlayersData = {};
-
+        // --- ŁADOWANIE LISTY ZAWODNIKÓW ---
         function loadPlayersList() {
             const playersGrid = document.getElementById('players-grid');
             const loadingMsg = document.getElementById('players-loading');
@@ -771,25 +758,26 @@
                     Object.keys(users).forEach(uid => {
                         const player = users[uid];
                         
-                        // Pokazujemy tylko zawodników zapisanych na 1. Sezon
-                        if (player.signedUpForSeason1) {
+                        // Przypadek gdy zawodnik jest zapisany na 1. sezon
+                        if (player.signedUpForSeason1 === true) {
                             seasonPlayerCount++;
                             allPlayersData[uid] = player;
 
                             const defaultAvatar = "https://via.placeholder.com/150/2a2a2a/ffffff?text=" + (player.firstName ? player.firstName[0] : 'D');
-                            const photo = player.photoUrl || defaultAvatar;
+                            const photo = (player.photoUrl && player.photoUrl.trim() !== "") ? player.photoUrl : defaultAvatar;
                             const ageStr = calculateAge(player.birthDate);
                             const cityStr = player.city ? `📍 ${player.city}` : "📍 Nie podano";
 
-                            const cardHTML = `
-                                <div class="player-card" onclick="window.openPlayerModal('${uid}')">
-                                    <img class="player-avatar" src="${photo}" alt="${player.firstName}">
-                                    <div class="player-name">${player.firstName} ${player.lastName}</div>
-                                    <div class="player-info">🎂 Wiek: ${ageStr} lat</div>
-                                    <div class="player-info">${cityStr}</div>
-                                </div>
+                            const card = document.createElement('div');
+                            card.className = 'player-card';
+                            card.innerHTML = `
+                                <img class="player-avatar" src="${photo}" alt="${player.firstName}">
+                                <div class="player-name">${player.firstName} ${player.lastName}</div>
+                                <div class="player-info">🎂 Wiek: ${ageStr} lat</div>
+                                <div class="player-info">${cityStr}</div>
                             `;
-                            playersGrid.innerHTML += cardHTML;
+                            card.addEventListener('click', () => openPlayerModal(uid));
+                            playersGrid.appendChild(card);
                         }
                     });
 
@@ -803,7 +791,7 @@
         }
 
         // --- PODGLĄD PROFILU INNEGO ZAWODNIKA (MODAL) ---
-        window.openPlayerModal = function(uid) {
+        function openPlayerModal(uid) {
             const player = allPlayersData[uid];
             if (!player) return;
 
@@ -811,7 +799,6 @@
             document.getElementById('view-player-photo').src = (player.photoUrl && player.photoUrl.trim() !== "") ? player.photoUrl : "https://via.placeholder.com/150/2a2a2a/ffffff?text=DART";
             document.getElementById('view-player-age').innerText = calculateAge(player.birthDate);
 
-            // Google Maps
             const cityLink = document.getElementById('view-player-city-link');
             if (player.city && player.city.trim() !== "") {
                 cityLink.innerText = player.city;
@@ -823,7 +810,6 @@
                 cityLink.style.pointerEvents = "none";
             }
 
-            // DartCounter
             const dartBtn = document.getElementById('view-player-dartcounter-btn');
             if (player.dartCounter && player.dartCounter.trim() !== "") {
                 dartBtn.href = player.dartCounter.startsWith('http') ? player.dartCounter : `https://${player.dartCounter}`;
@@ -836,7 +822,7 @@
             }
 
             document.getElementById('modal-view-player').classList.remove('hidden');
-        };
+        }
 
         document.getElementById('btn-close-view-player').onclick = () => {
             document.getElementById('modal-view-player').classList.add('hidden');
