@@ -4,103 +4,311 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel Ligi Darta</title>
+    <!-- Skrypt do Google reCAPTCHA -->
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <style>
-        body { font-family: sans-serif; max-width: 400px; margin: 40px auto; padding: 20px; background: #121212; color: #fff; }
-        .box { background: #1e1e1e; padding: 20px; border-radius: 8px; border: 1px solid #333; }
-        input, button { width: 100%; padding: 10px; margin: 8px 0; border-radius: 5px; box-sizing: border-box; }
-        button { background: #1a73e8; color: white; border: none; font-weight: bold; cursor: pointer; }
+        * { box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 450px; margin: 30px auto; padding: 20px; background-color: #121212; color: #fff; }
+        .box { background: #1e1e1e; padding: 25px; border-radius: 12px; border: 1px solid #333; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+        h2, h3 { text-align: center; color: #1a73e8; margin-top: 0; }
+        label { font-size: 13px; color: #ccc; margin-top: 10px; display: block; }
+        input, button { width: 100%; padding: 12px; margin: 8px 0 12px 0; border-radius: 6px; border: 1px solid #444; background: #2a2a2a; color: #fff; font-size: 15px; }
+        button { background: #1a73e8; color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        button:hover { background: #1557b0; }
         .btn-sec { background: #444; }
-        .hidden { display: none; }
-        #msg { margin-top: 15px; font-weight: bold; text-align: center; word-break: break-all; }
+        .btn-sec:hover { background: #555; }
+        .btn-link { background: none; border: none; color: #1a73e8; text-decoration: underline; padding: 5px; margin: 0 0 10px 0; font-size: 13px; font-weight: normal; }
+        .btn-link:hover { background: none; color: #64b5f6; }
+        .hidden { display: none !important; }
+        .msg { font-size: 14px; text-align: center; margin-top: 10px; font-weight: bold; word-break: break-word; }
+        .error { color: #ff6b6b; }
+        .success { color: #51cf66; }
+        .info { color: #ffd43b; }
+
+        /* Zablokowane okno modalne do aktywacji */
+        #modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.92); z-index: 9999;
+            display: flex; justify-content: center; align-items: center; padding: 20px;
+        }
+        .modal-content {
+            background: #1e1e1e; border: 2px solid #1a73e8; padding: 30px;
+            border-radius: 12px; text-align: center; max-width: 400px; width: 100%;
+            box-shadow: 0 0 25px rgba(26, 115, 232, 0.4);
+        }
+        .g-recaptcha { margin: 15px 0; display: flex; justify-content: center; }
     </style>
 </head>
 <body>
 
-    <div id="auth-box" class="box">
+    <!-- 1. PANEL LOGOWANIA -->
+    <div id="view-login" class="box">
         <h2>🎯 Panel Ligi Darta</h2>
-        <input type="email" id="email" placeholder="Twój e-mail">
-        <input type="password" id="password" placeholder="Hasło (min. 6 znaków)">
+        <h3>Zaloguj się</h3>
+        
+        <label for="login-email">E-mail:</label>
+        <input type="email" id="login-email" placeholder="twoj@email.com">
+        
+        <label for="login-pass">Hasło:</label>
+        <input type="password" id="login-pass" placeholder="••••••••">
         
         <button id="btn-login" type="button">ZALOGUJ SIĘ</button>
-        <button id="btn-register" type="button" class="btn-sec">ZAREJESTRUJ SIĘ</button>
+        <button id="btn-go-reset" type="button" class="btn-link">Zapomniałeś hasła?</button>
+        <button id="btn-go-register" type="button" class="btn-sec">Nie masz konta? Zarejestruj się</button>
         
-        <div id="msg"></div>
+        <div id="login-msg" class="msg"></div>
     </div>
 
-    <div id="app-box" class="box hidden">
-        <h3>Witaj w panelu!</h3>
-        <p>Zalogowano jako: <b id="user-email"></b></p>
-        <button id="btn-logout" class="btn-sec">Wyloguj się</button>
+    <!-- 2. PODSTRONA REJESTRACJI -->
+    <div id="view-register" class="box hidden">
+        <h2>🎯 Panel Ligi Darta</h2>
+        <h3>Rejestracja nowego konta</h3>
+        
+        <label for="reg-email">E-mail:</label>
+        <input type="email" id="reg-email" placeholder="twoj@email.com">
+        
+        <label for="reg-pass">Hasło (min. 6 znaków):</label>
+        <input type="password" id="reg-pass" placeholder="••••••••">
+
+        <label for="reg-pass2">Powtórz hasło:</label>
+        <input type="password" id="reg-pass2" placeholder="••••••••">
+
+        <!-- ⬇️ TUTAJ WKLEJ SWÓJ WYGENEROWANY SITE KEY Z GOOGLE CLOUD ⬇️ -->
+        <div class="g-recaptcha" data-sitekey="6LdQGV4tAAAAAIHo6dmy4WfWgBmBVTcXWBvEuciR"></div>
+        
+        <button id="btn-register" type="button">ZAREJESTRUJ SIĘ</button>
+        <button id="btn-go-login-from-reg" type="button" class="btn-sec">Powrót do logowania</button>
+        
+        <div id="reg-msg" class="msg"></div>
     </div>
 
+    <!-- 3. PODSTRONA RESETU HASŁA -->
+    <div id="view-reset" class="box hidden">
+        <h2>🎯 Panel Ligi Darta</h2>
+        <h3>Resetowanie hasła</h3>
+        <p style="font-size: 13px; color: #ccc; text-align: center;">Podaj swój adres e-mail. Wyślemy Ci link do zmiany hasła.</p>
+        
+        <label for="reset-email">E-mail:</label>
+        <input type="email" id="reset-email" placeholder="twoj@email.com">
+        
+        <button id="btn-reset-pass" type="button">WYŚLIJ LINK RESETUJĄCY</button>
+        <button id="btn-go-login-from-reset" type="button" class="btn-sec">Powrót do logowania</button>
+        
+        <div id="reset-msg" class="msg"></div>
+    </div>
+
+    <!-- 4. ZALOGOWANY PANEL SĘDZIEGO -->
+    <div id="view-app" class="box hidden">
+        <h3>Witaj w Panelu!</h3>
+        <p style="text-align: center;">Zalogowano jako: <b id="user-email" style="color: #1a73e8;"></b></p>
+        <button id="btn-logout" type="button" class="btn-sec">Wyloguj się</button>
+    </div>
+
+    <!-- 5. ZABLOKOWANE OKNO POTWIERDZENIA ADRESU EMAIL -->
+    <div id="modal-overlay" class="hidden">
+        <div class="modal-content">
+            <h2 style="color: #ffd43b; margin-bottom: 10px;">✉️ Potwierdź adres e-mail</h2>
+            <p>Na podany adres e-mail wysłaliśmy link aktywacyjny.</p>
+            <p style="color: #aaa; font-size: 13px;">Otwórz swoją skrzynkę odbiorczą, kliknij w link, a następnie wróć tutaj i odśwież stronę.</p>
+            <button onclick="window.location.reload()" style="margin-top: 15px;">Odśwież stronę po aktywacji</button>
+        </div>
+    </div>
+
+    <!-- LOGIKA FIREBASE -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { 
             getAuth, 
             signInWithEmailAndPassword, 
             createUserWithEmailAndPassword, 
+            sendEmailVerification,
+            sendPasswordResetEmail,
             onAuthStateChanged, 
             signOut 
         } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-        // ⬇️ Wklej tu swoje klucze z Firebase (zostaw cudzysłowy!)
+        // ⬇️ WKLEJ TU SWOJE KLUCZE Z FIREBASE ⬇️
         const firebaseConfig = {
             apiKey: "AIzaSyBhCLFBrAqMBqKjPOIc5b0i2EEtZ_WP4M0",
             authDomain: "akademicka-liga-darta.firebaseapp.com",
+            databaseURL: "https://akademicka-liga-darta-default-rtdb.europe-west1.firebasedatabase.app",
             projectId: "akademicka-liga-darta",
             storageBucket: "akademicka-liga-darta.firebasestorage.app",
             messagingSenderId: "832284758287",
-            appId: "1:832284758287:web:1a156fb2cf197634aa6e7a"
+            appId: "1:832284758287:web:1a156fb2cf197634aa6e7a",
+            measurementId: "G-LN9B7YDB6K"
         };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-        const msg = document.getElementById('msg');
 
-        // Rejestracja
+        // Widoki
+        const viewLogin = document.getElementById('view-login');
+        const viewRegister = document.getElementById('view-register');
+        const viewReset = document.getElementById('view-reset');
+        const viewApp = document.getElementById('view-app');
+        const modalOverlay = document.getElementById('modal-overlay');
+
+        // Komunikaty
+        const loginMsg = document.getElementById('login-msg');
+        const regMsg = document.getElementById('reg-msg');
+        const resetMsg = document.getElementById('reset-msg');
+
+        // Nawigacja widoków
+        document.getElementById('btn-go-register').onclick = () => {
+            document.getElementById('reg-email').value = document.getElementById('login-email').value;
+            document.getElementById('reg-pass').value = document.getElementById('login-pass').value;
+            
+            viewLogin.classList.add('hidden');
+            viewReset.classList.add('hidden');
+            viewRegister.classList.remove('hidden');
+        };
+
+        document.getElementById('btn-go-reset').onclick = () => {
+            document.getElementById('reset-email').value = document.getElementById('login-email').value;
+            
+            viewLogin.classList.add('hidden');
+            viewRegister.classList.add('hidden');
+            viewReset.classList.remove('hidden');
+        };
+
+        const showLoginView = () => {
+            viewRegister.classList.add('hidden');
+            viewReset.classList.add('hidden');
+            viewLogin.classList.remove('hidden');
+        };
+
+        document.getElementById('btn-go-login-from-reg').onclick = showLoginView;
+        document.getElementById('btn-go-login-from-reset').onclick = showLoginView;
+
+        // --- REJESTRACJA ---
         document.getElementById('btn-register').onclick = async () => {
-            const e = document.getElementById('email').value;
-            const p = document.getElementById('password').value;
-            msg.style.color = "yellow";
-            msg.innerText = "Łączenie z bazą...";
+            const email = document.getElementById('reg-email').value.trim();
+            const pass1 = document.getElementById('reg-pass').value;
+            const pass2 = document.getElementById('reg-pass2').value;
+            const captchaResponse = grecaptcha.getResponse();
+
+            regMsg.className = "msg info";
+            
+            // Walidacja
+            if(!email || !pass1 || !pass2) {
+                regMsg.className = "msg error";
+                regMsg.innerText = "Wypełnij wszystkie pola!";
+                return;
+            }
+            if(pass1 !== pass2) {
+                regMsg.className = "msg error";
+                regMsg.innerText = "Hasła nie są identyczne!";
+                return;
+            }
+            if(pass1.length < 6) {
+                regMsg.className = "msg error";
+                regMsg.innerText = "Hasło musi mieć co najmniej 6 znaków!";
+                return;
+            }
+            if(captchaResponse.length === 0) {
+                regMsg.className = "msg error";
+                regMsg.innerText = "Zaznacz pole reCAPTCHA!";
+                return;
+            }
+
+            regMsg.innerText = "Rejestracja i wysyłanie e-maila...";
 
             try {
-                await createUserWithEmailAndPassword(auth, e, p);
-                msg.style.color = "lime";
-                msg.innerText = "✔ Konto utworzone!";
+                // Tworzenie konta
+                const userCredential = await createUserWithEmailAndPassword(auth, email, pass1);
+                
+                // Wysyłanie e-maila aktywacyjnego
+                await sendEmailVerification(userCredential.user);
+                
+                // Wylogowujemy od razu, żeby nieaktywny użytkownik nie miał dostępu
+                await signOut(auth);
+
+                // Pokazujemy nieusuwalny modal
+                modalOverlay.classList.remove('hidden');
+
             } catch (err) {
-                msg.style.color = "red";
-                msg.innerText = "Błąd: " + err.message;
+                regMsg.className = "msg error";
+                if(err.code === 'auth/email-already-in-use') {
+                    regMsg.innerText = "Ten e-mail jest już zarejestrowany!";
+                } else {
+                    regMsg.innerText = "Błąd: " + err.message;
+                }
             }
         };
 
-        // Logowanie
+        // --- LOGOWANIE Z WERYFIKACJĄ AKTYWACJI ---
         document.getElementById('btn-login').onclick = async () => {
-            const e = document.getElementById('email').value;
-            const p = document.getElementById('password').value;
-            msg.style.color = "yellow";
-            msg.innerText = "Logowanie...";
+            const email = document.getElementById('login-email').value.trim();
+            const pass = document.getElementById('login-pass').value;
+            loginMsg.className = "msg info";
+            loginMsg.innerText = "Sprawdzanie danych...";
+
+            if(!email || !pass) {
+                loginMsg.className = "msg error";
+                loginMsg.innerText = "Wpisz e-mail i hasło!";
+                return;
+            }
 
             try {
-                await signInWithEmailAndPassword(auth, e, p);
+                const userCredential = await signInWithEmailAndPassword(auth, email, pass);
+                const user = userCredential.user;
+
+                if (!user.emailVerified) {
+                    await signOut(auth);
+                    loginMsg.className = "msg error";
+                    loginMsg.innerText = "aktywuj konto";
+                } else {
+                    loginMsg.innerText = "";
+                }
             } catch (err) {
-                msg.style.color = "red";
-                msg.innerText = "Błąd: " + err.message;
+                loginMsg.className = "msg error";
+                loginMsg.innerText = "Błędny e-mail lub hasło.";
+            }
+        };
+
+        // --- RESETOWANIE HASŁA ---
+        document.getElementById('btn-reset-pass').onclick = async () => {
+            const email = document.getElementById('reset-email').value.trim();
+            resetMsg.className = "msg info";
+
+            if(!email) {
+                resetMsg.className = "msg error";
+                resetMsg.innerText = "Wpisz swój adres e-mail!";
+                return;
+            }
+
+            resetMsg.innerText = "Wysyłanie linku resetującego...";
+
+            try {
+                await sendPasswordResetEmail(auth, email);
+                resetMsg.className = "msg success";
+                resetMsg.innerText = "Link do resetowania hasła został wysłany na Twój e-mail!";
+            } catch (err) {
+                resetMsg.className = "msg error";
+                if(err.code === 'auth/user-not-found') {
+                    resetMsg.innerText = "Nie znaleziono konta z tym adresem e-mail.";
+                } else if(err.code === 'auth/invalid-email') {
+                    resetMsg.innerText = "Niepoprawny format adresu e-mail.";
+                } else {
+                    resetMsg.innerText = "Błąd: " + err.message;
+                }
             }
         };
 
         // Wylogowanie
         document.getElementById('btn-logout').onclick = () => signOut(auth);
 
-        // Stan zalogowania
+        // Automatyczne zarządzanie widokami na podstawie statusu
         onAuthStateChanged(auth, (user) => {
-            if (user) {
-                document.getElementById('auth-box').classList.add('hidden');
-                document.getElementById('app-box').classList.remove('hidden');
+            if (user && user.emailVerified) {
+                viewLogin.classList.add('hidden');
+                viewRegister.classList.add('hidden');
+                viewReset.classList.add('hidden');
+                viewApp.classList.remove('hidden');
                 document.getElementById('user-email').innerText = user.email;
             } else {
-                document.getElementById('auth-box').classList.remove('hidden');
-                document.getElementById('app-box').classList.add('hidden');
+                viewApp.classList.add('hidden');
             }
         });
     </script>
