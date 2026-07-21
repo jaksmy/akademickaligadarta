@@ -485,73 +485,86 @@
         document.getElementById('btn-logout').onclick = () => signOut(auth);
 
         // --- REJESTRACJA NOWEGO GRACZA ---
-        document.getElementById('btn-register').onclick = async () => {
-            const email = document.getElementById('reg-email').value.trim();
-            const pass1 = document.getElementById('reg-pass').value;
-            const pass2 = document.getElementById('reg-pass2').value;
-            const firstName = document.getElementById('reg-firstname').value.trim();
-            const lastName = document.getElementById('reg-lastname').value.trim();
-            const birthDate = document.getElementById('reg-birthdate').value;
-            const city = document.getElementById('reg-city').value.trim();
-            const dartCounter = document.getElementById('reg-dartcounter').value.trim();
+      // --- REJESTRACJA NOWEGO GRACZA (ZAPOBIEGANIE BŁĘDOM MAIL) ---
+document.getElementById('btn-register').onclick = async () => {
+    const email = document.getElementById('reg-email').value.trim();
+    const pass1 = document.getElementById('reg-pass').value;
+    const pass2 = document.getElementById('reg-pass2').value;
+    const firstName = document.getElementById('reg-firstname').value.trim();
+    const lastName = document.getElementById('reg-lastname').value.trim();
+    const birthDate = document.getElementById('reg-birthdate').value;
+    const city = document.getElementById('reg-city').value.trim();
+    const dartCounter = document.getElementById('reg-dartcounter').value.trim();
 
-            regMsg.className = "msg info";
-            
-            // Walidacja pól
-            if(!email || !pass1 || !pass2 || !firstName || !lastName || !birthDate || !dartCounter) {
-                regMsg.className = "msg error";
-                regMsg.innerText = "Wypełnij wszystkie wymagane pola (*)!";
-                return;
-            }
-            if(pass1 !== pass2) {
-                regMsg.className = "msg error";
-                regMsg.innerText = "Hasła nie są identyczne!";
-                return;
-            }
-            if(pass1.length < 6) {
-                regMsg.className = "msg error";
-                regMsg.innerText = "Hasło musi mieć co najmniej 6 znaków!";
-                return;
-            }
-            if(!validateDartCounterUrl(dartCounter)) {
-                regMsg.className = "msg error";
-                regMsg.innerText = "Niepoprawny link DartCounter! Podaj prawidłowy link.";
-                return;
-            }
+    regMsg.className = "msg info";
+    
+    // Walidacja pól
+    if(!email || !pass1 || !pass2 || !firstName || !lastName || !birthDate || !dartCounter) {
+        regMsg.className = "msg error";
+        regMsg.innerText = "Wypełnij wszystkie wymagane pola (*)!";
+        return;
+    }
+    if(pass1 !== pass2) {
+        regMsg.className = "msg error";
+        regMsg.innerText = "Hasła nie są identyczne!";
+        return;
+    }
+    if(pass1.length < 6) {
+        regMsg.className = "msg error";
+        regMsg.innerText = "Hasło musi mieć co najmniej 6 znaków!";
+        return;
+    }
+    if(!validateDartCounterUrl(dartCounter)) {
+        regMsg.className = "msg error";
+        regMsg.innerText = "Niepoprawny link DartCounter!";
+        return;
+    }
 
-            regMsg.innerText = "Rejestracja konta zawodnika...";
+    regMsg.innerText = "Rejestracja konta zawodnika...";
 
-            try {
-                // Tworzenie użytkownika w Firebase Auth
-                const userCredential = await createUserWithEmailAndPassword(auth, email, pass1);
-                const user = userCredential.user;
+    try {
+        // 1. Tworzenie konta
+        const userCredential = await createUserWithEmailAndPassword(auth, email, pass1);
+        const user = userCredential.user;
 
-                // Zapis dodatkowych danych gracza w Firebase Database
-                await set(ref(db, 'users/' + user.uid), {
-                    firstName: firstName,
-                    lastName: lastName,
-                    birthDate: birthDate,
-                    city: city || "",
-                    dartCounter: dartCounter,
-                    photoUrl: "",
-                    email: email,
-                    createdAt: new Date().toISOString()
-                });
+        // 2. Zapis w bazie danych
+        await set(ref(db, 'users/' + user.uid), {
+            firstName: firstName,
+            lastName: lastName,
+            birthDate: birthDate,
+            city: city || "",
+            dartCounter: dartCounter,
+            photoUrl: "",
+            email: email,
+            createdAt: new Date().toISOString()
+        });
 
-                // Wysyłanie e-maila weryfikacyjnego
-                await sendEmailVerification(user);
-                await signOut(auth);
-                modalOverlay.classList.remove('hidden');
+        // 3. Wysyłka e-maila weryfikacyjnego
+        try {
+            await sendEmailVerification(user);
+        } catch (mailError) {
+            console.error("Błąd wysyłania e-maila:", mailError);
+            alert("Konto zostało utworzone, ale wystąpił problem z wysłaniem e-maila: " + mailError.message);
+        }
 
-            } catch (err) {
-                regMsg.className = "msg error";
-                if(err.code === 'auth/email-already-in-use') {
-                    regMsg.innerText = "Ten e-mail jest już zarejestrowany!";
-                } else {
-                    regMsg.innerText = "Błąd: " + err.message;
-                }
-            }
-        };
+        // 4. Wylogowanie i wymuszenie pokazania okna modalnego
+        await signOut(auth);
+        
+        // Pokaż modal
+        modalOverlay.classList.remove('hidden');
+
+    } catch (err) {
+        console.error("Błąd rejestracji:", err);
+        regMsg.className = "msg error";
+        if(err.code === 'auth/email-already-in-use') {
+            regMsg.innerText = "Ten e-mail jest już zarejestrowany! Przejdź do logowania.";
+        } else if(err.code === 'auth/invalid-email') {
+            regMsg.innerText = "Niepoprawny format adresu e-mail.";
+        } else {
+            regMsg.innerText = "Błąd rejestracji: " + err.message;
+        }
+    }
+};
 
         // --- LOGOWANIE ---
         document.getElementById('btn-login').onclick = async () => {
