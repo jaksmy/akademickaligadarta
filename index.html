@@ -3,69 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel Ligi Darta - Logowanie</title>
+    <title>Panel Ligi Darta</title>
     <style>
-        * { box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 450px; margin: 30px auto; padding: 20px; background-color: #121212; color: #fff; }
-        .box { border: 1px solid #333; padding: 25px; border-radius: 12px; background: #1e1e1e; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
-        h2, h3 { text-align: center; color: #1a73e8; margin-top: 0; }
-        label { font-size: 14px; color: #ccc; margin-top: 10px; display: block; }
-        input, button { width: 100%; padding: 12px; margin: 8px 0 16px 0; border-radius: 6px; border: 1px solid #444; background: #2a2a2a; color: #fff; font-size: 15px; }
-        input:focus { border-color: #1a73e8; outline: none; }
-        button { background: #1a73e8; color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        button:hover { background: #1557b0; }
-        .btn-secondary { background: #444; }
-        .btn-secondary:hover { background: #555; }
+        body { font-family: sans-serif; max-width: 400px; margin: 40px auto; padding: 20px; background: #121212; color: #fff; }
+        .box { background: #1e1e1e; padding: 20px; border-radius: 8px; border: 1px solid #333; }
+        input, button { width: 100%; padding: 10px; margin: 8px 0; border-radius: 5px; box-sizing: border-box; }
+        button { background: #1a73e8; color: white; border: none; font-weight: bold; cursor: pointer; }
+        .btn-sec { background: #444; }
         .hidden { display: none; }
-        .error { color: #ff6b6b; font-size: 14px; text-align: center; margin-top: 10px; word-break: break-word; }
-        .success { color: #51cf66; font-size: 14px; text-align: center; margin-top: 10px; }
+        #msg { margin-top: 15px; font-weight: bold; text-align: center; word-break: break-all; }
     </style>
 </head>
 <body>
 
-    <h2>🎯 Panel Ligi Darta</h2>
-
-    <!-- SEKCJA LOGOWANIA / REJESTRACJI -->
-    <div id="auth-section" class="box">
-        <h3>Zaloguj się / Zarejestruj</h3>
+    <div id="auth-box" class="box">
+        <h2>🎯 Panel Ligi Darta</h2>
+        <input type="email" id="email" placeholder="Twój e-mail">
+        <input type="password" id="password" placeholder="Hasło (min. 6 znaków)">
         
-        <label for="email">E-mail:</label>
-        <input type="email" id="email" placeholder="twoj@email.com">
+        <button id="btn-login" type="button">ZALOGUJ SIĘ</button>
+        <button id="btn-register" type="button" class="btn-sec">ZAREJESTRUJ SIĘ</button>
         
-        <label for="password">Hasło (min. 6 znaków):</label>
-        <input type="password" id="password" placeholder="••••••••">
-        
-        <button id="btn-login">Zaloguj się</button>
-        <button id="btn-register" class="btn-secondary">Załóż nowe konto</button>
-        
-        <p id="auth-msg" class="error"></p>
+        <div id="msg"></div>
     </div>
 
-    <!-- SEKCJA WYNIKÓW (Po zalogowaniu) -->
-    <div id="app-section" class="box hidden">
-        <p style="text-align: center;">Zalogowano jako:<br><strong id="user-email" style="color:#1a73e8;"></strong></p>
-        <button id="btn-logout" class="btn-secondary" style="margin-bottom: 20px;">Wyloguj się</button>
-        
-        <hr style="border-color: #333;">
-        <h3>Dodaj wynik meczu</h3>
-        
-        <label for="player1">Gracz 1:</label>
-        <input type="text" id="player1" placeholder="np. Jan Kowalski">
-        
-        <label for="score1">Legi Gracza 1:</label>
-        <input type="number" id="score1" value="0" min="0">
-
-        <label for="player2">Gracz 2:</label>
-        <input type="text" id="player2" placeholder="np. Piotr Nowak">
-
-        <label for="score2">Legi Gracza 2:</label>
-        <input type="number" id="score2" value="0" min="0">
-
-        <button id="btn-save">Zapisz wynik meczu</button>
-        <p id="save-msg"></p>
+    <div id="app-box" class="box hidden">
+        <h3>Witaj w panelu!</h3>
+        <p>Zalogowano jako: <b id="user-email"></b></p>
+        <button id="btn-logout" class="btn-sec">Wyloguj się</button>
     </div>
 
-    <!-- LOGIKA FIREBASE -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { 
@@ -75,134 +42,65 @@
             onAuthStateChanged, 
             signOut 
         } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { 
-            getFirestore, 
-            collection, 
-            addDoc, 
-            serverTimestamp 
-        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // ⚠️ TUTAJ MUSISZ WKLEIĆ SWOJE KLUCZE Z FIREBASE CONSOLE! ⚠️
-       // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyBhCLFBrAqMBqKjPOIc5b0i2EEtZ_WP4M0",
-  authDomain: "akademicka-liga-darta.firebaseapp.com",
-  databaseURL: "https://akademicka-liga-darta-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "akademicka-liga-darta",
-  storageBucket: "akademicka-liga-darta.firebasestorage.app",
-  messagingSenderId: "832284758287",
-  appId: "1:832284758287:web:1a156fb2cf197634aa6e7a",
-  measurementId: "G-LN9B7YDB6K"
-};
+        // ⬇️ Wklej tu swoje klucze z Firebase (zostaw cudzysłowy!)
+        const firebaseConfig = {
+            apiKey: "AIzaSyBhCLFBrAqMBqKjPOIc5b0i2EEtZ_WP4M0",
+            authDomain: "akademicka-liga-darta.firebaseapp.com",
+            projectId: "akademicka-liga-darta",
+            storageBucket: "akademicka-liga-darta.firebasestorage.app",
+            messagingSenderId: "832284758287",
+            appId: "1:832284758287:web:1a156fb2cf197634aa6e7a"
         };
 
-        // Inicjalizacja
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-        const db = getFirestore(app);
+        const msg = document.getElementById('msg');
 
-        // Elementy HTML
-        const authSection = document.getElementById('auth-section');
-        const appSection = document.getElementById('app-section');
-        const authMsg = document.getElementById('auth-msg');
-        const saveMsg = document.getElementById('save-msg');
-
-        // REJESTRACJA
-        document.getElementById('btn-register').addEventListener('click', async () => {
-            const email = document.getElementById('email').value.trim();
-            const pass = document.getElementById('password').value.trim();
-            authMsg.textContent = "";
-
-            if(!email || !pass) {
-                authMsg.textContent = "Wpisz e-mail i hasło!";
-                return;
-            }
+        // Rejestracja
+        document.getElementById('btn-register').onclick = async () => {
+            const e = document.getElementById('email').value;
+            const p = document.getElementById('password').value;
+            msg.style.color = "yellow";
+            msg.innerText = "Łączenie z bazą...";
 
             try {
-                await createUserWithEmailAndPassword(auth, email, pass);
-                authMsg.className = "success";
-                authMsg.textContent = "✔ Konto utworzone! Ładowanie...";
+                await createUserWithEmailAndPassword(auth, e, p);
+                msg.style.color = "lime";
+                msg.innerText = "✔ Konto utworzone!";
             } catch (err) {
-                authMsg.className = "error";
-                if(err.code === 'auth/weak-password') {
-                    authMsg.textContent = "Hasło musi mieć co najmniej 6 znaków!";
-                } else if(err.code === 'auth/email-already-in-use') {
-                    authMsg.textContent = "Ten e-mail jest już zarejestrowany. Kliknij Zaloguj.";
-                } else {
-                    authMsg.textContent = "Błąd: " + err.message;
-                }
+                msg.style.color = "red";
+                msg.innerText = "Błąd: " + err.message;
             }
-        });
+        };
 
-        // LOGOWANIE
-        document.getElementById('btn-login').addEventListener('click', async () => {
-            const email = document.getElementById('email').value.trim();
-            const pass = document.getElementById('password').value.trim();
-            authMsg.textContent = "";
-
-            if(!email || !pass) {
-                authMsg.textContent = "Wpisz e-mail i hasło!";
-                return;
-            }
+        // Logowanie
+        document.getElementById('btn-login').onclick = async () => {
+            const e = document.getElementById('email').value;
+            const p = document.getElementById('password').value;
+            msg.style.color = "yellow";
+            msg.innerText = "Logowanie...";
 
             try {
-                await signInWithEmailAndPassword(auth, email, pass);
+                await signInWithEmailAndPassword(auth, e, p);
             } catch (err) {
-                authMsg.className = "error";
-                authMsg.textContent = "Błąd logowania: Błędny e-mail lub hasło.";
+                msg.style.color = "red";
+                msg.innerText = "Błąd: " + err.message;
             }
-        });
+        };
 
-        // WYLOGOWANIE
-        document.getElementById('btn-logout').addEventListener('click', () => signOut(auth));
+        // Wylogowanie
+        document.getElementById('btn-logout').onclick = () => signOut(auth);
 
-        // AUTOMATYCZNE WYKRYWANIE ZALOGOWANIA
+        // Stan zalogowania
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                authSection.classList.add('hidden');
-                appSection.classList.remove('hidden');
-                document.getElementById('user-email').textContent = user.email;
+                document.getElementById('auth-box').classList.add('hidden');
+                document.getElementById('app-box').classList.remove('hidden');
+                document.getElementById('user-email').innerText = user.email;
             } else {
-                authSection.classList.remove('hidden');
-                appSection.classList.add('hidden');
-            }
-        });
-
-        // ZAPIS WYNIKU
-        document.getElementById('btn-save').addEventListener('click', async () => {
-            const p1 = document.getElementById('player1').value.trim();
-            const s1 = parseInt(document.getElementById('score1').value);
-            const p2 = document.getElementById('player2').value.trim();
-            const s2 = parseInt(document.getElementById('score2').value);
-
-            if(!p1 || !p2) {
-                saveMsg.className = "error";
-                saveMsg.textContent = "Wpisz nazwisko obu graczy!";
-                return;
-            }
-
-            saveMsg.className = "success";
-            saveMsg.textContent = "Zapisywanie w bazie...";
-
-            try {
-                await addDoc(collection(db, "matches"), {
-                    player1: p1,
-                    score1: s1,
-                    player2: p2,
-                    score2: s2,
-                    addedBy: auth.currentUser.email,
-                    createdAt: serverTimestamp()
-                });
-
-                saveMsg.className = "success";
-                saveMsg.textContent = "✔ Wynik meczu został zapisany!";
-                document.getElementById('player1').value = '';
-                document.getElementById('player2').value = '';
-                document.getElementById('score1').value = 0;
-                document.getElementById('score2').value = 0;
-            } catch (err) {
-                saveMsg.className = "error";
-                saveMsg.textContent = "Błąd zapisu: " + err.message;
+                document.getElementById('auth-box').classList.remove('hidden');
+                document.getElementById('app-box').classList.add('hidden');
             }
         });
     </script>
