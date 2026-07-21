@@ -3,13 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel Ligi Darta</title>
-    <!-- Skrypt do Google reCAPTCHA -->
-    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <title>Akademicka Liga Darta</title>
     <style>
         * { box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 450px; margin: 30px auto; padding: 20px; background-color: #121212; color: #fff; }
-        .box { background: #1e1e1e; padding: 25px; border-radius: 12px; border: 1px solid #333; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; background-color: #121212; color: #fff; }
+        
+        /* NAWIGACJA / ZAKŁADKI */
+        nav { display: flex; gap: 10px; background: #1e1e1e; padding: 10px; border-radius: 12px; margin-bottom: 25px; border: 1px solid #333; }
+        .nav-btn { flex: 1; padding: 12px; background: #2a2a2a; border: 1px solid #444; color: #ccc; border-radius: 8px; cursor: pointer; font-weight: bold; text-align: center; transition: 0.2s; }
+        .nav-btn:hover { background: #333; color: #fff; }
+        .nav-btn.active { background: #1a73e8; color: #fff; border-color: #1a73e8; }
+
+        /* KONTENER PANELU */
+        .box { background: #1e1e1e; padding: 25px; border-radius: 12px; border: 1px solid #333; box-shadow: 0 4px 20px rgba(0,0,0,0.5); max-width: 450px; margin: 0 auto; }
+        .page-content { background: #1e1e1e; padding: 25px; border-radius: 12px; border: 1px solid #333; }
+        
         h2, h3 { text-align: center; color: #1a73e8; margin-top: 0; }
         label { font-size: 13px; color: #ccc; margin-top: 10px; display: block; }
         input, button { width: 100%; padding: 12px; margin: 8px 0 12px 0; border-radius: 6px; border: 1px solid #444; background: #2a2a2a; color: #fff; font-size: 15px; }
@@ -36,72 +44,93 @@
             border-radius: 12px; text-align: center; max-width: 400px; width: 100%;
             box-shadow: 0 0 25px rgba(26, 115, 232, 0.4);
         }
-        .g-recaptcha { margin: 15px 0; display: flex; justify-content: center; }
     </style>
 </head>
 <body>
 
-    <!-- 1. PANEL LOGOWANIA -->
-    <div id="view-login" class="box">
-        <h2>🎯 Panel Ligi Darta</h2>
-        <h3>Zaloguj się</h3>
-        
-        <label for="login-email">E-mail:</label>
-        <input type="email" id="login-email" placeholder="twoj@email.com">
-        
-        <label for="login-pass">Hasło:</label>
-        <input type="password" id="login-pass" placeholder="••••••••">
-        
-        <button id="btn-login" type="button">ZALOGUJ SIĘ</button>
-        <button id="btn-go-reset" type="button" class="btn-link">Zapomniałeś hasła?</button>
-        <button id="btn-go-register" type="button" class="btn-sec">Nie masz konta? Zarejestruj się</button>
-        
-        <div id="login-msg" class="msg"></div>
+    <!-- PASEK NAWIGACYJNY (ZAKŁADKI) -->
+    <nav>
+        <button id="tab-home" class="nav-btn active">🏠 Strona Główna</button>
+        <button id="tab-info" class="nav-btn">ℹ️ O Lidze</button>
+        <button id="tab-account" class="nav-btn">🔑 Konto</button>
+    </nav>
+
+    <!-- ZAKŁADKA 1: STRONA GŁÓWNA -->
+    <div id="page-home" class="page-content">
+        <h2>🎯 Akademicka Liga Darta</h2>
+        <p style="text-align: center; color: #ccc;">Witaj na oficjalnej stronie rozgrywek Akademickiej Ligi Darta!</p>
+        <p style="text-align: center; color: #888;">Wybierz zakładkę <b>Konto</b> z menu wyżej, aby się zalogować lub zarejestrować.</p>
     </div>
 
-    <!-- 2. PODSTRONA REJESTRACJI -->
-    <div id="view-register" class="box hidden">
-        <h2>🎯 Panel Ligi Darta</h2>
-        <h3>Rejestracja nowego konta</h3>
-        
-        <label for="reg-email">E-mail:</label>
-        <input type="email" id="reg-email" placeholder="twoj@email.com">
-        
-        <label for="reg-pass">Hasło (min. 6 znaków):</label>
-        <input type="password" id="reg-pass" placeholder="••••••••">
-
-        <label for="reg-pass2">Powtórz hasło:</label>
-        <input type="password" id="reg-pass2" placeholder="••••••••">
-
-        <!-- ⬇️ TUTAJ WKLEJ SWÓJ WYGENEROWANY SITE KEY Z GOOGLE CLOUD ⬇️ -->
-        <div class="g-recaptcha" data-sitekey="6LdQGV4tAAAAAIHo6dmy4WfWgBmBVTcXWBvEuciR"></div>
-        
-        <button id="btn-register" type="button">ZAREJESTRUJ SIĘ</button>
-        <button id="btn-go-login-from-reg" type="button" class="btn-sec">Powrót do logowania</button>
-        
-        <div id="reg-msg" class="msg"></div>
+    <!-- ZAKŁADKA 2: INFORMACJE O LIDZE -->
+    <div id="page-info" class="page-content hidden">
+        <h2>ℹ️ Informacje o Lidze</h2>
+        <p style="color: #ccc;">TUTAJ MOŻESZ DODAĆ INFORMACJE, HARMONOGRAM, REGULAMIN LUB TABELĘ WYNIKÓW.</p>
     </div>
 
-    <!-- 3. PODSTRONA RESETU HASŁA -->
-    <div id="view-reset" class="box hidden">
-        <h2>🎯 Panel Ligi Darta</h2>
-        <h3>Resetowanie hasła</h3>
-        <p style="font-size: 13px; color: #ccc; text-align: center;">Podaj swój adres e-mail. Wyślemy Ci link do zmiany hasła.</p>
+    <!-- ZAKŁADKA 3: PANEL KONTA -->
+    <div id="page-account" class="hidden">
         
-        <label for="reset-email">E-mail:</label>
-        <input type="email" id="reset-email" placeholder="twoj@email.com">
-        
-        <button id="btn-reset-pass" type="button">WYŚLIJ LINK RESETUJĄCY</button>
-        <button id="btn-go-login-from-reset" type="button" class="btn-sec">Powrót do logowania</button>
-        
-        <div id="reset-msg" class="msg"></div>
-    </div>
+        <!-- 1. PANEL LOGOWANIA -->
+        <div id="view-login" class="box">
+            <h2>🎯 Panel Ligi Darta</h2>
+            <h3>Zaloguj się</h3>
+            
+            <label for="login-email">E-mail:</label>
+            <input type="email" id="login-email" placeholder="twoj@email.com">
+            
+            <label for="login-pass">Hasło:</label>
+            <input type="password" id="login-pass" placeholder="••••••••">
+            
+            <button id="btn-login" type="button">ZALOGUJ SIĘ</button>
+            <button id="btn-go-reset" type="button" class="btn-link">Zapomniałeś hasła?</button>
+            <button id="btn-go-register" type="button" class="btn-sec">Nie masz konta? Zarejestruj się</button>
+            
+            <div id="login-msg" class="msg"></div>
+        </div>
 
-    <!-- 4. ZALOGOWANY PANEL SĘDZIEGO -->
-    <div id="view-app" class="box hidden">
-        <h3>Witaj w Panelu!</h3>
-        <p style="text-align: center;">Zalogowano jako: <b id="user-email" style="color: #1a73e8;"></b></p>
-        <button id="btn-logout" type="button" class="btn-sec">Wyloguj się</button>
+        <!-- 2. PODSTRONA REJESTRACJI -->
+        <div id="view-register" class="box hidden">
+            <h2>🎯 Panel Ligi Darta</h2>
+            <h3>Rejestracja nowego konta</h3>
+            
+            <label for="reg-email">E-mail:</label>
+            <input type="email" id="reg-email" placeholder="twoj@email.com">
+            
+            <label for="reg-pass">Hasło (min. 6 znaków):</label>
+            <input type="password" id="reg-pass" placeholder="••••••••">
+
+            <label for="reg-pass2">Powtórz hasło:</label>
+            <input type="password" id="reg-pass2" placeholder="••••••••">
+            
+            <button id="btn-register" type="button">ZAREJESTRUJ SIĘ</button>
+            <button id="btn-go-login-from-reg" type="button" class="btn-sec">Powrót do logowania</button>
+            
+            <div id="reg-msg" class="msg"></div>
+        </div>
+
+        <!-- 3. PODSTRONA RESETU HASŁA -->
+        <div id="view-reset" class="box hidden">
+            <h2>🎯 Panel Ligi Darta</h2>
+            <h3>Resetowanie hasła</h3>
+            <p style="font-size: 13px; color: #ccc; text-align: center;">Podaj swój adres e-mail. Wyślemy Ci link do zmiany hasła.</p>
+            
+            <label for="reset-email">E-mail:</label>
+            <input type="email" id="reset-email" placeholder="twoj@email.com">
+            
+            <button id="btn-reset-pass" type="button">WYŚLIJ LINK RESETUJĄCY</button>
+            <button id="btn-go-login-from-reset" type="button" class="btn-sec">Powrót do logowania</button>
+            
+            <div id="reset-msg" class="msg"></div>
+        </div>
+
+        <!-- 4. ZALOGOWANY PANEL SĘDZIEGO -->
+        <div id="view-app" class="box hidden">
+            <h3>Witaj w Panelu!</h3>
+            <p style="text-align: center;">Zalogowano jako: <b id="user-email" style="color: #1a73e8;"></b></p>
+            <button id="btn-logout" type="button" class="btn-sec">Wyloguj się</button>
+        </div>
+
     </div>
 
     <!-- 5. ZABLOKOWANE OKNO POTWIERDZENIA ADRESU EMAIL -->
@@ -114,7 +143,7 @@
         </div>
     </div>
 
-    <!-- LOGIKA FIREBASE -->
+    <!-- LOGIKA ZAKŁADEK I FIREBASE -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { 
@@ -127,7 +156,7 @@
             signOut 
         } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-        // ⬇️ WKLEJ TU SWOJE KLUCZE Z FIREBASE ⬇️
+        // ⬇️ KLUCZE FIREBASE ⬇️
         const firebaseConfig = {
             apiKey: "AIzaSyBhCLFBrAqMBqKjPOIc5b0i2EEtZ_WP4M0",
             authDomain: "akademicka-liga-darta.firebaseapp.com",
@@ -142,19 +171,39 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
 
-        // Widoki
+        // --- PRZEŁĄCZANIE ZAKŁADEK ---
+        const tabHome = document.getElementById('tab-home');
+        const tabInfo = document.getElementById('tab-info');
+        const tabAccount = document.getElementById('tab-account');
+
+        const pageHome = document.getElementById('page-home');
+        const pageInfo = document.getElementById('page-info');
+        const pageAccount = document.getElementById('page-account');
+
+        function switchTab(activeBtn, activePage) {
+            [tabHome, tabInfo, tabAccount].forEach(btn => btn.classList.remove('active'));
+            [pageHome, pageInfo, pageAccount].forEach(page => page.classList.add('hidden'));
+
+            activeBtn.classList.add('active');
+            activePage.classList.remove('hidden');
+        }
+
+        tabHome.onclick = () => switchTab(tabHome, pageHome);
+        tabInfo.onclick = () => switchTab(tabInfo, pageInfo);
+        tabAccount.onclick = () => switchTab(tabAccount, pageAccount);
+
+        // --- ELEMENTY PANELU LOGOWANIA ---
         const viewLogin = document.getElementById('view-login');
         const viewRegister = document.getElementById('view-register');
         const viewReset = document.getElementById('view-reset');
         const viewApp = document.getElementById('view-app');
         const modalOverlay = document.getElementById('modal-overlay');
 
-        // Komunikaty
         const loginMsg = document.getElementById('login-msg');
         const regMsg = document.getElementById('reg-msg');
         const resetMsg = document.getElementById('reset-msg');
 
-        // Nawigacja widoków
+        // Nawigacja wewnątrz zakładki Konto
         document.getElementById('btn-go-register').onclick = () => {
             document.getElementById('reg-email').value = document.getElementById('login-email').value;
             document.getElementById('reg-pass').value = document.getElementById('login-pass').value;
@@ -186,11 +235,9 @@
             const email = document.getElementById('reg-email').value.trim();
             const pass1 = document.getElementById('reg-pass').value;
             const pass2 = document.getElementById('reg-pass2').value;
-            const captchaResponse = grecaptcha.getResponse();
 
             regMsg.className = "msg info";
             
-            // Walidacja
             if(!email || !pass1 || !pass2) {
                 regMsg.className = "msg error";
                 regMsg.innerText = "Wypełnij wszystkie pola!";
@@ -206,27 +253,14 @@
                 regMsg.innerText = "Hasło musi mieć co najmniej 6 znaków!";
                 return;
             }
-            if(captchaResponse.length === 0) {
-                regMsg.className = "msg error";
-                regMsg.innerText = "Zaznacz pole reCAPTCHA!";
-                return;
-            }
 
             regMsg.innerText = "Rejestracja i wysyłanie e-maila...";
 
             try {
-                // Tworzenie konta
                 const userCredential = await createUserWithEmailAndPassword(auth, email, pass1);
-                
-                // Wysyłanie e-maila aktywacyjnego
                 await sendEmailVerification(userCredential.user);
-                
-                // Wylogowujemy od razu, żeby nieaktywny użytkownik nie miał dostępu
                 await signOut(auth);
-
-                // Pokazujemy nieusuwalny modal
                 modalOverlay.classList.remove('hidden');
-
             } catch (err) {
                 regMsg.className = "msg error";
                 if(err.code === 'auth/email-already-in-use') {
@@ -237,7 +271,7 @@
             }
         };
 
-        // --- LOGOWANIE Z WERYFIKACJĄ AKTYWACJI ---
+        // --- LOGOWANIE ---
         document.getElementById('btn-login').onclick = async () => {
             const email = document.getElementById('login-email').value.trim();
             const pass = document.getElementById('login-pass').value;
@@ -267,7 +301,7 @@
             }
         };
 
-        // --- RESETOWANIE HASŁA ---
+        // --- RESET HASŁA ---
         document.getElementById('btn-reset-pass').onclick = async () => {
             const email = document.getElementById('reset-email').value.trim();
             resetMsg.className = "msg info";
@@ -299,7 +333,7 @@
         // Wylogowanie
         document.getElementById('btn-logout').onclick = () => signOut(auth);
 
-        // Automatyczne zarządzanie widokami na podstawie statusu
+        // Automatyczne zarządzanie widokami na podstawie statusu zalogowania
         onAuthStateChanged(auth, (user) => {
             if (user && user.emailVerified) {
                 viewLogin.classList.add('hidden');
@@ -309,6 +343,7 @@
                 document.getElementById('user-email').innerText = user.email;
             } else {
                 viewApp.classList.add('hidden');
+                showLoginView();
             }
         });
     </script>
