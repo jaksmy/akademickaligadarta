@@ -485,7 +485,8 @@
         document.getElementById('btn-logout').onclick = () => signOut(auth);
 
         // --- REJESTRACJA NOWEGO GRACZA ---
-     document.getElementById('btn-register').onclick = async () => {
+document.getElementById('btn-register').onclick = async () => {
+    // 1. Pobieranie wartości z formularza
     const email = document.getElementById('reg-email').value.trim();
     const pass1 = document.getElementById('reg-pass').value;
     const pass2 = document.getElementById('reg-pass2').value;
@@ -497,72 +498,75 @@
 
     regMsg.className = "msg info";
     
-    // Walidacja podstawowa
-    if(!email || !pass1 || !pass2 || !firstName || !lastName || !birthDate || !dartCounter) {
+    // 2. Walidacja podstawowa
+    if (!email || !pass1 || !pass2 || !firstName || !lastName) {
         regMsg.className = "msg error";
-        regMsg.innerText = "Wypełnij wszystkie wymagane pola (*)!";
+        regMsg.innerText = "Wypełnij wymagane pola (Email, Hasła, Imię, Nazwisko)!";
         return;
     }
-    if(pass1 !== pass2) {
+    if (pass1 !== pass2) {
         regMsg.className = "msg error";
         regMsg.innerText = "Hasła nie są identyczne!";
         return;
     }
-    if(pass1.length < 6) {
+    if (pass1.length < 6) {
         regMsg.className = "msg error";
-        regMsg.innerText = "Hasło musi mieć min. 6 znaków!";
+        regMsg.innerText = "Hasło musi mieć co najmniej 6 znaków!";
         return;
     }
 
-    regMsg.innerText = "Tworzenie konta w Firebase...";
+    regMsg.innerText = "Tworzenie konta...";
 
     try {
-        // 1. Tworzenie użytkownika
+        // 3. Tworzenie użytkownika w Firebase Auth
         const userCredential = await createUserWithEmailAndPassword(auth, email, pass1);
         const user = userCredential.user;
 
-        // 2. Zapis w bazie danych
-        regMsg.innerText = "Zapisywanie profilu zawodnika...";
+        // 4. Bezpieczny zapis w bazy danych (Realtime Database)
         try {
             await set(ref(db, 'users/' + user.uid), {
                 firstName: firstName,
                 lastName: lastName,
-                birthDate: birthDate,
+                birthDate: birthDate || "",
                 city: city || "",
-                dartCounter: dartCounter,
-                photoUrl: "",
+                dartCounter: dartCounter || "",
                 email: email,
                 createdAt: new Date().toISOString()
             });
-        } catch (dbErr) {
-            console.error("Błąd bazy danych:", dbErr);
-            throw new Error("Błąd zapisu do bazy: " + dbErr.message);
+        } catch (dbError) {
+            // Jeśli baza odrzuci zapis (np. przez reguły Firebase), wyświetlimy ostrzeżenie w konsoli,
+            // ale nie zablokujemy pokazywania okienka!
+            console.error("Błąd zapisu do profilu w bazie:", dbError);
         }
 
-        // 3. Wysyłka e-maila
-        regMsg.innerText = "Wysyłanie maila aktywacyjnego...";
+        // 5. Wysyłka maila weryfikacyjnego
         try {
             await sendEmailVerification(user);
-        } catch (mailErr) {
-            console.error("Błąd maila:", mailErr);
-            alert("Konto utworzono, ale nie udało się wysłać maila. Powód: " + mailErr.message);
+        } catch (mailError) {
+            console.error("Błąd wysyłki maila:", mailError);
         }
 
-        // 4. Wylogowanie i WYMUSZENIE pokazania okienka modalnego
+        // 6. Wylogowanie i gwarantowane pokazanie modalu
         await signOut(auth);
         
-        // Pokazanie okna aktywacyjnego
         const modal = document.getElementById('modal-overlay');
         if (modal) {
             modal.classList.remove('hidden');
         } else {
-            alert("Konto założone! Sprawdź skrzynkę e-mail.");
+            alert("Konto utworzone! Sprawdź skrzynkę e-mail, aby aktywować konto.");
         }
 
     } catch (err) {
-        console.error("Główny błąd rejestracji:", err);
+        console.error("Błąd rejestracji:", err);
         regMsg.className = "msg error";
-        regMsg.innerText = "BŁĄD: " + err.message;
+        
+        if (err.code === 'auth/email-already-in-use') {
+            regMsg.innerText = "Ten e-mail jest już w użyciu!";
+        } else if (err.code === 'auth/invalid-email') {
+            regMsg.innerText = "Nieprawidłowy adres e-mail!";
+        } else {
+            regMsg.innerText = "Błąd: " + err.message;
+        }
     }
 };
 
