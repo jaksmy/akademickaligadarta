@@ -13,6 +13,8 @@
         .nav-btn { flex: 1; min-width: 110px; padding: 12px 8px; background: #2a2a2a; border: 1px solid #444; color: #ccc; border-radius: 8px; cursor: pointer; font-weight: bold; text-align: center; transition: 0.2s; font-size: 13px; }
         .nav-btn:hover { background: #333; color: #fff; }
         .nav-btn.active { background: #1a73e8; color: #fff; border-color: #1a73e8; }
+        .nav-btn.live-tab { background: #b31412; color: #fff; border-color: #d93025; }
+        .nav-btn.live-tab:hover { background: #d93025; }
         .nav-btn.admin-tab { background: #d93025; color: #fff; border-color: #d93025; }
         .nav-btn.admin-tab:hover { background: #b31412; }
 
@@ -86,6 +88,9 @@
         /* UŁOŻENIE FORMULARZA MECZU */
         .match-inputs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; background: #222; padding: 15px; border-radius: 8px; border: 1px solid #333; margin-bottom: 15px; }
         .match-col { display: flex; flex-direction: column; }
+
+        /* RAMKA KAFELKA LIVE */
+        .live-container { width: 100%; height: 650px; border: none; border-radius: 8px; background: #1a1a1a; margin-top: 15px; }
     </style>
 </head>
 <body>
@@ -95,6 +100,7 @@
         <button id="tab-home" class="nav-btn active">🏠 Strona Główna</button>
         <button id="tab-info" class="nav-btn">📊 Tabela & Regulamin</button>
         <button id="tab-players" class="nav-btn">🎯 Zawodnicy</button>
+        <button id="tab-live" class="nav-btn live-tab">🔴 Live (n01)</button>
         <button id="tab-account" class="nav-btn">🔑 Konto</button>
         <button id="tab-admin" class="nav-btn admin-tab hidden">🛡️ Panel Admina</button>
     </nav>
@@ -149,6 +155,16 @@
         <p style="text-align: center; color: #aaa; font-size: 14px;">Kliknij gracza, aby zobaczyć jego pełny profil</p>
         <div id="players-loading" class="msg info">Wczytywanie zawodników...</div>
         <div id="players-grid" class="players-grid"></div>
+    </div>
+
+    <!-- ZAKŁADKA LIVE (N01 DARTS) -->
+    <div id="page-live" class="page-content hidden">
+        <h2>🔴 Mecze na żywo (n01 Darts)</h2>
+        <p style="text-align: center; color: #aaa; font-size: 14px;">Śledź wyniki meczów w czasie rzeczywistym bezpośrednio z tarcz tarczy n01.</p>
+        <div style="text-align: center; margin-bottom: 10px;">
+            <a id="live-external-link" href="https://n01online.com" target="_blank" rel="noopener noreferrer" class="dart-link">Otwórz n01 w osobnej karcie ↗</a>
+        </div>
+        <iframe id="n01-iframe" class="live-container" src="https://n01online.com" title="n01 Live Darts"></iframe>
     </div>
 
     <!-- ZAKŁADKA 4: PANEL KONTA -->
@@ -231,6 +247,15 @@
     <!-- ZAKŁADKA 5: PANEL ADMINISTRATORA -->
     <div id="page-admin" class="page-content hidden">
         <h2>🛡️ Panel Administratora</h2>
+
+        <!-- SEKCJA: KONFIGURACJA NA ŻYWO (N01) -->
+        <div class="box" style="max-width: 100%; margin-bottom: 25px;">
+            <h3>🔴 Konfiguracja n01 Live Stream / Tarczy</h3>
+            <label for="admin-live-url">Link URL meczu / tarczy na n01 (np. https://n01online.com/...):</label>
+            <input type="url" id="admin-live-url" placeholder="https://n01online.com/">
+            <button id="btn-save-live-url" type="button" class="btn-success">Zapisz link Live</button>
+            <div id="admin-live-msg" class="msg"></div>
+        </div>
 
         <!-- SEKCJA: DODAWANIE WYNIKU MECZU -->
         <div class="box" style="max-width: 100%; margin-bottom: 25px;">
@@ -394,13 +419,14 @@
         let currentUserProfileData = null;
         let globalUsersData = {};
         let globalMatchesMap = {}; 
-        let globalCalculatedAverages = {}; // Obliczone średnie arytmetyczne wg UID zawodnika
+        let globalCalculatedAverages = {}; 
 
         // --- NAWIGACJA ZAKŁADEK ---
         const tabs = {
             home: { btn: document.getElementById('tab-home'), page: document.getElementById('page-home') },
             info: { btn: document.getElementById('tab-info'), page: document.getElementById('page-info') },
             players: { btn: document.getElementById('tab-players'), page: document.getElementById('page-players') },
+            live: { btn: document.getElementById('tab-live'), page: document.getElementById('page-live') },
             account: { btn: document.getElementById('tab-account'), page: document.getElementById('page-account') },
             admin: { btn: document.getElementById('tab-admin'), page: document.getElementById('page-admin') }
         };
@@ -535,7 +561,6 @@
             document.getElementById('prof-photo').src = data.photoUrl || PRESET_AVATARS[0];
             document.getElementById('prof-age').innerText = calculateAge(data.birthDate);
 
-            // Pobieranie wyliczonej średniej zawodnika
             const userAvg = (uid && globalCalculatedAverages[uid] !== undefined) ? globalCalculatedAverages[uid].toFixed(2) : "0.00";
             document.getElementById('prof-avg-display').innerText = userAvg;
 
@@ -651,7 +676,7 @@
             const matches = Object.values(globalMatchesMap);
 
             let stats = {};
-            let playerAveragesMap = {}; // Do zbierania tablicy średnich meczowych dla każdego zawodnika
+            let playerAveragesMap = {}; 
 
             Object.keys(users).forEach(uid => {
                 const u = users[uid];
@@ -667,7 +692,6 @@
             matches.forEach(m => {
                 const s1 = parseInt(m.s1), s2 = parseInt(m.s2);
 
-                // Rejestracja statystyk meczowych Gracza 1
                 if (stats[m.p1Uid]) {
                     stats[m.p1Uid].matches++;
                     stats[m.p1Uid].legsWon += s1;
@@ -682,7 +706,6 @@
                     }
                 }
 
-                // Rejestracja statystyk meczowych Gracza 2
                 if (stats[m.p2Uid]) {
                     stats[m.p2Uid].matches++;
                     stats[m.p2Uid].legsWon += s2;
@@ -698,7 +721,7 @@
                 }
             });
 
-            // Obliczanie Średniej Arytmetycznej ze wszystkich meczów
+            // Średnia arytmetyczna
             globalCalculatedAverages = {};
             Object.keys(playerAveragesMap).forEach(uid => {
                 const avgs = playerAveragesMap[uid];
@@ -830,7 +853,6 @@
                 listContainer.innerHTML = "<p style='color:#888;'>Brak zgłoszeń do 1. Sezonu.</p>";
             }
 
-            // RENDEROWANIE MECZÓW DLA ADMINA
             matchesContainer.innerHTML = "";
             const matchKeys = Object.keys(globalMatchesMap);
             if (matchKeys.length === 0) {
@@ -889,7 +911,28 @@
             }
         }
 
-        // --- ZARZĄDZANIE MECZAMI (DODAWANIE, EDYCJA, USUWAMIE) ---
+        // ZAPISYWANIE LINKU N01 LIVE
+        document.getElementById('btn-save-live-url').onclick = async () => {
+            const liveUrl = document.getElementById('admin-live-url').value.trim();
+            const msg = document.getElementById('admin-live-msg');
+
+            if (!liveUrl) {
+                msg.className = "msg error";
+                msg.innerText = "Podaj poprawny URL!";
+                return;
+            }
+
+            try {
+                await update(dbRef(db, 'siteContent'), { liveUrl });
+                msg.className = "msg success";
+                msg.innerText = "Zapisano nowy link n01 Live!";
+            } catch (err) {
+                msg.className = "msg error";
+                msg.innerText = "Błąd zapisu: " + err.message;
+            }
+        };
+
+        // --- ZARZĄDZANIE MECZAMI ---
         document.getElementById('btn-save-match').onclick = async () => {
             const p1Uid = document.getElementById('admin-match-p1').value;
             const p2Uid = document.getElementById('admin-match-p2').value;
@@ -1029,7 +1072,7 @@
 
         // NASŁUCHIWACZE CZASU RZECZYWISTEGO (ONVALUE)
         function initRealtimeListeners() {
-            // 1. Zmiany w Użytkownikach
+            // 1. Użytkownicy
             onValue(dbRef(db, 'users'), (snap) => {
                 if (snap.exists()) {
                     globalUsersData = snap.val();
@@ -1046,7 +1089,7 @@
                 }
             });
 
-            // 2. Zmiany w Meczach
+            // 2. Mecze
             onValue(dbRef(db, 'matches'), (snap) => {
                 if (snap.exists()) {
                     globalMatchesMap = snap.val();
@@ -1063,7 +1106,7 @@
                 }
             });
 
-            // 3. Zmiany w Treściach strony
+            // 3. Treści strony & Link Live (n01)
             onValue(dbRef(db, 'siteContent'), (snap) => {
                 if (snap.exists()) {
                     const data = snap.val();
@@ -1074,6 +1117,11 @@
                     if (data.infoText) {
                         document.getElementById('info-text-display').innerText = data.infoText;
                         document.getElementById('admin-text-info').value = data.infoText;
+                    }
+                    if (data.liveUrl) {
+                        document.getElementById('n01-iframe').src = data.liveUrl;
+                        document.getElementById('live-external-link').href = data.liveUrl;
+                        document.getElementById('admin-live-url').value = data.liveUrl;
                     }
                 }
             });
