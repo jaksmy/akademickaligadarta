@@ -6,7 +6,7 @@
     <title>Akademicka Liga Darta</title>
     <style>
         * { box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 900px; margin: 0 auto; padding: 20px; background-color: #121212; color: #fff; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 900px; margin: 0 auto; padding: 20px; background-color: #121212; color: #fff; display: flex; flex-direction: column; min-height: 100vh; }
 
         /* NAWIGACJA */
         nav { display: flex; gap: 8px; background: #1e1e1e; padding: 10px; border-radius: 12px; margin-bottom: 25px; border: 1px solid #333; flex-wrap: wrap; }
@@ -20,7 +20,7 @@
 
         /* KONTENERY */
         .box { background: #1e1e1e; padding: 25px; border-radius: 12px; border: 1px solid #333; box-shadow: 0 4px 20px rgba(0,0,0,0.5); max-width: 500px; margin: 0 auto 20px auto; }
-        .page-content { background: #1e1e1e; padding: 25px; border-radius: 12px; border: 1px solid #333; margin-bottom: 20px; }
+        .page-content { background: #1e1e1e; padding: 25px; border-radius: 12px; border: 1px solid #333; margin-bottom: 20px; flex: 1; }
 
         h2, h3 { text-align: center; color: #1a73e8; margin-top: 0; }
         label { font-size: 13px; color: #ccc; margin-top: 10px; display: block; }
@@ -72,10 +72,10 @@
         .profile-details-table td:first-child { color: #888; font-weight: bold; width: 40%; }
         .profile-details-table a { color: #1a73e8; text-decoration: underline; }
 
-        /* WYBÓR AVATARA */
-        .avatar-selection-grid { display: flex; gap: 10px; overflow-x: auto; padding: 10px 0; margin-bottom: 10px; }
-        .avatar-option { width: 60px; height: 60px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: 0.2s; }
-        .avatar-option:hover { transform: scale(1.1); }
+        /* DUŻY SIATKOWY WYBÓR AVATARA */
+        .avatar-selection-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); gap: 12px; max-height: 220px; overflow-y: auto; padding: 10px; border: 1px solid #333; border-radius: 8px; background: #181818; margin-bottom: 10px; }
+        .avatar-option { width: 55px; height: 55px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: 0.2s; background: #222; }
+        .avatar-option:hover { transform: scale(1.1); border-color: #64b5f6; }
         .avatar-option.selected { border-color: #1a73e8; box-shadow: 0 0 10px rgba(26, 115, 232, 0.8); }
 
         /* MODALE */
@@ -91,36 +91,19 @@
         .admin-player-item, .admin-match-item { display: flex; align-items: center; justify-content: space-between; background: #252525; padding: 10px 15px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #333; }
         .match-item { background: #252525; padding: 12px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #333; text-align: center; }
 
-        /* UŁOŻENIE FORMULARZA MECZU */
+        /* FORMULARZ MECZU */
         .match-inputs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; background: #222; padding: 15px; border-radius: 8px; border: 1px solid #333; margin-bottom: 15px; }
         .match-col { display: flex; flex-direction: column; }
 
-        /* STATYCZNE OKNO LIVE (BLOKADA INTERAKCJI) */
-        .live-wrapper {
-            position: relative;
-            width: 100%;
-            height: 650px;
-            margin-top: 15px;
-            border-radius: 8px;
-            overflow: hidden;
-            background: #1a1a1a;
-        }
-        .live-container {
-            width: 100%;
-            height: 100%;
-            border: none;
-            pointer-events: none; /* Wyłącza zdarzenia myszy na ramce */
-        }
-        .live-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 10;
-            background: transparent; /* Przeźroczysta nakładka blokująca kliknięcia */
-            cursor: default;
-        }
+        /* STATYCZNE OKNO LIVE */
+        .live-wrapper { position: relative; width: 100%; height: 650px; margin-top: 15px; border-radius: 8px; overflow: hidden; background: #1a1a1a; }
+        .live-container { width: 100%; height: 100%; border: none; pointer-events: none; }
+        .live-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; background: transparent; cursor: default; }
+
+        /* STOPKA DOLNA NA STRONIE GŁÓWNEJ */
+        footer { margin-top: auto; padding: 20px; text-align: center; border-top: 1px solid #333; color: #888; font-size: 13px; }
+        footer a { color: #1a73e8; text-decoration: none; font-weight: bold; margin-left: 5px; }
+        footer a:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
@@ -128,7 +111,7 @@
     <!-- PASEK NAWIGACYJNY -->
     <nav>
         <button id="tab-home" class="nav-btn active">🏠 Strona Główna</button>
-        <button id="tab-info" class="nav-btn">📊 Tabela & Regulamin</button>
+        <button id="tab-info" class="nav-btn">📊 Tabela</button>
         <button id="tab-players" class="nav-btn">🎯 Zawodnicy</button>
         <button id="tab-live" class="nav-btn live-tab">🔴 Live (n01)</button>
         <button id="tab-account" class="nav-btn">🔑 Konto</button>
@@ -136,14 +119,22 @@
     </nav>
 
     <!-- ZAKŁADKA 1: STRONA GŁÓWNA -->
-    <div id="page-home" class="page-content">
+    <div id="page-home" class="page-content" style="display: flex; flex-direction: column;">
         <h2>🎯 Akademicka Liga Darta</h2>
-        <div id="home-text-display" style="text-align: center; color: #ccc; line-height: 1.6; white-space: pre-line;">
+        <div id="home-text-display" style="text-align: center; color: #ccc; line-height: 1.6; white-space: pre-line; flex: 1;">
             Witaj na oficjalnej stronie rozgrywek Akademickiej Ligi Darta!
         </div>
+
+        <!-- STOPKA DOLNA -->
+        <footer>
+            <span>© Akademicka Liga Darta. Wszelkie prawa zastrzeżone.</span>
+            <br style="margin-bottom: 5px;">
+            📄 Przepisowy regulamin rozgrywek: 
+            <a id="footer-rules-link" href="#" download="Regulamin_Akademickiej_Ligi_Darta.txt">Pobierz Regulamin (.txt) 📄</a>
+        </footer>
     </div>
 
-    <!-- ZAKŁADKA 2: TABELA LIGOWA I O LIDZE -->
+    <!-- ZAKŁADKA 2: TABELA LIGOWA -->
     <div id="page-info" class="page-content hidden">
         <h2>🏆 Tabela 1. Sezonu</h2>
         <div class="table-container">
@@ -172,11 +163,6 @@
         <div id="matches-history-list">
             <p style="text-align: center; color: #888;">Brak rozegranych meczów.</p>
         </div>
-
-        <h3 style="margin-top: 35px;">ℹ️ O Lidze / Regulamin</h3>
-        <div id="info-text-display" style="color: #ccc; line-height: 1.6; white-space: pre-line; background: #222; padding: 15px; border-radius: 8px; border: 1px solid #333;">
-            Zasady punktacji: Wygrana = 3 pkt, Remis = 1 pkt, Porażka = 0 pkt.
-        </div>
     </div>
 
     <!-- ZAKŁADKA 3: ZAWODNICY -->
@@ -187,7 +173,7 @@
         <div id="players-grid" class="players-grid"></div>
     </div>
 
-    <!-- ZAKŁADKA LIVE (N01 DARTS) - STATYCZNE OKNO -->
+    <!-- ZAKŁADKA LIVE (N01 DARTS) -->
     <div id="page-live" class="page-content hidden">
         <h2>🔴 Mecze na żywo (n01 Darts)</h2>
         <p style="text-align: center; color: #aaa; font-size: 14px;">Śledź wyniki meczów w czasie rzeczywistym bezpośrednio z tarczy n01.</p>
@@ -195,7 +181,6 @@
             <a id="live-external-link" href="https://n01online.com" target="_blank" rel="noopener noreferrer" class="dart-link">Otwórz n01 w osobnej karcie ↗</a>
         </div>
         
-        <!-- OPAKOWANIE Z ZABLOKOWANĄ NAKŁADKĄ INTERAKCJI -->
         <div class="live-wrapper">
             <div class="live-overlay"></div>
             <iframe id="n01-iframe" class="live-container" src="https://n01online.com" title="n01 Live Darts"></iframe>
@@ -204,7 +189,6 @@
 
     <!-- ZAKŁADKA 4: PANEL KONTA -->
     <div id="page-account" class="hidden">
-        
         <!-- LOGOWANIE -->
         <div id="view-login" class="box">
             <h2>🎯 Panel Ligi Darta</h2>
@@ -256,7 +240,7 @@
         <!-- ZALOGOWANY PROFIL -->
         <div id="view-app" class="box hidden" style="max-width: 600px;">
             <div class="profile-header">
-                <img id="prof-photo" class="profile-avatar-lg" src="https://api.dicebear.com/7.x/bottts/svg?seed=Dart1" alt="Avatar">
+                <img id="prof-photo" class="profile-avatar-lg" src="" alt="Avatar">
                 <h2 id="prof-fullname" style="margin-bottom: 5px;">Imię Nazwisko</h2>
                 <p style="color: #aaa; font-size: 14px;" id="prof-email-display"></p>
                 <div id="prof-status-badge"></div>
@@ -286,38 +270,32 @@
     <div id="page-admin" class="page-content hidden">
         <h2>🛡️ Panel Administratora</h2>
 
-        <!-- SEKCJA: KONFIGURACJA NA ŻYWO (N01) -->
+        <!-- SEKCJA: LIVE (N01) -->
         <div class="box" style="max-width: 100%; margin-bottom: 25px;">
             <h3>🔴 Konfiguracja n01 Live Stream / Tarczy</h3>
-            <label for="admin-live-url">Link URL meczu / tarczy na n01 (np. https://n01online.com/...):</label>
+            <label for="admin-live-url">Link URL meczu / tarczy na n01:</label>
             <input type="url" id="admin-live-url" placeholder="https://n01online.com/">
             <button id="btn-save-live-url" type="button" class="btn-success">Zapisz link Live</button>
             <div id="admin-live-msg" class="msg"></div>
         </div>
 
-        <!-- SEKCJA: DODAWANIE WYNIKU MECZU -->
+        <!-- SEKCJA: WYNIK MECZU -->
         <div class="box" style="max-width: 100%; margin-bottom: 25px;">
             <h3>➕ Wprowadź wynik meczu</h3>
             <div class="match-inputs-grid">
-                <!-- Gospodarz -->
                 <div class="match-col">
                     <label>Gracz 1 (Gospodarz):</label>
                     <select id="admin-match-p1"></select>
-                    
                     <label>Legi G1:</label>
                     <input type="number" id="admin-match-score1" min="0" value="0">
-                    
                     <label>Średnia G1 w meczu:</label>
                     <input type="number" id="admin-match-avg1" step="0.01" min="0" placeholder="np. 60.00">
                 </div>
-                <!-- Gość -->
                 <div class="match-col">
                     <label>Gracz 2 (Gość):</label>
                     <select id="admin-match-p2"></select>
-                    
                     <label>Legi G2:</label>
                     <input type="number" id="admin-match-score2" min="0" value="0">
-                    
                     <label>Średnia G2 w meczu:</label>
                     <input type="number" id="admin-match-avg2" step="0.01" min="0" placeholder="np. 52.21">
                 </div>
@@ -326,7 +304,7 @@
             <div id="admin-match-msg" class="msg"></div>
         </div>
 
-        <!-- SEKCJA: EDYCJA / USUWAMIE ROZEGRANYCH MECZÓW -->
+        <!-- SEKCJA: EDYCJA / USUWAMIE MECZÓW -->
         <div class="box" style="max-width: 100%; margin-bottom: 25px;">
             <h3>⚙️ Zarządzanie rozegranymi meczami</h3>
             <div id="admin-matches-list">Wczytywanie listy meczów...</div>
@@ -342,25 +320,22 @@
 
         <!-- SEKCJA: EDYCJA TREŚCI STRONY -->
         <div class="box" style="max-width: 100%;">
-            <h3>📝 Edycja opisu na stronie</h3>
+            <h3>📝 Edycja opisu Strony Główniej</h3>
             <label for="admin-text-home">Tekst na Stronie Główniej:</label>
-            <textarea id="admin-text-home" rows="3"></textarea>
+            <textarea id="admin-text-home" rows="4"></textarea>
             
-            <label for="admin-text-info">Tekst w zakładce O Lidze / Regulamin:</label>
-            <textarea id="admin-text-info" rows="4"></textarea>
-            
-            <button id="btn-save-content" type="button" class="btn-success" style="margin-top: 10px;">Zapisz treści</button>
+            <button id="btn-save-content" type="button" class="btn-success" style="margin-top: 10px;">Zapisz treść</button>
             <div id="admin-content-msg" class="msg"></div>
         </div>
     </div>
 
-    <!-- MODAL 0: EDYCJA PROFILU UŻYTKOWNIKA -->
+    <!-- MODAL 0: EDYCJA PROFILU -->
     <div id="modal-edit-profile" class="modal-overlay hidden">
         <div class="modal-content">
             <h3>✏️ Edytuj swój profil</h3>
             
             <div class="form-group">
-                <label>Wybierz Avatar:</label>
+                <label>Wybierz Avatar (zjeżdżaj w dół, aby zobaczyć więcej):</label>
                 <div id="edit-avatar-selection" class="avatar-selection-grid"></div>
             </div>
 
@@ -408,20 +383,16 @@
                 <div class="match-col">
                     <label>Gracz 1 (Gospodarz):</label>
                     <select id="edit-match-p1"></select>
-                    
                     <label>Legi Gracza 1:</label>
                     <input type="number" id="edit-match-score1" min="0">
-                    
                     <label>Średnia G1:</label>
                     <input type="number" id="edit-match-avg1" step="0.01" min="0">
                 </div>
                 <div class="match-col">
                     <label>Gracz 2 (Gość):</label>
                     <select id="edit-match-p2"></select>
-                    
                     <label>Legi Gracza 2:</label>
                     <input type="number" id="edit-match-score2" min="0">
-                    
                     <label>Średnia G2:</label>
                     <input type="number" id="edit-match-avg2" step="0.01" min="0">
                 </div>
@@ -482,21 +453,88 @@
         const auth = getAuth(app);
         const db = getDatabase(app);
 
-        // E-MAIL ADMINA:
         const ADMIN_EMAIL = "smyczkuba@wp.pl"; 
 
+        // DUŻA BAZA AWATARÓW (ROZSZERZONA)
         const PRESET_AVATARS = [
+            // Bottts
             "https://api.dicebear.com/7.x/bottts/svg?seed=Dart1",
             "https://api.dicebear.com/7.x/bottts/svg?seed=Dart2",
             "https://api.dicebear.com/7.x/bottts/svg?seed=Bullseye",
             "https://api.dicebear.com/7.x/bottts/svg?seed=ProGamer",
+            "https://api.dicebear.com/7.x/bottts/svg?seed=CyberDart",
+            "https://api.dicebear.com/7.x/bottts/svg?seed=RoboKing",
+            "https://api.dicebear.com/7.x/bottts/svg?seed=SteelTip",
+            "https://api.dicebear.com/7.x/bottts/svg?seed=SoftTip",
+
+            // Avataaars
             "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix",
             "https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka",
             "https://api.dicebear.com/7.x/avataaars/svg?seed=Mark",
             "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah",
+            "https://api.dicebear.com/7.x/avataaars/svg?seed=John",
+            "https://api.dicebear.com/7.x/avataaars/svg?seed=Emma",
+            "https://api.dicebear.com/7.x/avataaars/svg?seed=Oliver",
+            "https://api.dicebear.com/7.x/avataaars/svg?seed=Sophia",
+            "https://api.dicebear.com/7.x/avataaars/svg?seed=Lucas",
+            "https://api.dicebear.com/7.x/avataaars/svg?seed=Mia",
+
+            // Micah
             "https://api.dicebear.com/7.x/micah/svg?seed=Alex",
-            "https://api.dicebear.com/7.x/micah/svg?seed=Taylor"
+            "https://api.dicebear.com/7.x/micah/svg?seed=Taylor",
+            "https://api.dicebear.com/7.x/micah/svg?seed=Jordan",
+            "https://api.dicebear.com/7.x/micah/svg?seed=Morgan",
+            "https://api.dicebear.com/7.x/micah/svg?seed=Casey",
+            "https://api.dicebear.com/7.x/micah/svg?seed=Riley",
+
+            // Adventurer
+            "https://api.dicebear.com/7.x/adventurer/svg?seed=Shadow",
+            "https://api.dicebear.com/7.x/adventurer/svg?seed=Hunter",
+            "https://api.dicebear.com/7.x/adventurer/svg?seed=Sniper",
+            "https://api.dicebear.com/7.x/adventurer/svg?seed=Champion",
+            "https://api.dicebear.com/7.x/adventurer/svg?seed=Master",
+            "https://api.dicebear.com/7.x/adventurer/svg?seed=Legend"
         ];
+
+        // TEKST REGULAMINU LIGI DARTA (PLIK TXT)
+        const REGULAMIN_TEXT = 
+`==================================================
+        REGULAMIN AKADEMICKIEJ LIGI DARTA
+==================================================
+
+1. POSTANOWIENIA OGÓLNE
+1.1. Rozgrywki Akademickiej Ligi Darta (ALD) mają na celu wyłonienie najlepszego zawodnika ligi oraz popularyzację darta.
+1.2. Każdy uczestnik zobowiązany jest do przestrzegania zasad fair play i dobrego zachowania sportowego.
+
+2. SYSTEM ROZGRRYWEK I PUNKTACJA
+2.1. Mecze rozgrywane są w formacie 501 Double Out (lub ustalonym przez Administratora).
+2.2. Punktacja w tabeli ligowej:
+     - Wygrana meczu: 3 punkty
+     - Remis: 1 punkt
+     - Porażka: 0 punktów
+2.3. O kolejności w tabeli decydują kolejno:
+     a) Liczba zdobytych punktów
+     b) Różnica legów (+/-)
+     c) Większa liczba wygranych legów
+     d) Średnia zawodnika
+
+3. OBOWIĄZKI ZAWODNIKA
+3.1. Zawodnik ma obowiązek stawienia się na mecz w wyznaczonym terminie.
+3.2. Wyniki meczów oraz średnie wprowadzane są do systemu przez Administratora Ligi.
+3.3. Wszelkie sporne sytuacje rozstrzyga Organizator/Administrator.
+
+4. POSTANOWIENIA KOŃCOWE
+4.1. Organizator zastrzega sobie prawo do zmiany regulaminu przed rozpoczęciem nowego sezonu.
+4.2. Dołączenie do rozgrywek oznacza pełną akceptację niniejszego regulaminu.`;
+
+        // DYNAMICZNE TWORZENIE PLIKU Z REGULAMINEM I PODPINANIE DO STOPKI
+        function generateRulesFile() {
+            const blob = new Blob([REGULAMIN_TEXT], { type: 'text/plain;charset=utf-8' });
+            const rulesUrl = URL.createObjectURL(blob);
+            const link = document.getElementById('footer-rules-link');
+            link.href = rulesUrl;
+        }
+        generateRulesFile();
 
         let currentUserProfileData = null;
         let selectedAvatarUrl = PRESET_AVATARS[0];
@@ -634,7 +672,7 @@
             }
         };
 
-        // RENDEROWANIE PROFILU Z BAZY W CZASIE RZECZYWISTYM
+        // RENDEROWANIE PROFILU Z BAZY
         function updateProfileUI(data) {
             currentUserProfileData = data;
             const uid = auth.currentUser ? auth.currentUser.uid : null;
@@ -695,7 +733,7 @@
             } catch (err) { alert(err.message); }
         };
 
-        // --- EDYCJA PROFILU (MODAL) ---
+        // --- EDYCJA PROFILU (MODAL Z DUŻYM WYBOREM AWATARÓW) ---
         const modalEditProfile = document.getElementById('modal-edit-profile');
         
         document.getElementById('btn-open-edit-profile').onclick = () => {
@@ -788,7 +826,7 @@
                 }
             });
 
-            if (count === 0) grid.innerHTML = "<p style='grid-column: 1/-1; text-align: center; color: #888;'>Brak zatwierdzonych zawodników w 1. Sezonie.</p>";
+            if (count === 0) grid.innerHTML = "<p style='grid-column: 1/-1; text-align: center; color: #888;'>Brak zatwierdzonych zawodowników w 1. Sezonie.</p>";
         }
 
         function openPlayerModal(uid, player) {
@@ -816,7 +854,7 @@
         }
         document.getElementById('btn-close-view-player').onclick = () => document.getElementById('modal-view-player').classList.add('hidden');
 
-        // --- TABELA I MECZE (Z ŚREDNIĄ ARYTMETYCZNĄ) ---
+        // --- TABELA I MECZE ---
         function renderTableAndMatches() {
             const tableBody = document.getElementById('league-table-body');
             const historyList = document.getElementById('matches-history-list');
@@ -870,7 +908,6 @@
                 }
             });
 
-            // Średnia arytmetyczna
             globalCalculatedAverages = {};
             Object.keys(playerAveragesMap).forEach(uid => {
                 const avgs = playerAveragesMap[uid];
@@ -1056,7 +1093,6 @@
             } catch (err) { 
                 msg.className = "msg error";
                 msg.innerText = "Błąd zapisu: " + err.message;
-                console.error(err);
             }
         }
 
@@ -1081,7 +1117,7 @@
             }
         };
 
-        // --- ZARZĄDZANIE MECZAMI ---
+        // ZARZĄDZANIE MECZAMI
         document.getElementById('btn-save-match').onclick = async () => {
             const p1Uid = document.getElementById('admin-match-p1').value;
             const p2Uid = document.getElementById('admin-match-p2').value;
@@ -1194,7 +1230,7 @@
         };
 
         async function deleteMatch(matchId) {
-            if (confirm("Czy na pewno chcesz usunąć ten mecz? Tabela ligowa oraz średnie zawodników przeliczą się automatycznie.")) {
+            if (confirm("Czy na pewno chcesz usunąć ten mecz? Tabela ligowa przeliczy się automatycznie.")) {
                 try {
                     await remove(dbRef(db, 'matches/' + matchId));
                 } catch (err) {
@@ -1203,31 +1239,25 @@
             }
         }
 
-        // Zapisywanie treści strony
+        // Zapisywanie treści strony głównej
         document.getElementById('btn-save-content').onclick = async () => {
             const homeText = document.getElementById('admin-text-home').value;
-            const infoText = document.getElementById('admin-text-info').value;
             const msg = document.getElementById('admin-content-msg');
 
             try {
-                await update(dbRef(db, 'siteContent'), { homeText, infoText });
+                await update(dbRef(db, 'siteContent'), { homeText });
                 msg.className = "msg success";
-                msg.innerText = "Zapisano treści!";
+                msg.innerText = "Zapisano treść!";
             } catch (err) {
                 msg.className = "msg error";
                 msg.innerText = "Błąd zapisu: " + err.message;
             }
         };
 
-        // NASŁUCHIWACZE CZASU RZECZYWISTEGO (ONVALUE)
+        // NASŁUCHIWANIE BAZY DANYCH
         function initRealtimeListeners() {
-            // 1. Użytkownicy
             onValue(dbRef(db, 'users'), (snap) => {
-                if (snap.exists()) {
-                    globalUsersData = snap.val();
-                } else {
-                    globalUsersData = {};
-                }
+                globalUsersData = snap.exists() ? snap.val() : {};
                 renderAdminPanelData();
                 renderApprovedPlayers();
                 renderTableAndMatches();
@@ -1238,13 +1268,8 @@
                 }
             });
 
-            // 2. Mecze
             onValue(dbRef(db, 'matches'), (snap) => {
-                if (snap.exists()) {
-                    globalMatchesMap = snap.val();
-                } else {
-                    globalMatchesMap = {};
-                }
+                globalMatchesMap = snap.exists() ? snap.val() : {};
                 renderTableAndMatches();
                 renderAdminPanelData();
                 renderApprovedPlayers();
@@ -1255,17 +1280,12 @@
                 }
             });
 
-            // 3. Treści strony & Link Live (n01)
             onValue(dbRef(db, 'siteContent'), (snap) => {
                 if (snap.exists()) {
                     const data = snap.val();
                     if (data.homeText) {
                         document.getElementById('home-text-display').innerText = data.homeText;
                         document.getElementById('admin-text-home').value = data.homeText;
-                    }
-                    if (data.infoText) {
-                        document.getElementById('info-text-display').innerText = data.infoText;
-                        document.getElementById('admin-text-info').value = data.infoText;
                     }
                     if (data.liveUrl) {
                         document.getElementById('n01-iframe').src = data.liveUrl;
@@ -1276,7 +1296,6 @@
             });
         }
 
-        // START
         initRealtimeListeners();
     </script>
 </body>
