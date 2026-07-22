@@ -95,8 +95,32 @@
         .match-inputs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; background: #222; padding: 15px; border-radius: 8px; border: 1px solid #333; margin-bottom: 15px; }
         .match-col { display: flex; flex-direction: column; }
 
-        /* RAMKA KAFELKA LIVE */
-        .live-container { width: 100%; height: 650px; border: none; border-radius: 8px; background: #1a1a1a; margin-top: 15px; }
+        /* STATYCZNE OKNO LIVE (BLOKADA INTERAKCJI) */
+        .live-wrapper {
+            position: relative;
+            width: 100%;
+            height: 650px;
+            margin-top: 15px;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #1a1a1a;
+        }
+        .live-container {
+            width: 100%;
+            height: 100%;
+            border: none;
+            pointer-events: none; /* Wyłącza zdarzenia myszy na ramce */
+        }
+        .live-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            background: transparent; /* Przeźroczysta nakładka blokująca kliknięcia */
+            cursor: default;
+        }
     </style>
 </head>
 <body>
@@ -163,14 +187,19 @@
         <div id="players-grid" class="players-grid"></div>
     </div>
 
-    <!-- ZAKŁADKA LIVE (N01 DARTS) -->
+    <!-- ZAKŁADKA LIVE (N01 DARTS) - STATYCZNE OKNO -->
     <div id="page-live" class="page-content hidden">
         <h2>🔴 Mecze na żywo (n01 Darts)</h2>
-        <p style="text-align: center; color: #aaa; font-size: 14px;">Śledź wyniki meczów w czasie rzeczywistym bezpośrednio z tarcz tarczy n01.</p>
+        <p style="text-align: center; color: #aaa; font-size: 14px;">Śledź wyniki meczów w czasie rzeczywistym bezpośrednio z tarczy n01.</p>
         <div style="text-align: center; margin-bottom: 10px;">
             <a id="live-external-link" href="https://n01online.com" target="_blank" rel="noopener noreferrer" class="dart-link">Otwórz n01 w osobnej karcie ↗</a>
         </div>
-        <iframe id="n01-iframe" class="live-container" src="https://n01online.com" title="n01 Live Darts"></iframe>
+        
+        <!-- OPAKOWANIE Z ZABLOKOWANĄ NAKŁADKĄ INTERAKCJI -->
+        <div class="live-wrapper">
+            <div class="live-overlay"></div>
+            <iframe id="n01-iframe" class="live-container" src="https://n01online.com" title="n01 Live Darts"></iframe>
+        </div>
     </div>
 
     <!-- ZAKŁADKA 4: PANEL KONTA -->
