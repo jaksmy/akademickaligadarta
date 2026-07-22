@@ -652,6 +652,15 @@
                         <p style="background: #0d1322; padding: 12px 16px; border-radius: var(--radius); border: 1px solid var(--card-border);"><b>Miejscowość:</b> <a id="prof-city-link" href="#" target="_blank" style="color: var(--accent-blue); text-decoration: none; font-weight: 600;">-</a></p>
                         <p style="background: #0d1322; padding: 12px 16px; border-radius: var(--radius); border: 1px solid var(--card-border);"><b>Średnia z meczów:</b> <span id="prof-avg-display" style="color: var(--accent-blue); font-weight: 700;">0.00</span></p>
                     </div>
+
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 20px;">
+                        <p style="background: #0d1322; padding: 12px; border-radius: var(--radius); border: 1px solid var(--card-border); text-align: center;"><b style="font-size:0.75rem; text-transform:uppercase; color:var(--text-muted); display:block; margin-bottom:4px;">Naj. Finish</b> <span id="prof-stat-hf" style="color:#fff; font-weight:700; font-size:1.1rem;">0</span></p>
+                        <p style="background: #0d1322; padding: 12px; border-radius: var(--radius); border: 1px solid var(--card-border); text-align: center;"><b style="font-size:0.75rem; text-transform:uppercase; color:var(--text-muted); display:block; margin-bottom:4px;">+80</b> <span id="prof-stat-80" style="color:#fff; font-weight:700; font-size:1.1rem;">0</span></p>
+                        <p style="background: #0d1322; padding: 12px; border-radius: var(--radius); border: 1px solid var(--card-border); text-align: center;"><b style="font-size:0.75rem; text-transform:uppercase; color:var(--text-muted); display:block; margin-bottom:4px;">+100</b> <span id="prof-stat-100" style="color:#fff; font-weight:700; font-size:1.1rem;">0</span></p>
+                        <p style="background: #0d1322; padding: 12px; border-radius: var(--radius); border: 1px solid var(--card-border); text-align: center;"><b style="font-size:0.75rem; text-transform:uppercase; color:var(--text-muted); display:block; margin-bottom:4px;">+140</b> <span id="prof-stat-140" style="color:#fff; font-weight:700; font-size:1.1rem;">0</span></p>
+                        <p style="background: #0d1322; padding: 12px; border-radius: var(--radius); border: 1px solid var(--card-border); text-align: center;"><b style="font-size:0.75rem; text-transform:uppercase; color:var(--text-muted); display:block; margin-bottom:4px;">180</b> <span id="prof-stat-180" style="color:var(--accent-red); font-weight:700; font-size:1.1rem;">0</span></p>
+                    </div>
+
                     <div style="margin-bottom: 20px;">
                         <p style="margin-bottom: 8px;"><b style="font-size: 0.85rem; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px;">Profil DartCounter:</b></p>
                         <a id="prof-dartcounter-btn" href="#" target="_blank" class="btn-primary btn-sm" style="display: inline-block; text-decoration: none;">Otwórz Profil</a>
@@ -750,8 +759,16 @@
             <img id="view-player-photo" src="" style="width: 96px; height: 96px; border-radius: 50%; margin-bottom: 14px; object-fit: cover; border: 2px solid var(--accent-blue); box-shadow: 0 8px 20px rgba(59, 130, 246, 0.25);">
             <h2 id="view-player-fullname" style="border:none; margin-bottom: 6px; font-size: 1.4rem;">-</h2>
             <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 6px;">Wiek: <span id="view-player-age" style="color:#fff;">-</span> lat</p>
-            <p style="font-size: 0.9rem; margin-bottom: 20px;">Średnia ligowa: <b id="view-player-avg" style="color: var(--accent-blue);">0.00</b></p>
+            <p style="font-size: 0.9rem; margin-bottom: 16px;">Średnia ligowa: <b id="view-player-avg" style="color: var(--accent-blue);">0.00</b></p>
             
+            <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 20px;">
+                <div style="background: #0d1322; padding: 8px 4px; border-radius: var(--radius); border: 1px solid var(--card-border);"><span style="font-size:0.65rem; text-transform:uppercase; color:var(--text-muted); display:block;">Finish</span><span id="view-stat-hf" style="font-weight:700; font-size:0.95rem;">0</span></div>
+                <div style="background: #0d1322; padding: 8px 4px; border-radius: var(--radius); border: 1px solid var(--card-border);"><span style="font-size:0.65rem; text-transform:uppercase; color:var(--text-muted); display:block;">+80</span><span id="view-stat-80" style="font-weight:700; font-size:0.95rem;">0</span></div>
+                <div style="background: #0d1322; padding: 8px 4px; border-radius: var(--radius); border: 1px solid var(--card-border);"><span style="font-size:0.65rem; text-transform:uppercase; color:var(--text-muted); display:block;">+100</span><span id="view-stat-100" style="font-weight:700; font-size:0.95rem;">0</span></div>
+                <div style="background: #0d1322; padding: 8px 4px; border-radius: var(--radius); border: 1px solid var(--card-border);"><span style="font-size:0.65rem; text-transform:uppercase; color:var(--text-muted); display:block;">+140</span><span id="view-stat-140" style="font-weight:700; font-size:0.95rem;">0</span></div>
+                <div style="background: #0d1322; padding: 8px 4px; border-radius: var(--radius); border: 1px solid var(--card-border);"><span style="font-size:0.65rem; text-transform:uppercase; color:var(--text-muted); display:block;">180</span><span id="view-stat-180" style="color:var(--accent-red); font-weight:700; font-size:0.95rem;">0</span></div>
+            </div>
+
             <hr style="border-color: var(--card-border); margin: 20px 0;">
             
             <h3 style="font-size: 1rem; margin-bottom: 10px; color: var(--text-color);">Bilans ostatnich 5 meczów</h3>
@@ -790,25 +807,37 @@
 
             <!-- WIDOK WYPEŁNIANIA PROTOKOŁU -->
             <div id="match-action-report-view" class="hidden">
-                <p style="font-size: 0.9rem; color: var(--warning-color); margin-bottom: 16px; font-weight: 500;">Mecz się rozpoczął! Wprowadź uzyskane wyniki:</p>
-                <div class="form-group">
-                    <label><span id="report-p1-name">Gracz 1</span> - Wygrane Legi</label>
-                    <input type="number" id="report-s1" min="0" value="0">
+                <p style="font-size: 0.9rem; color: var(--warning-color); margin-bottom: 16px; font-weight: 500;">Mecz się rozpoczął! Wprowadź uzyskane wyniki i statystyki:</p>
+                
+                <h3 style="color:var(--accent-blue); font-size:0.95rem; margin-bottom:8px;"><span id="report-p1-heading">Gracz 1</span></h3>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div class="form-group"><label>Wygrane Legi</label><input type="number" id="report-s1" min="0" value="0"></div>
+                    <div class="form-group"><label>Średnia</label><input type="number" step="0.01" id="report-avg1" placeholder="45.50"></div>
                 </div>
-                <div class="form-group">
-                    <label><span id="report-p1-name-avg">Gracz 1</span> - Średnia</label>
-                    <input type="number" step="0.01" id="report-avg1" placeholder="np. 45.50">
+                <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
+                    <div class="form-group"><label style="font-size:0.7rem;">Finish</label><input type="number" id="report-hf1" min="0" value="0"></div>
+                    <div class="form-group"><label style="font-size:0.7rem;">+80</label><input type="number" id="report-80-1" min="0" value="0"></div>
+                    <div class="form-group"><label style="font-size:0.7rem;">+100</label><input type="number" id="report-100-1" min="0" value="0"></div>
+                    <div class="form-group"><label style="font-size:0.7rem;">+140</label><input type="number" id="report-140-1" min="0" value="0"></div>
                 </div>
+                <div class="form-group"><label style="font-size:0.75rem;">180-tki</label><input type="number" id="report-180-1" min="0" value="0"></div>
+
                 <hr style="border-color: var(--card-border); margin: 16px 0;">
-                <div class="form-group">
-                    <label><span id="report-p2-name">Gracz 2</span> - Wygrane Legi</label>
-                    <input type="number" id="report-s2" min="0" value="0">
+
+                <h3 style="color:var(--accent-blue); font-size:0.95rem; margin-bottom:8px;"><span id="report-p2-heading">Gracz 2</span></h3>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div class="form-group"><label>Wygrane Legi</label><input type="number" id="report-s2" min="0" value="0"></div>
+                    <div class="form-group"><label>Średnia</label><input type="number" step="0.01" id="report-avg2" placeholder="42.10"></div>
                 </div>
-                <div class="form-group">
-                    <label><span id="report-p2-name-avg">Gracz 2</span> - Średnia</label>
-                    <input type="number" step="0.01" id="report-avg2" placeholder="np. 42.10">
+                <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
+                    <div class="form-group"><label style="font-size:0.7rem;">Finish</label><input type="number" id="report-hf2" min="0" value="0"></div>
+                    <div class="form-group"><label style="font-size:0.7rem;">+80</label><input type="number" id="report-80-2" min="0" value="0"></div>
+                    <div class="form-group"><label style="font-size:0.7rem;">+100</label><input type="number" id="report-100-2" min="0" value="0"></div>
+                    <div class="form-group"><label style="font-size:0.7rem;">+140</label><input type="number" id="report-140-2" min="0" value="0"></div>
                 </div>
-                <button class="btn-success" id="btn-submit-report" style="width: 100%; margin-top: 6px;">Wyślij Protokół do Admina</button>
+                <div class="form-group"><label style="font-size:0.75rem;">180-tki</label><input type="number" id="report-180-2" min="0" value="0"></div>
+
+                <button class="btn-success" id="btn-submit-report" style="width: 100%; margin-top: 10px;">Wyślij Protokół do Admina</button>
             </div>
 
             <div id="match-action-msg" class="msg"></div>
@@ -845,9 +874,7 @@
 
         const ADMIN_EMAIL = "smyczkuba@wp.pl"; 
 
-        // Rozbudowana baza awatarów (brainroty, memy, zwierzęta, kultowe postacie)
         const PRESET_AVATARS = [
-            // Zwierzęta & Memy ze zwierzakami
             "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=150&auto=format&fit=crop&q=80",
             "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=150&auto=format&fit=crop&q=80",
             "https://images.unsplash.com/photo-1534361960057-19889db9621e?w=150&auto=format&fit=crop&q=80",
@@ -858,8 +885,6 @@
             "https://images.unsplash.com/photo-1557050543-4d5f4e07ef46?w=150&auto=format&fit=crop&q=80",
             "https://images.unsplash.com/photo-1535268647677-300dbf3d78d1?w=150&auto=format&fit=crop&q=80",
             "https://images.unsplash.com/photo-1574158622682-e40e69881006?w=150&auto=format&fit=crop&q=80",
-
-            // Dicebear / Brainrot & Stylizowane postacie cyfrowe
             "https://api.dicebear.com/7.x/bottts/svg?seed=SkibidiSigma",
             "https://api.dicebear.com/7.x/bottts/svg?seed=OhioBoss",
             "https://api.dicebear.com/7.x/bottts/svg?seed=Gigachad",
@@ -870,8 +895,6 @@
             "https://api.dicebear.com/7.x/bottts/svg?seed=Level10Gyatt",
             "https://api.dicebear.com/7.x/bottts/svg?seed=SigmaGrindset",
             "https://api.dicebear.com/7.x/bottts/svg?seed=BalkanRage",
-
-            // Kultowe Avatary Avataaars (Memy / Styl geeka)
             "https://api.dicebear.com/7.x/avataaars/svg?seed=Chad",
             "https://api.dicebear.com/7.x/avataaars/svg?seed=Troll",
             "https://api.dicebear.com/7.x/avataaars/svg?seed=Hacker",
@@ -882,8 +905,6 @@
             "https://api.dicebear.com/7.x/avataaars/svg?seed=Viking",
             "https://api.dicebear.com/7.x/avataaars/svg?seed=Pirate",
             "https://api.dicebear.com/7.x/avataaars/svg?seed=Ninja",
-
-            // Postacie / Pixel Art & Popkultura
             "https://api.dicebear.com/7.x/adventurer/svg?seed=GigaChad",
             "https://api.dicebear.com/7.x/adventurer/svg?seed=AnimeHero",
             "https://api.dicebear.com/7.x/adventurer/svg?seed=DarkLord",
@@ -921,8 +942,8 @@
         let globalMatchesMap = {}; 
         let globalUpcomingMatchesMap = {};
         let globalCalculatedAverages = {}; 
+        let globalCalculatedStats = {};
 
-        // --- NAWIGACJA ---
         const tabs = {
             home: { btn: document.getElementById('tab-home'), page: document.getElementById('page-home') },
             info: { btn: document.getElementById('tab-info'), page: document.getElementById('page-info') },
@@ -1039,6 +1060,13 @@
             const userAvg = (uid && globalCalculatedAverages[uid] !== undefined) ? globalCalculatedAverages[uid].toFixed(2) : "0.00";
             document.getElementById('prof-avg-display').innerText = userAvg;
 
+            const st = (uid && globalCalculatedStats[uid]) ? globalCalculatedStats[uid] : { hf: 0, s80: 0, s100: 0, s140: 0, s180: 0 };
+            document.getElementById('prof-stat-hf').innerText = st.hf;
+            document.getElementById('prof-stat-80').innerText = st.s80;
+            document.getElementById('prof-stat-100').innerText = st.s100;
+            document.getElementById('prof-stat-140').innerText = st.s140;
+            document.getElementById('prof-stat-180').innerText = st.s180;
+
             const cityLink = document.getElementById('prof-city-link');
             if (data.city) {
                 cityLink.innerText = data.city;
@@ -1144,8 +1172,15 @@
             if (isReadyForReport && matchData.status === 'approved' && !matchData.reported) {
                 proposeView.classList.add('hidden');
                 reportView.classList.remove('hidden');
-                document.getElementById('report-p1-name').innerText = matchData.p1Name;
-                document.getElementById('report-p2-name').innerText = matchData.p2Name;
+                document.getElementById('report-p1-heading').innerText = matchData.p1Name;
+                document.getElementById('report-p2-heading').innerText = matchData.p2Name;
+                
+                // reset inputs
+                ['report-s1', 'report-avg1', 'report-hf1', 'report-80-1', 'report-100-1', 'report-140-1', 'report-180-1',
+                 'report-s2', 'report-avg2', 'report-hf2', 'report-80-2', 'report-100-2', 'report-140-2', 'report-180-2'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.value = id.includes('avg') ? '' : 0;
+                });
             } else {
                 proposeView.classList.remove('hidden');
                 reportView.classList.add('hidden');
@@ -1217,19 +1252,25 @@
 
         document.getElementById('btn-submit-report').onclick = async () => {
             const matchId = document.getElementById('match-action-id').value;
-            const s1 = document.getElementById('report-s1').value;
-            const s2 = document.getElementById('report-s2').value;
-            const avg1 = document.getElementById('report-avg1').value;
-            const avg2 = document.getElementById('report-avg2').value;
-
             try {
                 await update(dbRef(db, 'upcomingMatches/' + matchId), {
                     reported: true,
                     reportData: {
-                        s1: parseInt(s1),
-                        s2: parseInt(s2),
-                        avg1: avg1 !== "" ? parseFloat(avg1) : 0,
-                        avg2: avg2 !== "" ? parseFloat(avg2) : 0
+                        s1: parseInt(document.getElementById('report-s1').value) || 0,
+                        avg1: parseFloat(document.getElementById('report-avg1').value) || 0,
+                        hf1: parseInt(document.getElementById('report-hf1').value) || 0,
+                        s80_1: parseInt(document.getElementById('report-80-1').value) || 0,
+                        s100_1: parseInt(document.getElementById('report-100-1').value) || 0,
+                        s140_1: parseInt(document.getElementById('report-140-1').value) || 0,
+                        s180_1: parseInt(document.getElementById('report-180-1').value) || 0,
+
+                        s2: parseInt(document.getElementById('report-s2').value) || 0,
+                        avg2: parseFloat(document.getElementById('report-avg2').value) || 0,
+                        hf2: parseInt(document.getElementById('report-hf2').value) || 0,
+                        s80_2: parseInt(document.getElementById('report-80-2').value) || 0,
+                        s100_2: parseInt(document.getElementById('report-100-2').value) || 0,
+                        s140_2: parseInt(document.getElementById('report-140-2').value) || 0,
+                        s180_2: parseInt(document.getElementById('report-180-2').value) || 0
                     }
                 });
                 document.getElementById('modal-match-action').classList.add('hidden');
@@ -1349,7 +1390,6 @@
             });
         }
 
-        // ZAPIS TEKSTU STRONY GŁÓWNEJ PRZEZ ADMINA
         document.getElementById('btn-admin-save-hometext').onclick = async () => {
             const newText = document.getElementById('admin-home-text-input').value.trim();
             const msg = document.getElementById('admin-hometext-msg');
@@ -1396,6 +1436,8 @@
                     p2Uid: m.p2Uid, p2Name: m.p2Name,
                     s1: m.reportData.s1, s2: m.reportData.s2,
                     avg1: m.reportData.avg1, avg2: m.reportData.avg2,
+                    hf1: m.reportData.hf1 || 0, s80_1: m.reportData.s80_1 || 0, s100_1: m.reportData.s100_1 || 0, s140_1: m.reportData.s140_1 || 0, s180_1: m.reportData.s180_1 || 0,
+                    hf2: m.reportData.hf2 || 0, s80_2: m.reportData.s80_2 || 0, s100_2: m.reportData.s100_2 || 0, s140_2: m.reportData.s140_2 || 0, s180_2: m.reportData.s180_2 || 0,
                     date: new Date().toLocaleString('pl-PL')
                 });
                 await remove(dbRef(db, 'upcomingMatches/' + matchId));
@@ -1415,7 +1457,6 @@
             await update(dbRef(db, 'users/' + uid), { statusSeason1: status, signedUpForSeason1: isSigned });
         };
 
-        // EDYCJA PROFILU MODAL
         document.getElementById('btn-open-edit-profile').onclick = () => {
             if (!currentUserProfileData) return;
             document.getElementById('edit-firstname').value = currentUserProfileData.firstName || '';
@@ -1467,14 +1508,15 @@
                 if (p.signedUpForSeason1 && p.statusSeason1 === "approved") {
                     count++;
                     const userAvg = globalCalculatedAverages[uid] !== undefined ? globalCalculatedAverages[uid].toFixed(2) : "0.00";
+                    const st = globalCalculatedStats[uid] || { hf: 0, s80: 0, s100: 0, s140: 0, s180: 0 };
                     const card = document.createElement('div');
                     card.className = 'player-card';
                     card.innerHTML = `
                         <img class="player-avatar" src="${p.photoUrl || PRESET_AVATARS[0]}">
                         <div class="player-name">${p.firstName || ''} ${p.lastName || ''}</div>
                         <div class="player-info">🎯 Średnia: <b style="color:var(--text-color);">${userAvg}</b></div>
+                        <div class="player-info">⭐ 180-tki: <b style="color:var(--accent-red);">${st.s180}</b> | Finish: <b>${st.hf}</b></div>
                         <div class="player-info">🎂 Wiek: ${calculateAge(p.birthDate)} lat</div>
-                        <div class="player-info">📍 ${p.city || 'Nie podano'}</div>
                     `;
                     card.onclick = () => openPlayerModal(uid, p);
                     grid.appendChild(card);
@@ -1488,6 +1530,13 @@
             document.getElementById('view-player-photo').src = player.photoUrl || PRESET_AVATARS[0];
             document.getElementById('view-player-age').innerText = calculateAge(player.birthDate);
             document.getElementById('view-player-avg').innerText = globalCalculatedAverages[uid] !== undefined ? globalCalculatedAverages[uid].toFixed(2) : "0.00";
+
+            const st = globalCalculatedStats[uid] || { hf: 0, s80: 0, s100: 0, s140: 0, s180: 0 };
+            document.getElementById('view-stat-hf').innerText = st.hf;
+            document.getElementById('view-stat-80').innerText = st.s80;
+            document.getElementById('view-stat-100').innerText = st.s100;
+            document.getElementById('view-stat-140').innerText = st.s140;
+            document.getElementById('view-stat-180').innerText = st.s180;
 
             const formContainer = document.getElementById('view-player-form');
             const recentListContainer = document.getElementById('view-player-recent-list');
@@ -1547,6 +1596,7 @@
 
             let stats = {};
             let playerAveragesMap = {}; 
+            globalCalculatedStats = {};
 
             Object.keys(globalUsersData).forEach(uid => {
                 const u = globalUsersData[uid];
@@ -1556,6 +1606,7 @@
                         matches: 0, wins: 0, draws: 0, losses: 0, legsWon: 0, legsLost: 0, points: 0, playerAvg: 0
                     };
                     playerAveragesMap[uid] = [];
+                    globalCalculatedStats[uid] = { hf: 0, s80: 0, s100: 0, s140: 0, s180: 0 };
                 }
             });
 
@@ -1568,6 +1619,15 @@
                     else if (s2 > s1) stats[m.p1Uid].losses++;
                     else { stats[m.p1Uid].draws++; stats[m.p1Uid].points += 1; }
                     if (m.avg1) playerAveragesMap[m.p1Uid].push(parseFloat(m.avg1));
+
+                    const p1St = globalCalculatedStats[m.p1Uid];
+                    if (p1St) {
+                        if ((m.hf1 || 0) > p1St.hf) p1St.hf = m.hf1;
+                        p1St.s80 += (m.s80_1 || 0);
+                        p1St.s100 += (m.s100_1 || 0);
+                        p1St.s140 += (m.s140_1 || 0);
+                        p1St.s180 += (m.s180_1 || 0);
+                    }
                 }
 
                 if (stats[m.p2Uid]) {
@@ -1576,6 +1636,15 @@
                     else if (s1 > s2) stats[m.p2Uid].losses++;
                     else { stats[m.p2Uid].draws++; stats[m.p2Uid].points += 1; }
                     if (m.avg2) playerAveragesMap[m.p2Uid].push(parseFloat(m.avg2));
+
+                    const p2St = globalCalculatedStats[m.p2Uid];
+                    if (p2St) {
+                        if ((m.hf2 || 0) > p2St.hf) p2St.hf = m.hf2;
+                        p2St.s80 += (m.s80_2 || 0);
+                        p2St.s100 += (m.s100_2 || 0);
+                        p2St.s140 += (m.s140_2 || 0);
+                        p2St.s180 += (m.s180_2 || 0);
+                    }
                 }
             });
 
@@ -1620,6 +1689,10 @@
                     `;
                     historyList.appendChild(item);
                 });
+            }
+
+            if (auth.currentUser && globalUsersData[auth.currentUser.uid]) {
+                updateProfileUI(globalUsersData[auth.currentUser.uid]);
             }
         }
 
