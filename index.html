@@ -33,7 +33,7 @@
             min-height: 100vh;
         }
 
-        /* --- NAGŁÓWEK I NAWIGACJA --- */
+        /* --- NAGłÓWEK I NAWIGACJA --- */
         header {
             background-color: var(--card-bg);
             border-bottom: 1px solid var(--border-color);
@@ -58,6 +58,7 @@
         nav {
             display: flex;
             gap: 10px;
+            flex-wrap: wrap;
         }
 
         .nav-btn {
@@ -135,6 +136,7 @@
             padding: 10px;
             border-radius: 6px;
             font-size: 0.95rem;
+            width: 100%;
         }
 
         input:focus, select:focus, textarea:focus {
@@ -282,6 +284,7 @@
             justify-content: center;
             align-items: center;
             z-index: 1000;
+            padding: 15px;
         }
 
         .modal-content {
@@ -312,6 +315,47 @@
 
         .avatar-option.selected {
             border-color: var(--accent-color);
+        }
+
+        /* --- KIEDY / BILANS OSTATNICH MECZÓW --- */
+        .form-summary {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin: 10px 0 15px 0;
+        }
+
+        .badge-result {
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-weight: bold;
+            color: white;
+            font-size: 13px;
+        }
+        .badge-result.win { background-color: #2b8a3e; }
+        .badge-result.draw { background-color: #f59f00; }
+        .badge-result.loss { background-color: #c92a2a; }
+
+        .recent-matches-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+
+        .recent-matches-list li {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 10px;
+            border-bottom: 1px solid var(--border-color);
+            background: #252525;
+            margin-bottom: 4px;
+            border-radius: 4px;
         }
 
         /* --- PANEL ADMINA --- */
@@ -580,11 +624,22 @@
     <!-- MODAL: PODGLĄD GRACZA -->
     <div id="modal-view-player" class="modal hidden">
         <div class="modal-content" style="text-align: center;">
-            <img id="view-player-photo" src="" style="width: 100px; height: 100px; border-radius: 50%; margin-bottom: 10px;">
-            <h2 id="view-player-fullname" style="border:none;">-</h2>
-            <p>Wiek: <span id="view-player-age">-</span> lat</p>
-            <p>Średnia ligowa: <b id="view-player-avg" style="color: var(--accent-color);">0.00</b></p>
-            <button class="btn-primary btn-sm" id="btn-close-view-player" style="margin-top: 15px;">Zamknij</button>
+            <img id="view-player-photo" src="" style="width: 90px; height: 90px; border-radius: 50%; margin-bottom: 10px; object-fit: cover; border: 2px solid var(--accent-color);">
+            <h2 id="view-player-fullname" style="border:none; margin-bottom: 5px;">-</h2>
+            <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 5px;">Wiek: <span id="view-player-age">-</span> lat</p>
+            <p style="font-size: 0.9rem; margin-bottom: 15px;">Średnia ligowa: <b id="view-player-avg" style="color: var(--accent-color);">0.00</b></p>
+            
+            <hr style="border-color: var(--border-color); margin: 15px 0;">
+            
+            <h3 style="font-size: 1rem; margin-bottom: 8px; color: var(--text-color);">Bilans ostatnich 5 meczów</h3>
+            <div id="view-player-form" class="form-summary"></div>
+
+            <h3 style="font-size: 1rem; margin-bottom: 8px; margin-top: 15px; color: var(--text-color);">Ostatnie spotkania</h3>
+            <ul id="view-player-recent-list" class="recent-matches-list">
+                <li style="color: var(--text-muted); justify-content: center;">Brak rozegranych meczów</li>
+            </ul>
+
+            <button class="btn-primary btn-sm" id="btn-close-view-player" style="margin-top: 20px; width: 100%;">Zamknij</button>
         </div>
     </div>
 
@@ -1261,13 +1316,67 @@
             if (count === 0) grid.innerHTML = "<p style='grid-column: 1/-1; text-align: center; color: #888;'>Brak zatwierdzonych zawodników.</p>";
         }
 
+        // OTWIERANIE MODALU PODGLĄDU ZAWODNIKA Z HISTORIĄ 5 OSTATNICH MECZÓW
         function openPlayerModal(uid, player) {
             document.getElementById('view-player-fullname').innerText = `${player.firstName || ''} ${player.lastName || ''}`;
             document.getElementById('view-player-photo').src = player.photoUrl || PRESET_AVATARS[0];
             document.getElementById('view-player-age').innerText = calculateAge(player.birthDate);
             document.getElementById('view-player-avg').innerText = globalCalculatedAverages[uid] !== undefined ? globalCalculatedAverages[uid].toFixed(2) : "0.00";
+
+            const formContainer = document.getElementById('view-player-form');
+            const recentListContainer = document.getElementById('view-player-recent-list');
+            formContainer.innerHTML = '';
+            recentListContainer.innerHTML = '';
+
+            // Pobieramy mecze dla danego gracza z historii
+            const playerMatches = [];
+            Object.values(globalMatchesMap).forEach(m => {
+                if (m.p1Uid === uid || m.p2Uid === uid) {
+                    const isP1 = m.p1Uid === uid;
+                    const myLegs = isP1 ? parseInt(m.s1) : parseInt(m.s2);
+                    const oppLegs = isP1 ? parseInt(m.s2) : parseInt(m.s1);
+                    const opponentName = isP1 ? m.p2Name : m.p1Name;
+
+                    let result = 'R';
+                    if (myLegs > oppLegs) result = 'Z';
+                    else if (myLegs < oppLegs) result = 'P';
+
+                    playerMatches.push({
+                        opponent: opponentName,
+                        score: `${myLegs}:${oppLegs}`,
+                        result: result,
+                        date: m.date || ''
+                    });
+                }
+            });
+
+            // Bierzemy ostatnie 5 meczów (zakładając że nowe są dopisywane na koniec lub sortujemy po indeksie)
+            const last5 = playerMatches.slice(-5).reverse();
+
+            if (last5.length === 0) {
+                formContainer.innerHTML = '<span style="color: var(--text-muted); font-size: 0.85rem;">Brak rozegranych spotkań</span>';
+                recentListContainer.innerHTML = '<li style="color: var(--text-muted); justify-content: center;">Brak rozegranych meczów</li>';
+            } else {
+                last5.forEach(match => {
+                    // Kafelki bilansu (Z, R, P)
+                    const badge = document.createElement('div');
+                    badge.className = `badge-result ${match.result === 'Z' ? 'win' : (match.result === 'R' ? 'draw' : 'loss')}`;
+                    badge.innerText = match.result;
+                    formContainer.appendChild(badge);
+
+                    // Lista spotkań
+                    const li = document.createElement('li');
+                    li.innerHTML = `
+                        <span>vs <b>${match.opponent}</b></span>
+                        <span><b>${match.score}</b> <span style="color: ${match.result === 'Z' ? '#2b8a3e' : (match.result === 'R' ? '#f59f00' : '#c92a2a')}; font-weight:bold; margin-left:5px;">[${match.result}]</span></span>
+                    `;
+                    recentListContainer.appendChild(li);
+                });
+            }
+
             document.getElementById('modal-view-player').classList.remove('hidden');
         }
+
         document.getElementById('btn-close-view-player').onclick = () => document.getElementById('modal-view-player').classList.add('hidden');
 
         // TABELA I HISTORIA MECZÓW
