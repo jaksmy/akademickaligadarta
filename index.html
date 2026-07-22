@@ -83,11 +83,9 @@
         .admin-player-item, .admin-match-item { display: flex; align-items: center; justify-content: space-between; background: #252525; padding: 10px 15px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #333; }
         .match-item { background: #252525; padding: 12px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #333; text-align: center; }
 
-        /* AWATARY AI GRID */
-        .avatar-picker-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 10px 0 15px 0; max-height: 180px; overflow-y: auto; padding: 5px; background: #222; border-radius: 8px; border: 1px solid #333; }
-        .avatar-option { width: 100%; aspect-ratio: 1/1; border-radius: 50%; object-fit: cover; border: 2px solid transparent; cursor: pointer; transition: transform 0.2s, border-color 0.2s; background: #181818; }
-        .avatar-option:hover { transform: scale(1.08); border-color: #888; }
-        .avatar-option.selected { border-color: #1a73e8; transform: scale(1.1); box-shadow: 0 0 10px rgba(26, 115, 232, 0.8); }
+        /* UŁOŻENIE FORMULARZA MECZU */
+        .match-inputs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; background: #222; padding: 15px; border-radius: 8px; border: 1px solid #333; margin-bottom: 15px; }
+        .match-col { display: flex; flex-direction: column; }
     </style>
 </head>
 <body>
@@ -124,7 +122,7 @@
                         <th>P</th>
                         <th>Legi</th>
                         <th>+/-</th>
-                        <th>Śr. Legów</th>
+                        <th>Średnia zawodnika</th>
                         <th>PKT</th>
                     </tr>
                 </thead>
@@ -216,6 +214,7 @@
             <button id="btn-toggle-season" type="button" class="btn-success" style="margin-bottom: 15px;">Zapisz się na 1. Sezon!</button>
 
             <table class="profile-details-table">
+                <tr><td>Średnia:</td><td><b id="prof-avg-display" style="color: #1a73e8; font-size: 16px;">0.00</b></td></tr>
                 <tr><td>Wiek:</td><td><span id="prof-age">-</span> lat</td></tr>
                 <tr><td>Miejscowość:</td><td><a id="prof-city-link" href="#" target="_blank" rel="noopener noreferrer">-</a></td></tr>
             </table>
@@ -236,25 +235,31 @@
         <!-- SEKCJA: DODAWANIE WYNIKU MECZU -->
         <div class="box" style="max-width: 100%; margin-bottom: 25px;">
             <h3>➕ Wprowadź wynik meczu</h3>
-            <div style="display: grid; grid-template-columns: 1fr 80px 80px 1fr; gap: 10px; align-items: center;">
-                <div>
+            <div class="match-inputs-grid">
+                <!-- Gospodarz -->
+                <div class="match-col">
                     <label>Gracz 1 (Gospodarz):</label>
                     <select id="admin-match-p1"></select>
-                </div>
-                <div>
+                    
                     <label>Legi G1:</label>
                     <input type="number" id="admin-match-score1" min="0" value="0">
+                    
+                    <label>Średnia G1 w meczu:</label>
+                    <input type="number" id="admin-match-avg1" step="0.01" min="0" placeholder="np. 60.00">
                 </div>
-                <div>
-                    <label>Legi G2:</label>
-                    <input type="number" id="admin-match-score2" min="0" value="0">
-                </div>
-                <div>
+                <!-- Gość -->
+                <div class="match-col">
                     <label>Gracz 2 (Gość):</label>
                     <select id="admin-match-p2"></select>
+                    
+                    <label>Legi G2:</label>
+                    <input type="number" id="admin-match-score2" min="0" value="0">
+                    
+                    <label>Średnia G2 w meczu:</label>
+                    <input type="number" id="admin-match-avg2" step="0.01" min="0" placeholder="np. 52.21">
                 </div>
             </div>
-            <button id="btn-save-match" type="button" class="btn-success" style="margin-top: 10px;">Zapisz wynik meczu</button>
+            <button id="btn-save-match" type="button" class="btn-success">Zapisz wynik meczu</button>
             <div id="admin-match-msg" class="msg"></div>
         </div>
 
@@ -291,22 +296,30 @@
         <div class="modal-content">
             <h3>Edycja wyniku meczu</h3>
             <input type="hidden" id="edit-match-id">
-            <div class="form-group">
-                <label>Gracz 1 (Gospodarz):</label>
-                <select id="edit-match-p1"></select>
+            
+            <div class="match-inputs-grid">
+                <div class="match-col">
+                    <label>Gracz 1 (Gospodarz):</label>
+                    <select id="edit-match-p1"></select>
+                    
+                    <label>Legi Gracza 1:</label>
+                    <input type="number" id="edit-match-score1" min="0">
+                    
+                    <label>Średnia G1:</label>
+                    <input type="number" id="edit-match-avg1" step="0.01" min="0">
+                </div>
+                <div class="match-col">
+                    <label>Gracz 2 (Gość):</label>
+                    <select id="edit-match-p2"></select>
+                    
+                    <label>Legi Gracza 2:</label>
+                    <input type="number" id="edit-match-score2" min="0">
+                    
+                    <label>Średnia G2:</label>
+                    <input type="number" id="edit-match-avg2" step="0.01" min="0">
+                </div>
             </div>
-            <div class="form-group">
-                <label>Legi Gracza 1:</label>
-                <input type="number" id="edit-match-score1" min="0">
-            </div>
-            <div class="form-group">
-                <label>Legi Gracza 2:</label>
-                <input type="number" id="edit-match-score2" min="0">
-            </div>
-            <div class="form-group">
-                <label>Gracz 2 (Gość):</label>
-                <select id="edit-match-p2"></select>
-            </div>
+
             <div id="edit-match-msg" class="msg"></div>
             <div class="modal-actions">
                 <button id="btn-update-match" type="button" class="btn-success">Zapisz zmiany</button>
@@ -324,6 +337,7 @@
                 <div class="season-badge">Zatwierdzony Zawodnik 1. Sezonu</div>
             </div>
             <table class="profile-details-table">
+                <tr><td>Średnia:</td><td><b id="view-player-avg" style="color: #1a73e8; font-size: 16px;">0.00</b></td></tr>
                 <tr><td>Wiek:</td><td><span id="view-player-age">-</span> lat</td></tr>
                 <tr><td>Miejscowość:</td><td><a id="view-player-city-link" href="#" target="_blank" rel="noopener noreferrer">-</a></td></tr>
             </table>
@@ -379,7 +393,8 @@
 
         let currentUserProfileData = null;
         let globalUsersData = {};
-        let globalMatchesMap = {}; // Przechowuje mecze z ich ID z Firebase
+        let globalMatchesMap = {}; 
+        let globalCalculatedAverages = {}; // Obliczone średnie arytmetyczne wg UID zawodnika
 
         // --- NAWIGACJA ZAKŁADEK ---
         const tabs = {
@@ -513,10 +528,16 @@
         // RENDEROWANIE PROFILU Z BAZY W CZASIE RZECZYWISTYM
         function updateProfileUI(data) {
             currentUserProfileData = data;
+            const uid = auth.currentUser ? auth.currentUser.uid : null;
+
             document.getElementById('prof-fullname').innerText = `${data.firstName || ''} ${data.lastName || ''}`;
             document.getElementById('prof-email-display').innerText = data.email || "";
             document.getElementById('prof-photo').src = data.photoUrl || PRESET_AVATARS[0];
             document.getElementById('prof-age').innerText = calculateAge(data.birthDate);
+
+            // Pobieranie wyliczonej średniej zawodnika
+            const userAvg = (uid && globalCalculatedAverages[uid] !== undefined) ? globalCalculatedAverages[uid].toFixed(2) : "0.00";
+            document.getElementById('prof-avg-display').innerText = userAvg;
 
             const cityLink = document.getElementById('prof-city-link');
             if (data.city) {
@@ -578,15 +599,17 @@
                 const p = globalUsersData[uid];
                 if (p.signedUpForSeason1 && p.statusSeason1 === "approved") {
                     count++;
+                    const userAvg = globalCalculatedAverages[uid] !== undefined ? globalCalculatedAverages[uid].toFixed(2) : "0.00";
                     const card = document.createElement('div');
                     card.className = 'player-card';
                     card.innerHTML = `
                         <img class="player-avatar" src="${p.photoUrl || PRESET_AVATARS[0]}">
                         <div class="player-name">${p.firstName || ''} ${p.lastName || ''}</div>
+                        <div class="player-info">🎯 Średnia: <b>${userAvg}</b></div>
                         <div class="player-info">🎂 Wiek: ${calculateAge(p.birthDate)} lat</div>
                         <div class="player-info">📍 ${p.city || 'Nie podano'}</div>
                     `;
-                    card.onclick = () => openPlayerModal(p);
+                    card.onclick = () => openPlayerModal(uid, p);
                     grid.appendChild(card);
                 }
             });
@@ -594,11 +617,14 @@
             if (count === 0) grid.innerHTML = "<p style='grid-column: 1/-1; text-align: center; color: #888;'>Brak zatwierdzonych zawodników w 1. Sezonie.</p>";
         }
 
-        function openPlayerModal(player) {
+        function openPlayerModal(uid, player) {
             document.getElementById('view-player-fullname').innerText = `${player.firstName || ''} ${player.lastName || ''}`;
             document.getElementById('view-player-photo').src = player.photoUrl || PRESET_AVATARS[0];
             document.getElementById('view-player-age').innerText = calculateAge(player.birthDate);
             
+            const userAvg = globalCalculatedAverages[uid] !== undefined ? globalCalculatedAverages[uid].toFixed(2) : "0.00";
+            document.getElementById('view-player-avg').innerText = userAvg;
+
             const cityLink = document.getElementById('view-player-city-link');
             if (player.city) {
                 cityLink.innerText = player.city;
@@ -616,7 +642,7 @@
         }
         document.getElementById('btn-close-view-player').onclick = () => document.getElementById('modal-view-player').classList.add('hidden');
 
-        // --- TABELA I MECZE ---
+        // --- TABELA I MECZE (Z ŚREDNIĄ ARYTMETYCZNĄ) ---
         function renderTableAndMatches() {
             const tableBody = document.getElementById('league-table-body');
             const historyList = document.getElementById('matches-history-list');
@@ -625,37 +651,65 @@
             const matches = Object.values(globalMatchesMap);
 
             let stats = {};
+            let playerAveragesMap = {}; // Do zbierania tablicy średnich meczowych dla każdego zawodnika
+
             Object.keys(users).forEach(uid => {
                 const u = users[uid];
                 if (u.signedUpForSeason1 && u.statusSeason1 === "approved") {
                     stats[uid] = {
                         uid, name: `${u.firstName || ''} ${u.lastName || ''}`, photo: u.photoUrl || PRESET_AVATARS[0],
-                        matches: 0, wins: 0, draws: 0, losses: 0, legsWon: 0, legsLost: 0, points: 0
+                        matches: 0, wins: 0, draws: 0, losses: 0, legsWon: 0, legsLost: 0, points: 0, playerAvg: 0
                     };
+                    playerAveragesMap[uid] = [];
                 }
             });
 
             matches.forEach(m => {
-                if (stats[m.p1Uid] && stats[m.p2Uid]) {
-                    const s1 = parseInt(m.s1), s2 = parseInt(m.s2);
-                    
+                const s1 = parseInt(m.s1), s2 = parseInt(m.s2);
+
+                // Rejestracja statystyk meczowych Gracza 1
+                if (stats[m.p1Uid]) {
                     stats[m.p1Uid].matches++;
-                    stats[m.p2Uid].matches++;
                     stats[m.p1Uid].legsWon += s1;
                     stats[m.p1Uid].legsLost += s2;
+
+                    if (s1 > s2) { stats[m.p1Uid].wins++; stats[m.p1Uid].points += 3; }
+                    else if (s2 > s1) { stats[m.p1Uid].losses++; }
+                    else { stats[m.p1Uid].draws++; stats[m.p1Uid].points += 1; }
+
+                    if (m.avg1 !== undefined && m.avg1 !== null && m.avg1 !== "") {
+                        playerAveragesMap[m.p1Uid].push(parseFloat(m.avg1));
+                    }
+                }
+
+                // Rejestracja statystyk meczowych Gracza 2
+                if (stats[m.p2Uid]) {
+                    stats[m.p2Uid].matches++;
                     stats[m.p2Uid].legsWon += s2;
                     stats[m.p2Uid].legsLost += s1;
 
-                    if (s1 > s2) {
-                        stats[m.p1Uid].wins++; stats[m.p1Uid].points += 3;
-                        stats[m.p2Uid].losses++;
-                    } else if (s2 > s1) {
-                        stats[m.p2Uid].wins++; stats[m.p2Uid].points += 3;
-                        stats[m.p1Uid].losses++;
-                    } else {
-                        stats[m.p1Uid].draws++; stats[m.p1Uid].points += 1;
-                        stats[m.p2Uid].draws++; stats[m.p2Uid].points += 1;
+                    if (s2 > s1) { stats[m.p2Uid].wins++; stats[m.p2Uid].points += 3; }
+                    else if (s1 > s2) { stats[m.p2Uid].losses++; }
+                    else { stats[m.p2Uid].draws++; stats[m.p2Uid].points += 1; }
+
+                    if (m.avg2 !== undefined && m.avg2 !== null && m.avg2 !== "") {
+                        playerAveragesMap[m.p2Uid].push(parseFloat(m.avg2));
                     }
+                }
+            });
+
+            // Obliczanie Średniej Arytmetycznej ze wszystkich meczów
+            globalCalculatedAverages = {};
+            Object.keys(playerAveragesMap).forEach(uid => {
+                const avgs = playerAveragesMap[uid];
+                if (avgs.length > 0) {
+                    const sum = avgs.reduce((a, b) => a + b, 0);
+                    const mean = sum / avgs.length;
+                    globalCalculatedAverages[uid] = mean;
+                    if (stats[uid]) stats[uid].playerAvg = mean;
+                } else {
+                    globalCalculatedAverages[uid] = 0;
+                    if (stats[uid]) stats[uid].playerAvg = 0;
                 }
             });
 
@@ -673,7 +727,7 @@
             } else {
                 sortedStats.forEach((s, idx) => {
                     const diff = s.legsWon - s.legsLost;
-                    const avgLegs = s.matches > 0 ? (s.legsWon / s.matches).toFixed(2) : "0.00";
+                    const formattedAvg = s.playerAvg > 0 ? s.playerAvg.toFixed(2) : "0.00";
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
                         <td><b>${idx + 1}</b></td>
@@ -684,7 +738,7 @@
                         <td>${s.losses}</td>
                         <td>${s.legsWon}:${s.legsLost}</td>
                         <td style="color:${diff > 0 ? '#51cf66' : (diff < 0 ? '#ff6b6b' : '#ccc')}">${diff > 0 ? '+' + diff : diff}</td>
-                        <td>${avgLegs}</td>
+                        <td><b>${formattedAvg}</b></td>
                         <td style="color:#1a73e8; font-weight:bold;">${s.points}</td>
                     `;
                     tableBody.appendChild(tr);
@@ -698,8 +752,12 @@
                 matches.slice().reverse().forEach(m => {
                     const item = document.createElement('div');
                     item.className = 'match-item';
+                    const avg1Text = m.avg1 !== undefined ? ` (śr. ${parseFloat(m.avg1).toFixed(2)})` : '';
+                    const avg2Text = m.avg2 !== undefined ? ` (śr. ${parseFloat(m.avg2).toFixed(2)})` : '';
                     item.innerHTML = `
-                        <b>${m.p1Name}</b> <span style="color:#1a73e8; font-size:18px; margin: 0 10px;">${m.s1} : ${m.s2}</span> <b>${m.p2Name}</b>
+                        <b>${m.p1Name}</b>${avg1Text} 
+                        <span style="color:#1a73e8; font-size:18px; margin: 0 10px;">${m.s1} : ${m.s2}</span> 
+                        <b>${m.p2Name}</b>${avg2Text}
                         <div style="font-size:11px; color:#888; margin-top:4px;">${m.date || ''}</div>
                     `;
                     historyList.appendChild(item);
@@ -772,7 +830,7 @@
                 listContainer.innerHTML = "<p style='color:#888;'>Brak zgłoszeń do 1. Sezonu.</p>";
             }
 
-            // RENDEROWANIE MECZÓW DLA ADMINA (Z EDYCJĄ I USUWANIEM)
+            // RENDEROWANIE MECZÓW DLA ADMINA
             matchesContainer.innerHTML = "";
             const matchKeys = Object.keys(globalMatchesMap);
             if (matchKeys.length === 0) {
@@ -783,9 +841,12 @@
                     const item = document.createElement('div');
                     item.className = 'admin-match-item';
 
+                    const avg1Text = m.avg1 !== undefined ? ` [śr: ${m.avg1}]` : '';
+                    const avg2Text = m.avg2 !== undefined ? ` [śr: ${m.avg2}]` : '';
+
                     const infoDiv = document.createElement('div');
                     infoDiv.innerHTML = `
-                        <b>${m.p1Name}</b> <span style="color:#1a73e8; font-weight:bold;">${m.s1} : ${m.s2}</span> <b>${m.p2Name}</b>
+                        <b>${m.p1Name}</b>${avg1Text} <span style="color:#1a73e8; font-weight:bold;">${m.s1} : ${m.s2}</span> <b>${m.p2Name}</b>${avg2Text}
                         <br><span style="font-size:11px; color:#888;">${m.date || ''}</span>
                     `;
 
@@ -834,6 +895,8 @@
             const p2Uid = document.getElementById('admin-match-p2').value;
             const s1 = document.getElementById('admin-match-score1').value;
             const s2 = document.getElementById('admin-match-score2').value;
+            const avg1 = document.getElementById('admin-match-avg1').value;
+            const avg2 = document.getElementById('admin-match-avg2').value;
             const msg = document.getElementById('admin-match-msg');
 
             if (!p1Uid || !p2Uid || p1Uid === p2Uid) {
@@ -850,6 +913,8 @@
                     p1Uid, p1Name: `${u1.firstName || ''} ${u1.lastName || ''}`,
                     p2Uid, p2Name: `${u2.firstName || ''} ${u2.lastName || ''}`,
                     s1: parseInt(s1), s2: parseInt(s2),
+                    avg1: avg1 !== "" ? parseFloat(avg1) : 0,
+                    avg2: avg2 !== "" ? parseFloat(avg2) : 0,
                     date: new Date().toLocaleString('pl-PL')
                 });
 
@@ -857,6 +922,8 @@
                 msg.innerText = "Mecz został dodany!";
                 document.getElementById('admin-match-score1').value = 0;
                 document.getElementById('admin-match-score2').value = 0;
+                document.getElementById('admin-match-avg1').value = "";
+                document.getElementById('admin-match-avg2').value = "";
             } catch (err) {
                 msg.className = "msg error";
                 msg.innerText = "Błąd: " + err.message;
@@ -867,6 +934,8 @@
             document.getElementById('edit-match-id').value = matchId;
             document.getElementById('edit-match-score1').value = matchData.s1;
             document.getElementById('edit-match-score2').value = matchData.s2;
+            document.getElementById('edit-match-avg1').value = matchData.avg1 !== undefined ? matchData.avg1 : "";
+            document.getElementById('edit-match-avg2').value = matchData.avg2 !== undefined ? matchData.avg2 : "";
 
             const editSelectP1 = document.getElementById('edit-match-p1');
             const editSelectP2 = document.getElementById('edit-match-p2');
@@ -903,6 +972,8 @@
             const p2Uid = document.getElementById('edit-match-p2').value;
             const s1 = document.getElementById('edit-match-score1').value;
             const s2 = document.getElementById('edit-match-score2').value;
+            const avg1 = document.getElementById('edit-match-avg1').value;
+            const avg2 = document.getElementById('edit-match-avg2').value;
             const msg = document.getElementById('edit-match-msg');
 
             if (!p1Uid || !p2Uid || p1Uid === p2Uid) {
@@ -918,7 +989,9 @@
                 await update(dbRef(db, 'matches/' + matchId), {
                     p1Uid, p1Name: `${u1.firstName || ''} ${u1.lastName || ''}`,
                     p2Uid, p2Name: `${u2.firstName || ''} ${u2.lastName || ''}`,
-                    s1: parseInt(s1), s2: parseInt(s2)
+                    s1: parseInt(s1), s2: parseInt(s2),
+                    avg1: avg1 !== "" ? parseFloat(avg1) : 0,
+                    avg2: avg2 !== "" ? parseFloat(avg2) : 0
                 });
 
                 document.getElementById('modal-edit-match').classList.add('hidden');
@@ -929,7 +1002,7 @@
         };
 
         async function deleteMatch(matchId) {
-            if (confirm("Czy na pewno chcesz usunąć ten mecz? Tabela ligowa przeliczy się automatycznie.")) {
+            if (confirm("Czy na pewno chcesz usunąć ten mecz? Tabela ligowa oraz średnie zawodników przeliczą się automatycznie.")) {
                 try {
                     await remove(dbRef(db, 'matches/' + matchId));
                 } catch (err) {
@@ -960,19 +1033,20 @@
             onValue(dbRef(db, 'users'), (snap) => {
                 if (snap.exists()) {
                     globalUsersData = snap.val();
-                    const currentAuthUser = auth.currentUser;
-                    if (currentAuthUser && globalUsersData[currentAuthUser.uid]) {
-                        updateProfileUI(globalUsersData[currentAuthUser.uid]);
-                    }
                 } else {
                     globalUsersData = {};
                 }
                 renderAdminPanelData();
                 renderApprovedPlayers();
                 renderTableAndMatches();
+
+                const currentAuthUser = auth.currentUser;
+                if (currentAuthUser && globalUsersData[currentAuthUser.uid]) {
+                    updateProfileUI(globalUsersData[currentAuthUser.uid]);
+                }
             });
 
-            // 2. Zmiany w Meczach (zachowanie struktury klucz-wartość)
+            // 2. Zmiany w Meczach
             onValue(dbRef(db, 'matches'), (snap) => {
                 if (snap.exists()) {
                     globalMatchesMap = snap.val();
@@ -981,6 +1055,12 @@
                 }
                 renderTableAndMatches();
                 renderAdminPanelData();
+                renderApprovedPlayers();
+
+                const currentAuthUser = auth.currentUser;
+                if (currentAuthUser && globalUsersData[currentAuthUser.uid]) {
+                    updateProfileUI(globalUsersData[currentAuthUser.uid]);
+                }
             });
 
             // 3. Zmiany w Treściach strony
