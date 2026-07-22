@@ -72,6 +72,12 @@
         .profile-details-table td:first-child { color: #888; font-weight: bold; width: 40%; }
         .profile-details-table a { color: #1a73e8; text-decoration: underline; }
 
+        /* WYBÓR AVATARA */
+        .avatar-selection-grid { display: flex; gap: 10px; overflow-x: auto; padding: 10px 0; margin-bottom: 10px; }
+        .avatar-option { width: 60px; height: 60px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: 0.2s; }
+        .avatar-option:hover { transform: scale(1.1); }
+        .avatar-option.selected { border-color: #1a73e8; box-shadow: 0 0 10px rgba(26, 115, 232, 0.8); }
+
         /* MODALE */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.92); z-index: 9999; display: flex; justify-content: center; align-items: center; padding: 20px; }
         .modal-content { background: #1e1e1e; border: 2px solid #1a73e8; padding: 25px; border-radius: 12px; text-align: center; max-width: 500px; width: 100%; box-shadow: 0 0 25px rgba(26, 115, 232, 0.4); max-height: 90vh; overflow-y: auto; }
@@ -227,7 +233,10 @@
                 <div id="prof-status-badge"></div>
             </div>
 
-            <button id="btn-toggle-season" type="button" class="btn-success" style="margin-bottom: 15px;">Zapisz się na 1. Sezon!</button>
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <button id="btn-toggle-season" type="button" class="btn-success" style="flex: 1; margin: 0;">Zapisz się na 1. Sezon!</button>
+                <button id="btn-open-edit-profile" type="button" class="btn-sec" style="width: auto; margin: 0;">✏️ Edytuj profil</button>
+            </div>
 
             <table class="profile-details-table">
                 <tr><td>Średnia:</td><td><b id="prof-avg-display" style="color: #1a73e8; font-size: 16px;">0.00</b></td></tr>
@@ -313,6 +322,50 @@
             
             <button id="btn-save-content" type="button" class="btn-success" style="margin-top: 10px;">Zapisz treści</button>
             <div id="admin-content-msg" class="msg"></div>
+        </div>
+    </div>
+
+    <!-- MODAL 0: EDYCJA PROFILU UŻYTKOWNIKA -->
+    <div id="modal-edit-profile" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h3>✏️ Edytuj swój profil</h3>
+            
+            <div class="form-group">
+                <label>Wybierz Avatar:</label>
+                <div id="edit-avatar-selection" class="avatar-selection-grid"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="edit-firstname">Imię *:</label>
+                <input type="text" id="edit-firstname">
+            </div>
+
+            <div class="form-group">
+                <label for="edit-lastname">Nazwisko *:</label>
+                <input type="text" id="edit-lastname">
+            </div>
+
+            <div class="form-group">
+                <label for="edit-birthdate">Data urodzenia:</label>
+                <input type="date" id="edit-birthdate">
+            </div>
+
+            <div class="form-group">
+                <label for="edit-city">Miejscowość:</label>
+                <input type="text" id="edit-city">
+            </div>
+
+            <div class="form-group">
+                <label for="edit-dartcounter">Link do profilu DartCounter:</label>
+                <input type="url" id="edit-dartcounter" placeholder="https://...">
+            </div>
+
+            <div id="edit-profile-msg" class="msg"></div>
+
+            <div class="modal-actions">
+                <button id="btn-save-profile" type="button" class="btn-success">Zapisz zmiany</button>
+                <button id="btn-cancel-edit-profile" type="button" class="btn-sec">Anuluj</button>
+            </div>
         </div>
     </div>
 
@@ -417,6 +470,7 @@
         ];
 
         let currentUserProfileData = null;
+        let selectedAvatarUrl = PRESET_AVATARS[0];
         let globalUsersData = {};
         let globalMatchesMap = {}; 
         let globalCalculatedAverages = {}; 
@@ -610,6 +664,72 @@
                     statusSeason1: !isSigned ? "pending" : "none"
                 });
             } catch (err) { alert(err.message); }
+        };
+
+        // --- EDYCJA PROFILU (MODAL) ---
+        const modalEditProfile = document.getElementById('modal-edit-profile');
+        
+        document.getElementById('btn-open-edit-profile').onclick = () => {
+            if (!currentUserProfileData) return;
+
+            document.getElementById('edit-firstname').value = currentUserProfileData.firstName || '';
+            document.getElementById('edit-lastname').value = currentUserProfileData.lastName || '';
+            document.getElementById('edit-birthdate').value = currentUserProfileData.birthDate || '';
+            document.getElementById('edit-city').value = currentUserProfileData.city || '';
+            document.getElementById('edit-dartcounter').value = currentUserProfileData.dartCounter || '';
+            selectedAvatarUrl = currentUserProfileData.photoUrl || PRESET_AVATARS[0];
+
+            renderAvatarPicker();
+            document.getElementById('edit-profile-msg').innerText = '';
+            modalEditProfile.classList.remove('hidden');
+        };
+
+        document.getElementById('btn-cancel-edit-profile').onclick = () => {
+            modalEditProfile.classList.add('hidden');
+        };
+
+        function renderAvatarPicker() {
+            const container = document.getElementById('edit-avatar-selection');
+            container.innerHTML = '';
+            PRESET_AVATARS.forEach(url => {
+                const img = document.createElement('img');
+                img.src = url;
+                img.className = 'avatar-option' + (url === selectedAvatarUrl ? ' selected' : '');
+                img.onclick = () => {
+                    selectedAvatarUrl = url;
+                    renderAvatarPicker();
+                };
+                container.appendChild(img);
+            });
+        }
+
+        document.getElementById('btn-save-profile').onclick = async () => {
+            const user = auth.currentUser;
+            if (!user) return;
+
+            const firstName = document.getElementById('edit-firstname').value.trim();
+            const lastName = document.getElementById('edit-lastname').value.trim();
+            const birthDate = document.getElementById('edit-birthdate').value;
+            const city = document.getElementById('edit-city').value.trim();
+            const dartCounter = document.getElementById('edit-dartcounter').value.trim();
+            const msg = document.getElementById('edit-profile-msg');
+
+            if (!firstName || !lastName) {
+                msg.className = "msg error";
+                msg.innerText = "Imię i nazwisko nie mogą być puste!";
+                return;
+            }
+
+            try {
+                await update(dbRef(db, 'users/' + user.uid), {
+                    firstName, lastName, birthDate, city, dartCounter,
+                    photoUrl: selectedAvatarUrl
+                });
+                modalEditProfile.classList.add('hidden');
+            } catch (err) {
+                msg.className = "msg error";
+                msg.innerText = "Błąd zapisu: " + err.message;
+            }
         };
 
         // --- ZAWODNICY (PUBLICZNE) ---
