@@ -42,7 +42,6 @@
             background-attachment: fixed;
         }
 
-        /* --- NAGŁÓWEK I NAWIGACJA --- */
         header {
             background-color: rgba(19, 27, 46, 0.85);
             backdrop-filter: blur(12px);
@@ -99,7 +98,6 @@
             box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3);
         }
 
-        /* --- KONTENER GŁÓWNY --- */
         main {
             flex: 1;
             max-width: 1100px;
@@ -118,7 +116,6 @@
             display: none !important;
         }
 
-        /* --- KARTY I WIDOKI --- */
         .card {
             background-color: var(--card-bg);
             border: 1px solid var(--card-border);
@@ -148,7 +145,6 @@
             color: #fff;
         }
 
-        /* --- FORMULARZE I PRZYCISKI --- */
         .form-group {
             margin-bottom: 18px;
             display: flex;
@@ -216,10 +212,9 @@
         .msg.error { color: #f87171; }
         .msg.success { color: #34d399; }
 
-        /* --- GRID ZAWODNIKÓW --- */
         .grid-container {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
             gap: 20px;
         }
 
@@ -231,6 +226,9 @@
             text-align: center;
             cursor: pointer;
             transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
         .player-card:hover {
@@ -260,6 +258,47 @@
             font-size: 0.85rem;
             color: var(--text-muted);
             margin-bottom: 3px;
+        }
+
+        /* --- GABLOTA ODZNAK --- */
+        .showcase-container {
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+            align-items: center;
+            background: rgba(13, 19, 34, 0.6);
+            border: 1px solid var(--card-border);
+            padding: 6px 12px;
+            border-radius: 20px;
+            margin: 10px 0;
+            min-height: 38px;
+        }
+
+        .showcase-badge-item {
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: transform 0.2s;
+            position: relative;
+        }
+        .showcase-badge-item:hover {
+            transform: scale(1.2);
+        }
+
+        .btn-badge-trigger {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--accent-blue);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 20px;
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: var(--transition);
+        }
+        .btn-badge-trigger:hover {
+            background: var(--accent-blue);
+            color: #fff;
         }
 
         /* --- TABELA LIGOWA --- */
@@ -306,7 +345,6 @@
             border: 1px solid var(--card-border);
         }
 
-        /* --- MECZE I TERMINARZ --- */
         .match-card {
             background: #0d1322;
             border: 1px solid var(--card-border);
@@ -358,7 +396,6 @@
             text-align: center;
         }
 
-        /* --- MODAL --- */
         .modal {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -377,7 +414,7 @@
             border-radius: calc(var(--radius) * 1.5);
             padding: 30px;
             width: 90%;
-            max-width: 520px;
+            max-width: 600px;
             max-height: 90vh;
             overflow-y: auto;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
@@ -415,7 +452,67 @@
             box-shadow: 0 0 12px rgba(59, 130, 246, 0.5);
         }
 
-        /* --- BILANS OSTATNICH MECZÓW --- */
+        /* --- SIATKA ODZNAK W MODALU --- */
+        .badges-grid-modal {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 12px;
+            margin-top: 15px;
+            max-height: 320px;
+            overflow-y: auto;
+            padding: 4px;
+        }
+
+        .badge-card-item {
+            background: #0d1322;
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius);
+            padding: 12px 8px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            transition: var(--transition);
+        }
+
+        .badge-card-item.unlocked {
+            border-color: rgba(16, 185, 129, 0.4);
+            background: rgba(16, 185, 129, 0.03);
+        }
+
+        .badge-card-item.locked {
+            opacity: 0.4;
+            filter: grayscale(1);
+        }
+
+        .badge-card-emoji {
+            font-size: 2rem;
+        }
+
+        .badge-card-title {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .badge-card-desc {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        .badge-card-action {
+            margin-top: auto;
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            border-radius: 12px;
+            cursor: pointer;
+            border: none;
+            font-weight: 600;
+        }
+        .btn-pin { background: var(--accent-blue); color: #fff; }
+        .btn-unpin { background: var(--danger-color); color: #fff; }
+
         .form-summary {
             display: flex;
             gap: 10px;
@@ -457,7 +554,6 @@
             border-radius: var(--radius);
         }
 
-        /* --- PANEL ADMINA --- */
         .admin-player-item, .admin-match-item {
             display: flex;
             justify-content: space-between;
@@ -637,9 +733,17 @@
                     <div style="flex: 1;">
                         <h2 id="prof-fullname" style="border:none; margin:0 0 4px 0; padding:0; font-size: 1.5rem;">-</h2>
                         <p style="color: var(--text-muted); font-size: 0.9rem;" id="prof-email-display">-</p>
+                        
+                        <!-- Gablota na profilu -->
+                        <div style="margin-top: 8px;">
+                            <span style="font-size:0.75rem; text-transform:uppercase; color:var(--text-muted); display:block; margin-bottom:2px;">Gablota odznak</span>
+                            <div id="prof-showcase" class="showcase-container" style="justify-content: flex-start; width: fit-content; padding: 4px 10px;"></div>
+                        </div>
+
                         <div id="prof-status-badge"></div>
                         <div style="margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap;">
                             <button class="btn-primary btn-sm" id="btn-open-edit-profile">Edytuj profil</button>
+                            <button class="btn-primary btn-sm" id="btn-open-my-badges" style="background: linear-gradient(135deg, #f59e0b, #d97706);">🏆 Moje Odznaki</button>
                             <button class="btn-danger btn-sm" id="btn-logout">Wyloguj</button>
                         </div>
                     </div>
@@ -753,15 +857,34 @@
         </div>
     </div>
 
+    <!-- MODAL: ZARZĄDZANIE ODZNAKAMI (GABLOTA / PRZEGLĄD) -->
+    <div id="modal-badges" class="modal hidden">
+        <div class="modal-content">
+            <h2 id="badges-modal-title">Odznaki Zawodnika</h2>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">Wyróżnij do 3 ulubionych odznak w swojej gablocie:</p>
+            
+            <div id="badges-showcase-edit-slots" class="showcase-container" style="justify-content: center; margin-bottom: 20px; min-height: 48px; background: #0d1322; border-radius: var(--radius); border: 1px solid var(--card-border);"></div>
+
+            <h3 style="font-size: 1rem; margin-bottom: 8px;">Wszystkie Odznaki i Kamienie Milowe</h3>
+            <div id="badges-grid-container" class="badges-grid-modal"></div>
+
+            <button class="btn-primary btn-sm" id="btn-close-badges-modal" style="margin-top: 24px; width: 100%;">Zamknij</button>
+        </div>
+    </div>
+
     <!-- MODAL: PODGLĄD GRACZA -->
     <div id="modal-view-player" class="modal hidden">
         <div class="modal-content" style="text-align: center;">
             <img id="view-player-photo" src="" style="width: 96px; height: 96px; border-radius: 50%; margin-bottom: 14px; object-fit: cover; border: 2px solid var(--accent-blue); box-shadow: 0 8px 20px rgba(59, 130, 246, 0.25);">
-            <h2 id="view-player-fullname" style="border:none; margin-bottom: 6px; font-size: 1.4rem;">-</h2>
+            <h2 id="view-player-fullname" style="border:none; margin-bottom: 4px; font-size: 1.4rem;">-</h2>
+            
+            <span style="font-size:0.75rem; text-transform:uppercase; color:var(--text-muted); display:block; margin-top: 6px;">Gablota Zawodnika</span>
+            <div id="view-player-showcase" class="showcase-container" style="max-width: 200px; margin: 6px auto 14px auto;"></div>
+
             <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 6px;">Wiek: <span id="view-player-age" style="color:#fff;">-</span> lat</p>
             <p style="font-size: 0.9rem; margin-bottom: 16px;">Średnia ligowa: <b id="view-player-avg" style="color: var(--accent-blue);">0.00</b></p>
             
-            <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 20px;">
+            <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 16px;">
                 <div style="background: #0d1322; padding: 8px 4px; border-radius: var(--radius); border: 1px solid var(--card-border);"><span style="font-size:0.65rem; text-transform:uppercase; color:var(--text-muted); display:block;">Finish</span><span id="view-stat-hf" style="font-weight:700; font-size:0.95rem;">0</span></div>
                 <div style="background: #0d1322; padding: 8px 4px; border-radius: var(--radius); border: 1px solid var(--card-border);"><span style="font-size:0.65rem; text-transform:uppercase; color:var(--text-muted); display:block;">+80</span><span id="view-stat-80" style="font-weight:700; font-size:0.95rem;">0</span></div>
                 <div style="background: #0d1322; padding: 8px 4px; border-radius: var(--radius); border: 1px solid var(--card-border);"><span style="font-size:0.65rem; text-transform:uppercase; color:var(--text-muted); display:block;">+100</span><span id="view-stat-100" style="font-weight:700; font-size:0.95rem;">0</span></div>
@@ -769,7 +892,9 @@
                 <div style="background: #0d1322; padding: 8px 4px; border-radius: var(--radius); border: 1px solid var(--card-border);"><span style="font-size:0.65rem; text-transform:uppercase; color:var(--text-muted); display:block;">180</span><span id="view-stat-180" style="color:var(--accent-red); font-weight:700; font-size:0.95rem;">0</span></div>
             </div>
 
-            <hr style="border-color: var(--card-border); margin: 20px 0;">
+            <button class="btn-badge-trigger" id="btn-view-player-badges" style="margin-bottom: 16px; width: 100%;">🏆 Zobacz wszystkie odznaki zawodnika</button>
+
+            <hr style="border-color: var(--card-border); margin: 10px 0;">
             
             <h3 style="font-size: 1rem; margin-bottom: 10px; color: var(--text-color);">Bilans ostatnich 5 meczów</h3>
             <div id="view-player-form" class="form-summary"></div>
@@ -789,7 +914,6 @@
             <h2 id="match-action-title">Mecz</h2>
             <input type="hidden" id="match-action-id">
             
-            <!-- WIDOK USTALANIA TERMINU -->
             <div id="match-action-propose-view">
                 <div id="proposal-status-info" style="margin-bottom: 16px; padding: 14px; background: #0d1322; border-radius: var(--radius); text-align: center; border: 1px solid var(--card-border);"></div>
                 
@@ -805,7 +929,6 @@
                 <button class="btn-primary" id="btn-submit-proposal" style="width: 100%; margin-top: 6px;">Wyślij Propozycję</button>
             </div>
 
-            <!-- WIDOK WYPEŁNIANIA PROTOKOŁU -->
             <div id="match-action-report-view" class="hidden">
                 <p style="font-size: 0.9rem; color: var(--warning-color); margin-bottom: 16px; font-weight: 500;">Mecz się rozpoczął! Wprowadź uzyskane wyniki i statystyki:</p>
                 
@@ -856,7 +979,6 @@
             getDatabase, ref as dbRef, set, get, update, push, remove, onValue 
         } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-        // CONFIG FIREBASE
         const firebaseConfig = {
             apiKey: "AIzaSyBhCLFBrAqMBqKjPOIc5b0i2EEtZ_WP4M0",
             authDomain: "akademicka-liga-darta.firebaseapp.com",
@@ -917,6 +1039,45 @@
             "https://api.dicebear.com/7.x/micah/svg?seed=SusImpostor"
         ];
 
+        // --- DEFINICJE ODZNAK I KAMIENI MILOWYCH ---
+        const MILESTONE_THRESHOLDS = [1, 5, 10, 25, 50, 100, 250, 500, 1000];
+        
+        function getAllBadgesDefinitions() {
+            let defs = {};
+            
+            // Mecze
+            MILESTONE_THRESHOLDS.forEach(t => {
+                defs[`matches_${t}`] = { name: `${t} Mecz${t === 1 ? '' : (t < 5 ? 'e' : 'ów')}`, emoji: '🎯', desc: `Rozegrano ${t} spotkań` };
+            });
+
+            // Statystyki (+80, +100, +140, 180)
+            const statsMeta = [
+                { key: '80', emoji: '⭐', namePrefix: '+80' },
+                { key: '100', emoji: '🌟', namePrefix: '+100' },
+                { key: '140', emoji: '🌠', namePrefix: '+140' },
+                { key: '180', emoji: '🔥', namePrefix: '180' }
+            ];
+
+            statsMeta.forEach(meta => {
+                MILESTONE_THRESHOLDS.forEach(t => {
+                    defs[`stat_${meta.key}_${t}`] = { name: `${meta.namePrefix} x${t}`, emoji: meta.emoji, desc: `Trafiono ${meta.namePrefix} ${t} razy` };
+                });
+            });
+
+            // Wszystkie legalne finishy (od 2 do 170)
+            for (let f = 2; f <= 170; f++) {
+                defs[`finish_${f}`] = { name: `Finish ${f}`, emoji: '🎯', desc: `Zakonczono leg z wynikiem ${f}` };
+            }
+
+            // Specjalne odznaki
+            defs['special_big_fish'] = { name: 'Big Fish', emoji: '🐋', desc: 'Legendarny finish ze 170 punktów!' };
+            defs['special_shanghai'] = { name: 'Shanghai', emoji: '🏙️', desc: 'Prestiżowy finish Shanghai (120 pkt)!' };
+
+            return defs;
+        }
+
+        const ALL_BADGES = getAllBadgesDefinitions();
+
         const REGULAMIN_TEXT = `==================================================
         REGULAMIN AKADEMICKIEJ LIGI DARTA
 ==================================================
@@ -943,6 +1104,7 @@
         let globalUpcomingMatchesMap = {};
         let globalCalculatedAverages = {}; 
         let globalCalculatedStats = {};
+        let globalPlayerDetailsStats = {}; // szczegółowe liczniki do odznak
 
         const tabs = {
             home: { btn: document.getElementById('tab-home'), page: document.getElementById('page-home') },
@@ -1036,7 +1198,8 @@
                 await set(dbRef(db, 'users/' + cred.user.uid), {
                     firstName: fn, lastName: ln, birthDate: document.getElementById('reg-birthdate').value || "",
                     city: document.getElementById('reg-city').value.trim() || "", dartCounter: document.getElementById('reg-dartcounter').value.trim() || "",
-                    photoUrl: randomAvatar, email: email, signedUpForSeason1: false, statusSeason1: "none"
+                    photoUrl: randomAvatar, email: email, signedUpForSeason1: false, statusSeason1: "none",
+                    showcase: []
                 });
                 await sendEmailVerification(cred.user);
                 alert("Konto utworzone! Potwierdź e-mail linkiem aktywacyjnym.");
@@ -1046,6 +1209,56 @@
                 document.getElementById('reg-msg').innerText = err.message;
             }
         };
+
+        // OBLICZANIE ODZNAK DLA DANEGO GRACZA
+        function calculatePlayerUnlockedBadges(uid) {
+            const details = globalPlayerDetailsStats[uid] || { matches: 0, s80: 0, s100: 0, s140: 0, s180: 0, finishes: {} };
+            let unlocked = [];
+
+            // Sprawdź mecze
+            MILESTONE_THRESHOLDS.forEach(t => {
+                if (details.matches >= t) unlocked.push(`matches_${t}`);
+            });
+
+            // Sprawdź statystyki (+80, +100, +140, 180)
+            MILESTONE_THRESHOLDS.forEach(t => {
+                if (details.s80 >= t) unlocked.push(`stat_80_${t}`);
+                if (details.s100 >= t) unlocked.push(`stat_100_${t}`);
+                if (details.s140 >= t) unlocked.push(`stat_140_${t}`);
+                if (details.s180 >= t) unlocked.push(`stat_180_${t}`);
+            });
+
+            // Sprawdź finishy
+            Object.keys(details.finishes).forEach(fStr => {
+                const fVal = parseInt(fStr);
+                if (details.finishes[fVal] > 0) {
+                    if (ALL_BADGES[`finish_${fVal}`]) {
+                        unlocked.push(`finish_${fVal}`);
+                    }
+                }
+            });
+
+            // Specjalne
+            if (details.finishes[170] > 0) unlocked.push('special_big_fish');
+            if (details.finishes[120] > 0) unlocked.push('special_shanghai');
+
+            return unlocked;
+        }
+
+        // RENDEROWANIE GABLOTY
+        function renderShowcaseHtml(showcaseArray, unlockedArray) {
+            if (!showcaseArray || showcaseArray.length === 0) {
+                return '<span style="font-size:0.75rem; color:var(--text-muted); font-style:italic;">Brak ulubionych</span>';
+            }
+            let html = '';
+            showcaseArray.forEach(badgeKey => {
+                const def = ALL_BADGES[badgeKey];
+                if (def) {
+                    html += `<span class="showcase-badge-item" title="${def.name}: ${def.desc}">${def.emoji}</span>`;
+                }
+            });
+            return html;
+        }
 
         // UI PROFILU & PROPOZYCJE TERMINÓW
         function updateProfileUI(data) {
@@ -1066,6 +1279,10 @@
             document.getElementById('prof-stat-100').innerText = st.s100;
             document.getElementById('prof-stat-140').innerText = st.s140;
             document.getElementById('prof-stat-180').innerText = st.s180;
+
+            const unlocked = uid ? calculatePlayerUnlockedBadges(uid) : [];
+            const showcase = data.showcase || [];
+            document.getElementById('prof-showcase').innerHTML = renderShowcaseHtml(showcase, unlocked);
 
             const cityLink = document.getElementById('prof-city-link');
             if (data.city) {
@@ -1159,7 +1376,6 @@
             if (count === 0) container.innerHTML = '<p style="color: var(--text-muted); font-size: 0.9rem;">Brak nadchodzących meczów.</p>';
         }
 
-        // MODAL AKCJI MECZOWEJ
         function openMatchActionModal(matchId, matchData, isReadyForReport) {
             const currentUid = auth.currentUser ? auth.currentUser.uid : null;
             document.getElementById('match-action-id').value = matchId;
@@ -1175,7 +1391,6 @@
                 document.getElementById('report-p1-heading').innerText = matchData.p1Name;
                 document.getElementById('report-p2-heading').innerText = matchData.p2Name;
                 
-                // reset inputs
                 ['report-s1', 'report-avg1', 'report-hf1', 'report-80-1', 'report-100-1', 'report-140-1', 'report-180-1',
                  'report-s2', 'report-avg2', 'report-hf2', 'report-80-2', 'report-100-2', 'report-140-2', 'report-180-2'].forEach(id => {
                     const el = document.getElementById(id);
@@ -1497,6 +1712,111 @@
             } catch (err) { alert(err.message); }
         };
 
+        // --- OBSŁUGA MODALA ODZNAK ---
+        document.getElementById('btn-open-my-badges').onclick = () => {
+            if (auth.currentUser) {
+                openBadgesModal(auth.currentUser.uid, globalUsersData[auth.currentUser.uid], true);
+            }
+        };
+
+        document.getElementById('btn-close-badges-modal').onclick = () => {
+            document.getElementById('modal-badges').classList.add('hidden');
+        };
+
+        function openBadgesModal(uid, playerData, isOwnProfile) {
+            const modalTitle = document.getElementById('badges-modal-title');
+            modalTitle.innerText = `Odznaki: ${playerData.firstName || ''} ${playerData.lastName || ''}`;
+
+            const unlockedKeys = calculatePlayerUnlockedBadges(uid);
+            const showcase = playerData.showcase || [];
+
+            // Renderuj sloty gabloty w edycji (jeśli to własny profil)
+            const showcaseSlotsContainer = document.getElementById('badges-showcase-edit-slots');
+            showcaseSlotsContainer.innerHTML = '';
+            
+            for (let i = 0; i < 3; i++) {
+                const badgeKey = showcase[i];
+                const slotDiv = document.createElement('div');
+                slotDiv.style.cssText = "width: 44px; height: 44px; background: #131b2e; border: 1px dashed var(--card-border); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.3rem;";
+                
+                if (badgeKey && ALL_BADGES[badgeKey]) {
+                    slotDiv.innerHTML = `${ALL_BADGES[badgeKey].emoji}`;
+                    slotDiv.title = ALL_BADGES[badgeKey].name;
+                    if (isOwnProfile) {
+                        slotDiv.style.cursor = 'pointer';
+                        slotDiv.onclick = async () => {
+                            // Usuń z gabloty
+                            let newShowcase = [...showcase];
+                            newShowcase.splice(i, 1);
+                            await update(dbRef(db, 'users/' + uid), { showcase: newShowcase });
+                            playerData.showcase = newShowcase;
+                            openBadgesModal(uid, playerData, isOwnProfile);
+                        };
+                    }
+                } else {
+                    slotDiv.innerHTML = `<span style="font-size:0.7rem; color:var(--text-muted);">+</span>`;
+                }
+                showcaseSlotsContainer.appendChild(slotDiv);
+            }
+
+            // Renderuj listę wszystkich odznak
+            const gridContainer = document.getElementById('badges-grid-container');
+            gridContainer.innerHTML = '';
+
+            Object.keys(ALL_BADGES).forEach(key => {
+                const badgeDef = ALL_BADGES[key];
+                const isUnlocked = unlockedKeys.includes(key);
+                const isInShowcase = showcase.includes(key);
+
+                const item = document.createElement('div');
+                item.className = `badge-card-item ${isUnlocked ? 'unlocked' : 'locked'}`;
+                
+                let actionBtnHtml = '';
+                if (isOwnProfile && isUnlocked) {
+                    if (isInShowcase) {
+                        actionBtnHtml = `<button class="badge-card-action btn-unpin" onclick="window.toggleBadgeShowcase('${key}', false)">Odrysuj</button>`;
+                    } else if (showcase.length < 3) {
+                        actionBtnHtml = `<button class="badge-card-action btn-pin" onclick="window.toggleBadgeShowcase('${key}', true)">Wyróżnij</button>`;
+                    } else {
+                        actionBtnHtml = `<span style="font-size:0.65rem; color:var(--text-muted)">Pełna gablota (3/3)</span>`;
+                    }
+                } else if (!isUnlocked) {
+                    actionBtnHtml = `<span style="font-size:0.65rem; color:var(--text-muted)">Zablokowane</span>`;
+                }
+
+                item.innerHTML = `
+                    <div class="badge-card-emoji">${badgeDef.emoji}</div>
+                    <div class="badge-card-title">${badgeDef.name}</div>
+                    <div class="badge-card-desc">${badgeDef.desc}</div>
+                    ${actionBtnHtml}
+                `;
+                gridContainer.appendChild(item);
+            });
+
+            document.getElementById('modal-badges').classList.remove('hidden');
+        }
+
+        window.toggleBadgeShowcase = async (badgeKey, pin) => {
+            const user = auth.currentUser;
+            if (!user) return;
+            const currentData = globalUsersData[user.uid];
+            let showcase = currentData.showcase ? [...currentData.showcase] : [];
+
+            if (pin) {
+                if (showcase.length < 3 && !showcase.includes(badgeKey)) {
+                    showcase.push(badgeKey);
+                }
+            } else {
+                showcase = showcase.filter(k => k !== badgeKey);
+            }
+
+            try {
+                await update(dbRef(db, 'users/' + user.uid), { showcase });
+                currentData.showcase = showcase;
+                openBadgesModal(user.uid, currentData, true);
+            } catch(err) { alert(err.message); }
+        };
+
         // ZAWODNICY GRID
         function renderApprovedPlayers() {
             const grid = document.getElementById('players-grid');
@@ -1509,14 +1829,19 @@
                     count++;
                     const userAvg = globalCalculatedAverages[uid] !== undefined ? globalCalculatedAverages[uid].toFixed(2) : "0.00";
                     const st = globalCalculatedStats[uid] || { hf: 0, s80: 0, s100: 0, s140: 0, s180: 0 };
+                    const unlocked = calculatePlayerUnlockedBadges(uid);
+                    const showcaseHtml = renderShowcaseHtml(p.showcase, unlocked);
+
                     const card = document.createElement('div');
                     card.className = 'player-card';
                     card.innerHTML = `
                         <img class="player-avatar" src="${p.photoUrl || PRESET_AVATARS[0]}">
                         <div class="player-name">${p.firstName || ''} ${p.lastName || ''}</div>
-                        <div class="player-info">🎯 Średnia: <b style="color:var(--text-color);">${userAvg}</b></div>
+                        <div style="font-size:0.75rem; text-transform:uppercase; color:var(--text-muted); margin-top:2px;">Gablota</div>
+                        <div class="showcase-container">${showcaseHtml}</div>
+                        <div class="player-info" style="margin-top:6px;">🎯 Średnia: <b style="color:var(--text-color);">${userAvg}</b></div>
                         <div class="player-info">⭐ 180-tki: <b style="color:var(--accent-red);">${st.s180}</b> | Finish: <b>${st.hf}</b></div>
-                        <div class="player-info">🎂 Wiek: ${calculateAge(p.birthDate)} lat</div>
+                        <button class="btn-badge-trigger" onclick="event.stopPropagation(); openPlayerBadgesFromGrid('${uid}')">🏆 Odznaki</button>
                     `;
                     card.onclick = () => openPlayerModal(uid, p);
                     grid.appendChild(card);
@@ -1525,11 +1850,27 @@
             if (count === 0) grid.innerHTML = "<p style='grid-column: 1/-1; text-align: center; color: var(--text-muted);'>Brak zatwierdzonych zawodników.</p>";
         }
 
+        window.openPlayerBadgesFromGrid = (uid) => {
+            const p = globalUsersData[uid];
+            if (p) {
+                const isOwn = auth.currentUser && auth.currentUser.uid === uid;
+                openBadgesModal(uid, p, isOwn);
+            }
+        };
+
         function openPlayerModal(uid, player) {
             document.getElementById('view-player-fullname').innerText = `${player.firstName || ''} ${player.lastName || ''}`;
             document.getElementById('view-player-photo').src = player.photoUrl || PRESET_AVATARS[0];
             document.getElementById('view-player-age').innerText = calculateAge(player.birthDate);
             document.getElementById('view-player-avg').innerText = globalCalculatedAverages[uid] !== undefined ? globalCalculatedAverages[uid].toFixed(2) : "0.00";
+
+            const unlocked = calculatePlayerUnlockedBadges(uid);
+            document.getElementById('view-player-showcase').innerHTML = renderShowcaseHtml(player.showcase, unlocked);
+
+            document.getElementById('btn-view-player-badges').onclick = () => {
+                const isOwn = auth.currentUser && auth.currentUser.uid === uid;
+                openBadgesModal(uid, player, isOwn);
+            };
 
             const st = globalCalculatedStats[uid] || { hf: 0, s80: 0, s100: 0, s140: 0, s180: 0 };
             document.getElementById('view-stat-hf').innerText = st.hf;
@@ -1597,6 +1938,7 @@
             let stats = {};
             let playerAveragesMap = {}; 
             globalCalculatedStats = {};
+            globalPlayerDetailsStats = {};
 
             Object.keys(globalUsersData).forEach(uid => {
                 const u = globalUsersData[uid];
@@ -1607,6 +1949,7 @@
                     };
                     playerAveragesMap[uid] = [];
                     globalCalculatedStats[uid] = { hf: 0, s80: 0, s100: 0, s140: 0, s180: 0 };
+                    globalPlayerDetailsStats[uid] = { matches: 0, s80: 0, s100: 0, s140: 0, s180: 0, finishes: {} };
                 }
             });
 
@@ -1621,6 +1964,17 @@
                     if (m.avg1) playerAveragesMap[m.p1Uid].push(parseFloat(m.avg1));
 
                     const p1St = globalCalculatedStats[m.p1Uid];
+                    const p1Details = globalPlayerDetailsStats[m.p1Uid];
+                    if (p1Details) {
+                        p1Details.matches++;
+                        p1Details.s80 += (m.s80_1 || 0);
+                        p1Details.s100 += (m.s100_1 || 0);
+                        p1Details.s140 += (m.s140_1 || 0);
+                        p1Details.s180 += (m.s180_1 || 0);
+                        if (m.hf1 > 0) {
+                            p1Details.finishes[m.hf1] = (p1Details.finishes[m.hf1] || 0) + 1;
+                        }
+                    }
                     if (p1St) {
                         if ((m.hf1 || 0) > p1St.hf) p1St.hf = m.hf1;
                         p1St.s80 += (m.s80_1 || 0);
@@ -1638,6 +1992,17 @@
                     if (m.avg2) playerAveragesMap[m.p2Uid].push(parseFloat(m.avg2));
 
                     const p2St = globalCalculatedStats[m.p2Uid];
+                    const p2Details = globalPlayerDetailsStats[m.p2Uid];
+                    if (p2Details) {
+                        p2Details.matches++;
+                        p2Details.s80 += (m.s80_2 || 0);
+                        p2Details.s100 += (m.s100_2 || 0);
+                        p2Details.s140 += (m.s140_2 || 0);
+                        p2Details.s180 += (m.s180_2 || 0);
+                        if (m.hf2 > 0) {
+                            p2Details.finishes[m.hf2] = (p2Details.finishes[m.hf2] || 0) + 1;
+                        }
+                    }
                     if (p2St) {
                         if ((m.hf2 || 0) > p2St.hf) p2St.hf = m.hf2;
                         p2St.s80 += (m.s80_2 || 0);
@@ -1696,7 +2061,6 @@
             }
         }
 
-        // REALTIME LISTENERS
         function initRealtimeListeners() {
             onValue(dbRef(db, 'users'), (snap) => {
                 globalUsersData = snap.exists() ? snap.val() : {};
