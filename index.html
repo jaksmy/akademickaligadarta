@@ -347,7 +347,7 @@
             sendEmailVerification, sendPasswordResetEmail, onAuthStateChanged, signOut 
         } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { 
-            getDatabase, ref as dbRef, set, get, update, push 
+            getDatabase, ref as dbRef, set, get, update, push, onValue 
         } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         // CONFIG FIREBASE
@@ -383,8 +383,8 @@
         ];
 
         let currentUserProfileData = null;
-        let allUsersData = {};
-        let allMatchesData = [];
+        let globalUsersData = {};
+        let globalMatchesData = [];
 
         // --- NAWIGACJA ZAKŁADEK ---
         const tabs = {
@@ -403,9 +403,9 @@
             tabs[activeKey].btn.classList.add('active');
             tabs[activeKey].page.classList.remove('hidden');
 
-            if (activeKey === 'players') loadApprovedPlayers();
-            if (activeKey === 'info') loadTableAndMatches();
-            if (activeKey === 'admin') loadAdminPanelData();
+            if (activeKey === 'players') renderApprovedPlayers();
+            if (activeKey === 'info') renderTableAndMatches();
+            if (activeKey === 'admin') renderAdminPanelData();
         }
 
         Object.keys(tabs).forEach(key => {
@@ -434,8 +434,6 @@
                 viewRegister.classList.add('hidden');
                 viewReset.classList.add('hidden');
                 viewApp.classList.remove('hidden');
-                
-                await loadUserProfile(user.uid);
 
                 if (user.email === ADMIN_EMAIL) {
                     tabs.admin.btn.classList.remove('hidden');
@@ -517,55 +515,48 @@
             }
         };
 
-        // LOAD PROFIL
-        async function loadUserProfile(uid) {
-            try {
-                const snap = await get(dbRef(db, 'users/' + uid));
-                if (snap.exists()) {
-                    const data = snap.val();
-                    currentUserProfileData = data;
+        // RENDEROWANIE PROFILU Z BAZY W CZASIE RZECZYWISTYM
+        function updateProfileUI(data) {
+            currentUserProfileData = data;
+            document.getElementById('prof-fullname').innerText = `${data.firstName || ''} ${data.lastName || ''}`;
+            document.getElementById('prof-email-display').innerText = data.email || "";
+            document.getElementById('prof-photo').src = data.photoUrl || PRESET_AVATARS[0];
+            document.getElementById('prof-age').innerText = calculateAge(data.birthDate);
 
-                    document.getElementById('prof-fullname').innerText = `${data.firstName || ''} ${data.lastName || ''}`;
-                    document.getElementById('prof-email-display').innerText = data.email || "";
-                    document.getElementById('prof-photo').src = data.photoUrl || PRESET_AVATARS[0];
-                    document.getElementById('prof-age').innerText = calculateAge(data.birthDate);
+            const cityLink = document.getElementById('prof-city-link');
+            if (data.city) {
+                cityLink.innerText = data.city;
+                cityLink.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(data.city)}`;
+                cityLink.style.pointerEvents = "auto";
+            } else {
+                cityLink.innerText = "Brak";
+                cityLink.style.pointerEvents = "none";
+            }
 
-                    const cityLink = document.getElementById('prof-city-link');
-                    if (data.city) {
-                        cityLink.innerText = data.city;
-                        cityLink.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(data.city)}`;
-                        cityLink.style.pointerEvents = "auto";
-                    } else {
-                        cityLink.innerText = "Brak";
-                        cityLink.style.pointerEvents = "none";
-                    }
+            const dartBtn = document.getElementById('prof-dartcounter-btn');
+            if (data.dartCounter) {
+                dartBtn.href = data.dartCounter.startsWith('http') ? data.dartCounter : `https://${data.dartCounter}`;
+                dartBtn.classList.remove('disabled');
+            } else {
+                dartBtn.classList.add('disabled');
+            }
 
-                    const dartBtn = document.getElementById('prof-dartcounter-btn');
-                    if (data.dartCounter) {
-                        dartBtn.href = data.dartCounter.startsWith('http') ? data.dartCounter : `https://${data.dartCounter}`;
-                        dartBtn.classList.remove('disabled');
-                    } else {
-                        dartBtn.classList.add('disabled');
-                    }
+            const btnToggleSeason = document.getElementById('btn-toggle-season');
+            const badgeContainer = document.getElementById('prof-status-badge');
 
-                    const btnToggleSeason = document.getElementById('btn-toggle-season');
-                    const badgeContainer = document.getElementById('prof-status-badge');
-
-                    if (data.signedUpForSeason1) {
-                        if (data.statusSeason1 === "approved") {
-                            badgeContainer.innerHTML = '<span class="season-badge badge-approved">Zatwierdzony w 1. Sezonie</span>';
-                        } else {
-                            badgeContainer.innerHTML = '<span class="season-badge badge-pending">Zgłoszono (Oczekuje na weryfikację)</span>';
-                        }
-                        btnToggleSeason.innerText = "Wypisz się z 1. Sezonu";
-                        btnToggleSeason.className = "btn-danger";
-                    } else {
-                        badgeContainer.innerHTML = '';
-                        btnToggleSeason.innerText = "Zapisz się na 1. Sezon!";
-                        btnToggleSeason.className = "btn-success";
-                    }
+            if (data.signedUpForSeason1) {
+                if (data.statusSeason1 === "approved") {
+                    badgeContainer.innerHTML = '<span class="season-badge badge-approved">Zatwierdzony w 1. Sezonie</span>';
+                } else {
+                    badgeContainer.innerHTML = '<span class="season-badge badge-pending">Zgłoszono (Oczekuje na weryfikację)</span>';
                 }
-            } catch (err) { console.error(err); }
+                btnToggleSeason.innerText = "Wypisz się z 1. Sezonu";
+                btnToggleSeason.className = "btn-danger";
+            } else {
+                badgeContainer.innerHTML = '';
+                btnToggleSeason.innerText = "Zapisz się na 1. Sezon!";
+                btnToggleSeason.className = "btn-success";
+            }
         }
 
         document.getElementById('btn-toggle-season').onclick = async () => {
@@ -577,48 +568,35 @@
                     signedUpForSeason1: !isSigned,
                     statusSeason1: !isSigned ? "pending" : "none"
                 });
-                await loadUserProfile(user.uid);
             } catch (err) { alert(err.message); }
         };
 
         // --- ZAWODNICY (PUBLICZNE) ---
-        async function loadApprovedPlayers() {
+        function renderApprovedPlayers() {
             const grid = document.getElementById('players-grid');
             const loading = document.getElementById('players-loading');
-            loading.classList.remove('hidden');
+            loading.classList.add('hidden');
             grid.innerHTML = "";
 
-            try {
-                const snap = await get(dbRef(db, 'users'));
-                loading.classList.add('hidden');
-                if (snap.exists()) {
-                    const users = snap.val();
-                    allUsersData = users;
-                    let count = 0;
-
-                    Object.keys(users).forEach(uid => {
-                        const p = users[uid];
-                        if (p.signedUpForSeason1 && p.statusSeason1 === "approved") {
-                            count++;
-                            const card = document.createElement('div');
-                            card.className = 'player-card';
-                            card.innerHTML = `
-                                <img class="player-avatar" src="${p.photoUrl || PRESET_AVATARS[0]}">
-                                <div class="player-name">${p.firstName || ''} ${p.lastName || ''}</div>
-                                <div class="player-info">🎂 Wiek: ${calculateAge(p.birthDate)} lat</div>
-                                <div class="player-info">📍 ${p.city || 'Nie podano'}</div>
-                            `;
-                            card.onclick = () => openPlayerModal(p);
-                            grid.appendChild(card);
-                        }
-                    });
-
-                    if (count === 0) grid.innerHTML = "<p style='grid-column: 1/-1; text-align: center; color: #888;'>Brak zatwierdzonych zawodników w 1. Sezonie.</p>";
+            let count = 0;
+            Object.keys(globalUsersData).forEach(uid => {
+                const p = globalUsersData[uid];
+                if (p.signedUpForSeason1 && p.statusSeason1 === "approved") {
+                    count++;
+                    const card = document.createElement('div');
+                    card.className = 'player-card';
+                    card.innerHTML = `
+                        <img class="player-avatar" src="${p.photoUrl || PRESET_AVATARS[0]}">
+                        <div class="player-name">${p.firstName || ''} ${p.lastName || ''}</div>
+                        <div class="player-info">🎂 Wiek: ${calculateAge(p.birthDate)} lat</div>
+                        <div class="player-info">📍 ${p.city || 'Nie podano'}</div>
+                    `;
+                    card.onclick = () => openPlayerModal(p);
+                    grid.appendChild(card);
                 }
-            } catch (err) {
-                loading.classList.add('hidden');
-                grid.innerHTML = "<p style='color:red;'>Błąd wczytywania danych.</p>";
-            }
+            });
+
+            if (count === 0) grid.innerHTML = "<p style='grid-column: 1/-1; text-align: center; color: #888;'>Brak zatwierdzonych zawodników w 1. Sezonie.</p>";
         }
 
         function openPlayerModal(player) {
@@ -644,182 +622,158 @@
         document.getElementById('btn-close-view-player').onclick = () => document.getElementById('modal-view-player').classList.add('hidden');
 
         // --- TABELA I MECZE ---
-        async function loadTableAndMatches() {
+        function renderTableAndMatches() {
             const tableBody = document.getElementById('league-table-body');
             const historyList = document.getElementById('matches-history-list');
 
-            try {
-                const usersSnap = await get(dbRef(db, 'users'));
-                const matchesSnap = await get(dbRef(db, 'matches'));
-                
-                if (!usersSnap.exists()) return;
+            const users = globalUsersData;
+            const matches = globalMatchesData;
 
-                const users = usersSnap.val();
-                const matches = matchesSnap.exists() ? Object.values(matchesSnap.val()) : [];
-                allMatchesData = matches;
-
-                let stats = {};
-                Object.keys(users).forEach(uid => {
-                    const u = users[uid];
-                    if (u.signedUpForSeason1 && u.statusSeason1 === "approved") {
-                        stats[uid] = {
-                            uid, name: `${u.firstName || ''} ${u.lastName || ''}`, photo: u.photoUrl || PRESET_AVATARS[0],
-                            matches: 0, wins: 0, draws: 0, losses: 0, legsWon: 0, legsLost: 0, points: 0
-                        };
-                    }
-                });
-
-                matches.forEach(m => {
-                    if (stats[m.p1Uid] && stats[m.p2Uid]) {
-                        const s1 = parseInt(m.s1), s2 = parseInt(m.s2);
-                        
-                        stats[m.p1Uid].matches++;
-                        stats[m.p2Uid].matches++;
-                        stats[m.p1Uid].legsWon += s1;
-                        stats[m.p1Uid].legsLost += s2;
-                        stats[m.p2Uid].legsWon += s2;
-                        stats[m.p2Uid].legsLost += s1;
-
-                        if (s1 > s2) {
-                            stats[m.p1Uid].wins++; stats[m.p1Uid].points += 3;
-                            stats[m.p2Uid].losses++;
-                        } else if (s2 > s1) {
-                            stats[m.p2Uid].wins++; stats[m.p2Uid].points += 3;
-                            stats[m.p1Uid].losses++;
-                        } else {
-                            stats[m.p1Uid].draws++; stats[m.p1Uid].points += 1;
-                            stats[m.p2Uid].draws++; stats[m.p2Uid].points += 1;
-                        }
-                    }
-                });
-
-                const sortedStats = Object.values(stats).sort((a, b) => {
-                    if (b.points !== a.points) return b.points - a.points;
-                    const diffA = a.legsWon - a.legsLost;
-                    const diffB = b.legsWon - b.legsLost;
-                    if (diffB !== diffA) return diffB - diffA;
-                    return b.legsWon - a.legsWon;
-                });
-
-                tableBody.innerHTML = "";
-                if (sortedStats.length === 0) {
-                    tableBody.innerHTML = '<tr><td colspan="10" style="color: #888;">Brak zatwierdzonych graczy w tabeli.</td></tr>';
-                } else {
-                    sortedStats.forEach((s, idx) => {
-                        const diff = s.legsWon - s.legsLost;
-                        const avgLegs = s.matches > 0 ? (s.legsWon / s.matches).toFixed(2) : "0.00";
-                        const tr = document.createElement('tr');
-                        tr.innerHTML = `
-                            <td><b>${idx + 1}</b></td>
-                            <td class="player-cell"><img src="${s.photo}" class="table-avatar"> ${s.name}</td>
-                            <td>${s.matches}</td>
-                            <td>${s.wins}</td>
-                            <td>${s.draws}</td>
-                            <td>${s.losses}</td>
-                            <td>${s.legsWon}:${s.legsLost}</td>
-                            <td style="color:${diff > 0 ? '#51cf66' : (diff < 0 ? '#ff6b6b' : '#ccc')}">${diff > 0 ? '+' + diff : diff}</td>
-                            <td>${avgLegs}</td>
-                            <td style="color:#1a73e8; font-weight:bold;">${s.points}</td>
-                        `;
-                        tableBody.appendChild(tr);
-                    });
+            let stats = {};
+            Object.keys(users).forEach(uid => {
+                const u = users[uid];
+                if (u.signedUpForSeason1 && u.statusSeason1 === "approved") {
+                    stats[uid] = {
+                        uid, name: `${u.firstName || ''} ${u.lastName || ''}`, photo: u.photoUrl || PRESET_AVATARS[0],
+                        matches: 0, wins: 0, draws: 0, losses: 0, legsWon: 0, legsLost: 0, points: 0
+                    };
                 }
+            });
 
-                historyList.innerHTML = "";
-                if (matches.length === 0) {
-                    historyList.innerHTML = '<p style="text-align: center; color: #888;">Brak rozegranych meczów.</p>';
-                } else {
-                    matches.slice().reverse().forEach(m => {
-                        const item = document.createElement('div');
-                        item.className = 'match-item';
-                        item.innerHTML = `
-                            <b>${m.p1Name}</b> <span style="color:#1a73e8; font-size:18px; margin: 0 10px;">${m.s1} : ${m.s2}</span> <b>${m.p2Name}</b>
-                            <div style="font-size:11px; color:#888; margin-top:4px;">${m.date || ''}</div>
-                        `;
-                        historyList.appendChild(item);
-                    });
+            matches.forEach(m => {
+                if (stats[m.p1Uid] && stats[m.p2Uid]) {
+                    const s1 = parseInt(m.s1), s2 = parseInt(m.s2);
+                    
+                    stats[m.p1Uid].matches++;
+                    stats[m.p2Uid].matches++;
+                    stats[m.p1Uid].legsWon += s1;
+                    stats[m.p1Uid].legsLost += s2;
+                    stats[m.p2Uid].legsWon += s2;
+                    stats[m.p2Uid].legsLost += s1;
+
+                    if (s1 > s2) {
+                        stats[m.p1Uid].wins++; stats[m.p1Uid].points += 3;
+                        stats[m.p2Uid].losses++;
+                    } else if (s2 > s1) {
+                        stats[m.p2Uid].wins++; stats[m.p2Uid].points += 3;
+                        stats[m.p1Uid].losses++;
+                    } else {
+                        stats[m.p1Uid].draws++; stats[m.p1Uid].points += 1;
+                        stats[m.p2Uid].draws++; stats[m.p2Uid].points += 1;
+                    }
                 }
+            });
 
-            } catch (err) { console.error(err); }
+            const sortedStats = Object.values(stats).sort((a, b) => {
+                if (b.points !== a.points) return b.points - a.points;
+                const diffA = a.legsWon - a.legsLost;
+                const diffB = b.legsWon - b.legsLost;
+                if (diffB !== diffA) return diffB - diffA;
+                return b.legsWon - a.legsWon;
+            });
+
+            tableBody.innerHTML = "";
+            if (sortedStats.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="10" style="color: #888;">Brak zatwierdzonych graczy w tabeli.</td></tr>';
+            } else {
+                sortedStats.forEach((s, idx) => {
+                    const diff = s.legsWon - s.legsLost;
+                    const avgLegs = s.matches > 0 ? (s.legsWon / s.matches).toFixed(2) : "0.00";
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><b>${idx + 1}</b></td>
+                        <td class="player-cell"><img src="${s.photo}" class="table-avatar"> ${s.name}</td>
+                        <td>${s.matches}</td>
+                        <td>${s.wins}</td>
+                        <td>${s.draws}</td>
+                        <td>${s.losses}</td>
+                        <td>${s.legsWon}:${s.legsLost}</td>
+                        <td style="color:${diff > 0 ? '#51cf66' : (diff < 0 ? '#ff6b6b' : '#ccc')}">${diff > 0 ? '+' + diff : diff}</td>
+                        <td>${avgLegs}</td>
+                        <td style="color:#1a73e8; font-weight:bold;">${s.points}</td>
+                    `;
+                    tableBody.appendChild(tr);
+                });
+            }
+
+            historyList.innerHTML = "";
+            if (matches.length === 0) {
+                historyList.innerHTML = '<p style="text-align: center; color: #888;">Brak rozegranych meczów.</p>';
+            } else {
+                matches.slice().reverse().forEach(m => {
+                    const item = document.createElement('div');
+                    item.className = 'match-item';
+                    item.innerHTML = `
+                        <b>${m.p1Name}</b> <span style="color:#1a73e8; font-size:18px; margin: 0 10px;">${m.s1} : ${m.s2}</span> <b>${m.p2Name}</b>
+                        <div style="font-size:11px; color:#888; margin-top:4px;">${m.date || ''}</div>
+                    `;
+                    historyList.appendChild(item);
+                });
+            }
         }
 
         // --- PANEL ADMINISTRATORA LOGIKA ---
-        async function loadAdminPanelData() {
+        function renderAdminPanelData() {
             const listContainer = document.getElementById('admin-players-list');
             const selectP1 = document.getElementById('admin-match-p1');
             const selectP2 = document.getElementById('admin-match-p2');
 
-            try {
-                const snap = await get(dbRef(db, 'users'));
-                const contentSnap = await get(dbRef(db, 'siteContent'));
+            const users = globalUsersData;
+            listContainer.innerHTML = "";
+            selectP1.innerHTML = "";
+            selectP2.innerHTML = "";
 
-                if (contentSnap.exists()) {
-                    const c = contentSnap.val();
-                    document.getElementById('admin-text-home').value = c.homeText || "";
-                    document.getElementById('admin-text-info').value = c.infoText || "";
-                }
+            let count = 0;
 
-                if (snap.exists()) {
-                    const users = snap.val();
-                    listContainer.innerHTML = "";
-                    selectP1.innerHTML = "";
-                    selectP2.innerHTML = "";
+            Object.keys(users).forEach(uid => {
+                const u = users[uid];
+                if (u.signedUpForSeason1) {
+                    count++;
+                    const isApproved = u.statusSeason1 === "approved";
 
-                    let count = 0;
+                    const item = document.createElement('div');
+                    item.className = 'admin-player-item';
 
-                    Object.keys(users).forEach(uid => {
-                        const u = users[uid];
-                        if (u.signedUpForSeason1) {
-                            count++;
-                            const isApproved = u.statusSeason1 === "approved";
+                    const infoDiv = document.createElement('div');
+                    infoDiv.innerHTML = `
+                        <b>${u.firstName || ''} ${u.lastName || ''}</b> (${u.email})
+                        <br><span style="font-size:12px; color:${isApproved ? '#51cf66' : '#ffd43b'}">Status: ${isApproved ? 'Zatwierdzony' : 'Oczekuje'}</span>
+                    `;
 
-                            const item = document.createElement('div');
-                            item.className = 'admin-player-item';
+                    const actionsDiv = document.createElement('div');
 
-                            const infoDiv = document.createElement('div');
-                            infoDiv.innerHTML = `
-                                <b>${u.firstName || ''} ${u.lastName || ''}</b> (${u.email})
-                                <br><span style="font-size:12px; color:${isApproved ? '#51cf66' : '#ffd43b'}">Status: ${isApproved ? 'Zatwierdzony' : 'Oczekuje'}</span>
-                            `;
+                    if (!isApproved) {
+                        const btnApprove = document.createElement('button');
+                        btnApprove.className = 'btn-sm btn-success';
+                        btnApprove.style.marginRight = '5px';
+                        btnApprove.innerText = 'Zatwierdź';
+                        btnApprove.onclick = () => setPlayerStatus(uid, "approved", true);
+                        actionsDiv.appendChild(btnApprove);
+                    }
 
-                            const actionsDiv = document.createElement('div');
+                    const btnReject = document.createElement('button');
+                    btnReject.className = 'btn-sm btn-danger';
+                    btnReject.innerText = isApproved ? 'Cofnij' : 'Odrzuć';
+                    btnReject.onclick = () => setPlayerStatus(uid, "none", false);
+                    actionsDiv.appendChild(btnReject);
 
-                            if (!isApproved) {
-                                const btnApprove = document.createElement('button');
-                                btnApprove.className = 'btn-sm btn-success';
-                                btnApprove.style.marginRight = '5px';
-                                btnApprove.innerText = 'Zatwierdź';
-                                btnApprove.onclick = () => setPlayerStatus(uid, "approved", true);
-                                actionsDiv.appendChild(btnApprove);
-                            }
+                    item.appendChild(infoDiv);
+                    item.appendChild(actionsDiv);
+                    listContainer.appendChild(item);
 
-                            const btnReject = document.createElement('button');
-                            btnReject.className = 'btn-sm btn-danger';
-                            btnReject.innerText = isApproved ? 'Cofnij' : 'Odrzuć';
-                            btnReject.onclick = () => setPlayerStatus(uid, "none", false);
-                            actionsDiv.appendChild(btnReject);
-
-                            item.appendChild(infoDiv);
-                            item.appendChild(actionsDiv);
-                            listContainer.appendChild(item);
-
-                            if (isApproved) {
-                                const opt1 = document.createElement('option');
-                                opt1.value = uid; 
-                                opt1.innerText = `${u.firstName || ''} ${u.lastName || ''}`;
-                                const opt2 = opt1.cloneNode(true);
-                                selectP1.appendChild(opt1);
-                                selectP2.appendChild(opt2);
-                            }
-                        }
-                    });
-
-                    if (count === 0) {
-                        listContainer.innerHTML = "<p style='color:#888;'>Brak zgłoszeń do 1. Sezonu.</p>";
+                    if (isApproved) {
+                        const opt1 = document.createElement('option');
+                        opt1.value = uid; 
+                        opt1.innerText = `${u.firstName || ''} ${u.lastName || ''}`;
+                        const opt2 = opt1.cloneNode(true);
+                        selectP1.appendChild(opt1);
+                        selectP2.appendChild(opt2);
                     }
                 }
-            } catch (err) { 
-                console.error(err); 
+            });
+
+            if (count === 0) {
+                listContainer.innerHTML = "<p style='color:#888;'>Brak zgłoszeń do 1. Sezonu.</p>";
             }
         }
 
@@ -832,7 +786,6 @@
                 });
                 msg.className = "msg success";
                 msg.innerText = "Status zawodnika został pomyślnie zaktualizowany!";
-                await loadAdminPanelData();
             } catch (err) { 
                 msg.className = "msg error";
                 msg.innerText = "Błąd zapisu (sprawdź reguły Firebase): " + err.message;
@@ -855,9 +808,8 @@
             }
 
             try {
-                const u1Snap = await get(dbRef(db, 'users/' + p1Uid));
-                const u2Snap = await get(dbRef(db, 'users/' + p2Uid));
-                const u1 = u1Snap.val(), u2 = u2Snap.val();
+                const u1 = globalUsersData[p1Uid];
+                const u2 = globalUsersData[p2Uid];
 
                 await push(dbRef(db, 'matches'), {
                     p1Uid, p1Name: `${u1.firstName || ''} ${u1.lastName || ''}`,
@@ -886,26 +838,58 @@
                 await update(dbRef(db, 'siteContent'), { homeText, infoText });
                 msg.className = "msg success";
                 msg.innerText = "Zapisano treści!";
-                loadPublicContent();
             } catch (err) {
                 msg.className = "msg error";
                 msg.innerText = "Błąd zapisu: " + err.message;
             }
         };
 
-        async function loadPublicContent() {
-            try {
-                const snap = await get(dbRef(db, 'siteContent'));
+        // SUBKSKRYPCJA CZASU RZECZYWISTEGO (ONVALUE)
+        function initRealtimeListeners() {
+            // 1. Zmiany w Użytkownikach
+            onValue(dbRef(db, 'users'), (snap) => {
+                if (snap.exists()) {
+                    globalUsersData = snap.val();
+                    const currentAuthUser = auth.currentUser;
+                    if (currentAuthUser && globalUsersData[currentAuthUser.uid]) {
+                        updateProfileUI(globalUsersData[currentAuthUser.uid]);
+                    }
+                } else {
+                    globalUsersData = {};
+                }
+                renderAdminPanelData();
+                renderApprovedPlayers();
+                renderTableAndMatches();
+            });
+
+            // 2. Zmiany w Meczach
+            onValue(dbRef(db, 'matches'), (snap) => {
+                if (snap.exists()) {
+                    globalMatchesData = Object.values(snap.val());
+                } else {
+                    globalMatchesData = [];
+                }
+                renderTableAndMatches();
+            });
+
+            // 3. Zmiany w Treściach strony
+            onValue(dbRef(db, 'siteContent'), (snap) => {
                 if (snap.exists()) {
                     const data = snap.val();
-                    if (data.homeText) document.getElementById('home-text-display').innerText = data.homeText;
-                    if (data.infoText) document.getElementById('info-text-display').innerText = data.infoText;
+                    if (data.homeText) {
+                        document.getElementById('home-text-display').innerText = data.homeText;
+                        document.getElementById('admin-text-home').value = data.homeText;
+                    }
+                    if (data.infoText) {
+                        document.getElementById('info-text-display').innerText = data.infoText;
+                        document.getElementById('admin-text-info').value = data.infoText;
+                    }
                 }
-            } catch (err) { console.error(err); }
+            });
         }
 
-        // STARTUJEMY APKI
-        loadPublicContent();
+        // START
+        initRealtimeListeners();
     </script>
 </body>
 </html>
