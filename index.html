@@ -4,25 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Akademicka Liga Darta</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-color: #121212;
-            --card-bg: #1e1e1e;
-            --accent-color: #1a73e8;
-            --accent-hover: #1557b0;
-            --text-color: #e0e0e0;
-            --text-muted: #a0a0a0;
-            --border-color: #333333;
-            --success-color: #2b8a3e;
-            --danger-color: #c92a2a;
-            --warning-color: #e67e22;
+            --bg-color: #0b0f19;
+            --card-bg: #131b2e;
+            --card-border: #1e293b;
+            --accent-red: #ef4444;
+            --accent-red-hover: #dc2626;
+            --accent-blue: #3b82f6;
+            --accent-glow: rgba(59, 130, 246, 0.15);
+            --text-color: #f8fafc;
+            --text-muted: #94a3b8;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+            --radius: 12px;
+            --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Outfit', sans-serif;
         }
 
         body {
@@ -31,13 +36,18 @@
             display: flex;
             flex-direction: column;
             min-height: 100vh;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(59, 130, 246, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(239, 68, 68, 0.05) 0%, transparent 40%);
+            background-attachment: fixed;
         }
 
         /* --- NAGŁÓWEK I NAWIGACJA --- */
         header {
-            background-color: var(--card-bg);
-            border-bottom: 1px solid var(--border-color);
-            padding: 15px 20px;
+            background-color: rgba(19, 27, 46, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--card-border);
+            padding: 16px 32px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -47,54 +57,61 @@
         }
 
         .logo {
-            font-size: 1.2rem;
-            font-weight: bold;
+            font-size: 1.35rem;
+            font-weight: 800;
             color: #fff;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
+            letter-spacing: -0.5px;
+        }
+
+        .logo span {
+            color: var(--accent-red);
         }
 
         nav {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             flex-wrap: wrap;
         }
 
         .nav-btn {
-            background: none;
+            background: transparent;
             border: none;
             color: var(--text-muted);
-            padding: 8px 16px;
-            border-radius: 6px;
+            padding: 10px 18px;
+            border-radius: var(--radius);
             cursor: pointer;
             font-size: 0.95rem;
-            transition: all 0.2s;
+            font-weight: 600;
+            transition: var(--transition);
         }
 
         .nav-btn:hover {
             color: #fff;
-            background-color: rgba(255, 255, 255, 0.05);
+            background-color: rgba(255, 255, 255, 0.04);
         }
 
         .nav-btn.active {
             color: #fff;
-            background-color: var(--accent-color);
+            background-color: var(--accent-blue);
+            box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3);
         }
 
         /* --- KONTENER GŁÓWNY --- */
         main {
             flex: 1;
-            max-width: 1000px;
+            max-width: 1100px;
             width: 100%;
-            margin: 20px auto;
-            padding: 0 15px;
+            margin: 30px auto;
+            padding: 0 20px;
         }
 
         .page {
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 24px;
         }
 
         .hidden {
@@ -104,255 +121,323 @@
         /* --- KARTY I WIDOKI --- */
         .card {
             background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 20px;
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius);
+            padding: 24px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+            transition: var(--transition);
+        }
+
+        .card:hover {
+            border-color: rgba(255, 255, 255, 0.08);
         }
 
         h2 {
-            margin-bottom: 15px;
-            font-size: 1.4rem;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 8px;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+            font-weight: 700;
+            border-bottom: 1px solid var(--card-border);
+            padding-bottom: 12px;
+            color: #fff;
+            letter-spacing: -0.3px;
+        }
+
+        h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #fff;
         }
 
         /* --- FORMULARZE I PRZYCISKI --- */
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 18px;
             display: flex;
             flex-direction: column;
-            gap: 5px;
+            gap: 8px;
         }
 
         label {
             font-size: 0.85rem;
+            font-weight: 600;
             color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         input, select, textarea {
-            background-color: #2a2a2a;
-            border: 1px solid var(--border-color);
+            background-color: #0d1322;
+            border: 1px solid var(--card-border);
             color: #fff;
-            padding: 10px;
-            border-radius: 6px;
+            padding: 12px 16px;
+            border-radius: var(--radius);
             font-size: 0.95rem;
             width: 100%;
+            transition: var(--transition);
         }
 
         input:focus, select:focus, textarea:focus {
-            outline: 1px solid var(--accent-color);
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px var(--accent-glow);
         }
 
         button.btn-primary {
-            background-color: var(--accent-color);
+            background: linear-gradient(135deg, var(--accent-blue), #2563eb);
             color: #fff;
             border: none;
-            padding: 10px 20px;
-            border-radius: 6px;
+            padding: 12px 24px;
+            border-radius: var(--radius);
             cursor: pointer;
             font-weight: 600;
-            transition: background 0.2s;
+            font-size: 0.95rem;
+            transition: var(--transition);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
         }
 
         button.btn-primary:hover {
-            background-color: var(--accent-hover);
+            opacity: 0.9;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
         }
 
-        .btn-success { background-color: var(--success-color); color: #fff; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; }
-        .btn-danger { background-color: var(--danger-color); color: #fff; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; }
-        .btn-sm { padding: 4px 8px; font-size: 0.8rem; }
+        .btn-success { background: linear-gradient(135deg, #10b981, #059669); color: #fff; border: none; padding: 10px 18px; border-radius: var(--radius); cursor: pointer; font-weight: 600; transition: var(--transition); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2); }
+        .btn-success:hover { opacity: 0.9; transform: translateY(-1px); }
+        
+        .btn-danger { background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff; border: none; padding: 10px 18px; border-radius: var(--radius); cursor: pointer; font-weight: 600; transition: var(--transition); box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2); }
+        .btn-danger:hover { opacity: 0.9; transform: translateY(-1px); }
+        
+        .btn-sm { padding: 6px 14px; font-size: 0.85rem; }
 
         .msg {
-            margin-top: 10px;
+            margin-top: 12px;
             font-size: 0.9rem;
+            font-weight: 500;
         }
-        .msg.error { color: #ff6b6b; }
-        .msg.success { color: #51cf66; }
+        .msg.error { color: #f87171; }
+        .msg.success { color: #34d399; }
 
         /* --- GRID ZAWODNIKÓW --- */
         .grid-container {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 15px;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 20px;
         }
 
         .player-card {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 15px;
+            background-color: #0d1322;
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius);
+            padding: 24px 16px;
             text-align: center;
             cursor: pointer;
-            transition: transform 0.2s, border-color 0.2s;
+            transition: var(--transition);
         }
 
         .player-card:hover {
-            transform: translateY(-3px);
-            border-color: var(--accent-color);
+            transform: translateY(-4px);
+            border-color: var(--accent-blue);
+            box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.2);
         }
 
         .player-avatar {
-            width: 80px;
-            height: 80px;
+            width: 88px;
+            height: 88px;
             border-radius: 50%;
             object-fit: cover;
-            margin-bottom: 10px;
-            border: 2px solid var(--border-color);
+            margin-bottom: 14px;
+            border: 2px solid var(--card-border);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }
 
         .player-name {
-            font-weight: bold;
-            font-size: 1.05rem;
-            margin-bottom: 5px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 6px;
+            color: #fff;
         }
 
         .player-info {
             font-size: 0.85rem;
             color: var(--text-muted);
+            margin-bottom: 3px;
         }
 
         /* --- TABELA LIGOWA --- */
         table {
             width: 100%;
-            border-collapse: collapse;
+            border-collapse: separate;
+            border-spacing: 0;
             text-align: left;
         }
 
         th, td {
-            padding: 12px;
-            border-bottom: 1px solid var(--border-color);
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--card-border);
         }
 
         th {
-            background-color: #252525;
+            background-color: #0d1322;
             color: var(--text-muted);
-            font-size: 0.85rem;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+        }
+
+        th:first-child { border-top-left-radius: 8px; border-bottom-left-radius: 8px; }
+        th:last-child { border-top-right-radius: 8px; border-bottom-right-radius: 8px; }
+
+        tr:hover td {
+            background-color: rgba(255, 255, 255, 0.015);
         }
 
         .player-cell {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
+            font-weight: 600;
         }
 
         .table-avatar {
-            width: 30px;
-            height: 30px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
             object-fit: cover;
+            border: 1px solid var(--card-border);
         }
 
         /* --- MECZE I TERMINARZ --- */
         .match-card {
-            background: #252525;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 12px;
-            margin-bottom: 10px;
+            background: #0d1322;
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius);
+            padding: 16px 20px;
+            margin-bottom: 12px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .match-card:hover {
+            border-color: rgba(255, 255, 255, 0.15);
+            transform: translateX(2px);
         }
 
         .match-card.ready-for-report {
             border-color: var(--warning-color);
-            background: #2c251e;
+            background: rgba(245, 158, 11, 0.04);
         }
 
         .match-vs {
-            font-weight: bold;
+            font-weight: 700;
+            font-size: 1.05rem;
         }
 
         .match-date {
             font-size: 0.85rem;
             color: var(--text-muted);
+            font-weight: 500;
         }
 
         .match-status-tag {
             font-size: 0.8rem;
-            padding: 4px 8px;
-            border-radius: 4px;
-            background: #333;
+            padding: 6px 12px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            font-weight: 600;
+        }
+
+        .match-item {
+            background: #0d1322;
+            border: 1px solid var(--card-border);
+            padding: 16px 20px;
+            border-radius: var(--radius);
+            margin-bottom: 12px;
+            text-align: center;
         }
 
         /* --- MODAL --- */
         .modal {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8);
+            background: rgba(11, 15, 25, 0.8);
+            backdrop-filter: blur(8px);
             display: flex;
             justify-content: center;
             align-items: center;
             z-index: 1000;
-            padding: 15px;
+            padding: 20px;
         }
 
         .modal-content {
             background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 20px;
+            border: 1px solid var(--card-border);
+            border-radius: calc(var(--radius) * 1.5);
+            padding: 30px;
             width: 90%;
-            max-width: 500px;
+            max-width: 520px;
             max-height: 90vh;
             overflow-y: auto;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
 
         .avatar-selection {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
-            gap: 8px;
-            max-height: 200px;
+            gap: 10px;
+            max-height: 220px;
             overflow-y: auto;
-            padding: 10px 0;
-            background: #252525;
-            border-radius: 6px;
-            border: 1px solid var(--border-color);
+            padding: 12px;
+            background: #0d1322;
+            border-radius: var(--radius);
+            border: 1px solid var(--card-border);
         }
 
         .avatar-option {
-            width: 55px;
-            height: 55px;
+            width: 60px;
+            height: 60px;
             border-radius: 50%;
             cursor: pointer;
             border: 2px solid transparent;
             object-fit: cover;
             justify-self: center;
-            transition: transform 0.1s;
+            transition: var(--transition);
         }
 
         .avatar-option:hover {
-            transform: scale(1.05);
+            transform: scale(1.08);
         }
 
         .avatar-option.selected {
-            border-color: var(--accent-color);
-            box-shadow: 0 0 8px var(--accent-color);
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 12px rgba(59, 130, 246, 0.5);
         }
 
         /* --- BILANS OSTATNICH MECZÓW --- */
         .form-summary {
             display: flex;
-            gap: 8px;
+            gap: 10px;
             justify-content: center;
-            margin: 10px 0 15px 0;
+            margin: 12px 0 20px 0;
         }
 
         .badge-result {
-            width: 30px;
-            height: 30px;
+            width: 34px;
+            height: 34px;
             display: flex;
             align-items: center;
             justify-content: center;
             border-radius: 50%;
-            font-weight: bold;
+            font-weight: 700;
             color: white;
             font-size: 13px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
         }
-        .badge-result.win { background-color: #2b8a3e; }
-        .badge-result.draw { background-color: #f59f00; }
-        .badge-result.loss { background-color: #c92a2a; }
+        .badge-result.win { background: #10b981; }
+        .badge-result.draw { background: #f59e0b; }
+        .badge-result.loss { background: #ef4444; }
 
         .recent-matches-list {
             list-style: none;
@@ -365,11 +450,11 @@
         .recent-matches-list li {
             display: flex;
             justify-content: space-between;
-            padding: 6px 10px;
-            border-bottom: 1px solid var(--border-color);
-            background: #252525;
-            margin-bottom: 4px;
-            border-radius: 4px;
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--card-border);
+            background: #0d1322;
+            margin-bottom: 6px;
+            border-radius: var(--radius);
         }
 
         /* --- PANEL ADMINA --- */
@@ -377,35 +462,43 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px;
-            border-bottom: 1px solid var(--border-color);
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--card-border);
+            background: #0d1322;
+            margin-bottom: 8px;
+            border-radius: var(--radius);
         }
 
         footer {
             margin-top: auto;
             text-align: center;
-            padding: 20px;
+            padding: 30px;
             font-size: 0.85rem;
             color: var(--text-muted);
-            border-top: 1px solid var(--border-color);
+            border-top: 1px solid var(--card-border);
+            background: rgba(13, 19, 34, 0.4);
         }
 
-        footer a { color: var(--accent-color); text-decoration: none; }
+        footer a { color: var(--accent-blue); text-decoration: none; font-weight: 600; }
+        footer a:hover { text-decoration: underline; }
         
         .season-badge {
             display: inline-block;
-            padding: 4px 8px;
-            font-size: 0.8rem;
-            border-radius: 4px;
-            margin-top: 5px;
+            padding: 6px 12px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-radius: 20px;
+            margin-top: 8px;
         }
-        .badge-approved { background: #2b8a3e; color: #fff; }
-        .badge-pending { background: #e67e22; color: #fff; }
+        .badge-approved { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+        .badge-pending { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
 
-        @media (max-width: 600px) {
-            header { flex-direction: column; gap: 10px; }
-            nav { width: 100%; overflow-x: auto; justify-content: space-between; }
-            .nav-btn { padding: 6px 10px; font-size: 0.85rem; }
+        @media (max-width: 768px) {
+            header { flex-direction: column; gap: 14px; padding: 14px 20px; }
+            nav { width: 100%; overflow-x: auto; justify-content: flex-start; padding-bottom: 4px; }
+            .nav-btn { padding: 8px 14px; font-size: 0.85rem; white-space: nowrap; }
             .avatar-selection { grid-template-columns: repeat(4, 1fr); }
         }
     </style>
@@ -424,11 +517,11 @@
                 <label>Hasło</label>
                 <input type="password" id="login-pass">
             </div>
-            <button class="btn-primary" id="btn-login" style="width: 100%;">Zaloguj się</button>
+            <button class="btn-primary" id="btn-login" style="width: 100%; margin-top: 6px;">Zaloguj się</button>
             <div id="login-msg" class="msg"></div>
-            <p style="margin-top: 15px; font-size: 0.85rem; text-align: center;">
-                Nie masz konta? <a href="#" id="btn-go-register" style="color: var(--accent-color);">Zarejestruj się</a><br>
-                <a href="#" id="btn-go-reset" style="color: var(--text-muted);">Zapomniałeś hasła?</a>
+            <p style="margin-top: 20px; font-size: 0.9rem; text-align: center; color: var(--text-muted);">
+                Nie masz konta? <a href="#" id="btn-go-register" style="color: var(--accent-blue); font-weight: 600; text-decoration: none;">Zarejestruj się</a><br>
+                <a href="#" id="btn-go-reset" style="color: var(--text-muted); font-size: 0.85rem; display: inline-block; margin-top: 8px;">Zapomniałeś hasła?</a>
             </p>
         </div>
     </div>
@@ -444,10 +537,10 @@
             <div class="form-group"><label>Data urodzenia</label><input type="date" id="reg-birthdate"></div>
             <div class="form-group"><label>Miejscowość</label><input type="text" id="reg-city"></div>
             <div class="form-group"><label>Profil DartCounter (opcjonalnie)</label><input type="text" id="reg-dartcounter"></div>
-            <button class="btn-primary" id="btn-register" style="width: 100%;">Zarejestruj się</button>
+            <button class="btn-primary" id="btn-register" style="width: 100%; margin-top: 6px;">Zarejestruj się</button>
             <div id="reg-msg" class="msg"></div>
-            <p style="margin-top: 15px; font-size: 0.85rem; text-align: center;">
-                Masz już konto? <a href="#" id="btn-go-login-from-reg" style="color: var(--accent-color);">Zaloguj się</a>
+            <p style="margin-top: 20px; font-size: 0.9rem; text-align: center; color: var(--text-muted);">
+                Masz już konto? <a href="#" id="btn-go-login-from-reg" style="color: var(--accent-blue); font-weight: 600; text-decoration: none;">Zaloguj się</a>
             </p>
         </div>
     </div>
@@ -456,10 +549,10 @@
         <div class="modal-content">
             <h2>Resetowanie hasła</h2>
             <div class="form-group"><label>E-mail</label><input type="email" id="reset-email"></div>
-            <button class="btn-primary" id="btn-reset" style="width: 100%;">Wyślij link</button>
+            <button class="btn-primary" id="btn-reset" style="width: 100%; margin-top: 6px;">Wyślij link</button>
             <div id="reset-msg" class="msg"></div>
-            <p style="margin-top: 15px; font-size: 0.85rem; text-align: center;">
-                <a href="#" id="btn-go-login-from-reset" style="color: var(--accent-color);">Wróć do logowania</a>
+            <p style="margin-top: 20px; font-size: 0.9rem; text-align: center;">
+                <a href="#" id="btn-go-login-from-reset" style="color: var(--accent-blue); font-weight: 600; text-decoration: none;">Wróć do logowania</a>
             </p>
         </div>
     </div>
@@ -467,14 +560,14 @@
     <!-- MAIN APP STRUCTURE -->
     <div id="view-app" class="hidden">
         <header>
-            <div class="logo">🎯 Akademicka Liga Darta</div>
+            <div class="logo">🎯 AKADEMICKA LIGA <span>DARTA</span></div>
             <nav>
                 <button class="nav-btn active" id="tab-home">Główna</button>
                 <button class="nav-btn" id="tab-info">Tabela i Mecze</button>
                 <button class="nav-btn" id="tab-players">Gracze</button>
                 <button class="nav-btn" id="tab-live">Na Żywo</button>
                 <button class="nav-btn" id="tab-account">Konto</button>
-                <button class="nav-btn hidden" id="tab-admin">Admin</button>
+                <button class="nav-btn hidden" id="tab-admin" style="background: rgba(239, 68, 68, 0.15); color: #f87171;">Admin</button>
             </nav>
         </header>
 
@@ -483,12 +576,12 @@
             <div id="page-home" class="page">
                 <div class="card">
                     <h2>Aktualności</h2>
-                    <p id="home-text-display">Witamy w Akademickiej Lidze Darta!</p>
+                    <p id="home-text-display" style="line-height: 1.6; color: var(--text-muted);">Witamy w Akademickiej Lidze Darta!</p>
                 </div>
                 <div class="card">
                     <h2>Najbliższe Nadchodzące Mecze</h2>
                     <div id="home-upcoming-matches">
-                        <p style="color: #888;">Brak zaplanowanych meczów.</p>
+                        <p style="color: var(--text-muted);">Brak zaplanowanych meczów.</p>
                     </div>
                 </div>
             </div>
@@ -519,7 +612,7 @@
             <div id="page-players" class="page hidden">
                 <div class="card">
                     <h2>Zatwierdzeni Zawodnicy</h2>
-                    <div id="players-loading" style="color: #888;">Ładowanie zawodników...</div>
+                    <div id="players-loading" style="color: var(--text-muted);">Ładowanie zawodników...</div>
                     <div class="grid-container" id="players-grid"></div>
                 </div>
             </div>
@@ -528,10 +621,10 @@
             <div id="page-live" class="page hidden">
                 <div class="card">
                     <h2>Transmisja / Wyniki Na Żywo</h2>
-                    <p style="margin-bottom: 10px;">
-                        <a id="live-external-link" href="#" target="_blank" style="color: var(--accent-color);">Otwórz w nowej karcie ↗</a>
+                    <p style="margin-bottom: 14px;">
+                        <a id="live-external-link" href="#" target="_blank" style="color: var(--accent-blue); font-weight: 600; text-decoration: none;">Otwórz w nowej karcie ↗</a>
                     </p>
-                    <div style="width: 100%; height: 600px; background: #000; border-radius: 6px; overflow: hidden;">
+                    <div style="width: 100%; height: 600px; background: #000; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--card-border);">
                         <iframe id="n01-iframe" src="" style="width:100%; height:100%; border:none;"></iframe>
                     </div>
                 </div>
@@ -539,13 +632,13 @@
 
             <!-- TAB: ACCOUNT -->
             <div id="page-account" class="page hidden">
-                <div class="card" style="display: flex; gap: 20px; align-items: center; flex-wrap: wrap;">
-                    <img id="prof-photo" src="" style="width: 100px; height: 100px; border-radius: 50%; border: 2px solid var(--accent-color); object-fit: cover;">
-                    <div>
-                        <h2 id="prof-fullname" style="border:none; margin:0; padding:0;">-</h2>
-                        <p style="color: var(--text-muted);" id="prof-email-display">-</p>
+                <div class="card" style="display: flex; gap: 24px; align-items: center; flex-wrap: wrap;">
+                    <img id="prof-photo" src="" style="width: 100px; height: 100px; border-radius: 50%; border: 2px solid var(--accent-blue); object-fit: cover; box-shadow: 0 8px 20px rgba(59, 130, 246, 0.25);">
+                    <div style="flex: 1;">
+                        <h2 id="prof-fullname" style="border:none; margin:0 0 4px 0; padding:0; font-size: 1.5rem;">-</h2>
+                        <p style="color: var(--text-muted); font-size: 0.9rem;" id="prof-email-display">-</p>
                         <div id="prof-status-badge"></div>
-                        <div style="margin-top: 10px; display: flex; gap: 10px;">
+                        <div style="margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap;">
                             <button class="btn-primary btn-sm" id="btn-open-edit-profile">Edytuj profil</button>
                             <button class="btn-danger btn-sm" id="btn-logout">Wyloguj</button>
                         </div>
@@ -554,15 +647,20 @@
 
                 <div class="card">
                     <h2>Moje Szczegóły</h2>
-                    <p><b>Wiek:</b> <span id="prof-age">-</span></p>
-                    <p><b>Miejscowość:</b> <a id="prof-city-link" href="#" target="_blank" style="color: var(--accent-color); text-decoration: none;">-</a></p>
-                    <p><b>Profil DartCounter:</b> <a id="prof-dartcounter-btn" href="#" target="_blank" class="btn-primary btn-sm" style="display: inline-block; margin-top: 5px; text-decoration: none;">Otwórz Profil</a></p>
-                    <p style="margin-top: 10px;"><b>Średnia z meczów:</b> <span id="prof-avg-display" style="color: var(--accent-color); font-weight: bold;">0.00</span></p>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                        <p style="background: #0d1322; padding: 12px 16px; border-radius: var(--radius); border: 1px solid var(--card-border);"><b>Wiek:</b> <span id="prof-age" style="color: #fff;">-</span></p>
+                        <p style="background: #0d1322; padding: 12px 16px; border-radius: var(--radius); border: 1px solid var(--card-border);"><b>Miejscowość:</b> <a id="prof-city-link" href="#" target="_blank" style="color: var(--accent-blue); text-decoration: none; font-weight: 600;">-</a></p>
+                        <p style="background: #0d1322; padding: 12px 16px; border-radius: var(--radius); border: 1px solid var(--card-border);"><b>Średnia z meczów:</b> <span id="prof-avg-display" style="color: var(--accent-blue); font-weight: 700;">0.00</span></p>
+                    </div>
+                    <div style="margin-bottom: 20px;">
+                        <p style="margin-bottom: 8px;"><b style="font-size: 0.85rem; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px;">Profil DartCounter:</b></p>
+                        <a id="prof-dartcounter-btn" href="#" target="_blank" class="btn-primary btn-sm" style="display: inline-block; text-decoration: none;">Otwórz Profil</a>
+                    </div>
                     
-                    <hr style="border-color: var(--border-color); margin: 15px 0;">
+                    <hr style="border-color: var(--card-border); margin: 20px 0;">
                     
                     <h3>Zgłoszenie do Sezonu</h3>
-                    <div style="margin-top: 10px;">
+                    <div style="margin-top: 12px;">
                         <button id="btn-toggle-season" class="btn-success">Zapisz się na 1. Sezon!</button>
                     </div>
                 </div>
@@ -639,7 +737,7 @@
                 <label>Wybierz Awatar</label>
                 <div class="avatar-selection" id="edit-avatar-selection"></div>
             </div>
-            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 15px;">
+            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
                 <button class="btn-danger btn-sm" id="btn-cancel-edit-profile">Anuluj</button>
                 <button class="btn-success btn-sm" id="btn-save-profile">Zapisz</button>
             </div>
@@ -649,22 +747,22 @@
     <!-- MODAL: PODGLĄD GRACZA -->
     <div id="modal-view-player" class="modal hidden">
         <div class="modal-content" style="text-align: center;">
-            <img id="view-player-photo" src="" style="width: 90px; height: 90px; border-radius: 50%; margin-bottom: 10px; object-fit: cover; border: 2px solid var(--accent-color);">
-            <h2 id="view-player-fullname" style="border:none; margin-bottom: 5px;">-</h2>
-            <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 5px;">Wiek: <span id="view-player-age">-</span> lat</p>
-            <p style="font-size: 0.9rem; margin-bottom: 15px;">Średnia ligowa: <b id="view-player-avg" style="color: var(--accent-color);">0.00</b></p>
+            <img id="view-player-photo" src="" style="width: 96px; height: 96px; border-radius: 50%; margin-bottom: 14px; object-fit: cover; border: 2px solid var(--accent-blue); box-shadow: 0 8px 20px rgba(59, 130, 246, 0.25);">
+            <h2 id="view-player-fullname" style="border:none; margin-bottom: 6px; font-size: 1.4rem;">-</h2>
+            <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 6px;">Wiek: <span id="view-player-age" style="color:#fff;">-</span> lat</p>
+            <p style="font-size: 0.9rem; margin-bottom: 20px;">Średnia ligowa: <b id="view-player-avg" style="color: var(--accent-blue);">0.00</b></p>
             
-            <hr style="border-color: var(--border-color); margin: 15px 0;">
+            <hr style="border-color: var(--card-border); margin: 20px 0;">
             
-            <h3 style="font-size: 1rem; margin-bottom: 8px; color: var(--text-color);">Bilans ostatnich 5 meczów</h3>
+            <h3 style="font-size: 1rem; margin-bottom: 10px; color: var(--text-color);">Bilans ostatnich 5 meczów</h3>
             <div id="view-player-form" class="form-summary"></div>
 
-            <h3 style="font-size: 1rem; margin-bottom: 8px; margin-top: 15px; color: var(--text-color);">Ostatnie spotkania</h3>
+            <h3 style="font-size: 1rem; margin-bottom: 10px; margin-top: 20px; color: var(--text-color);">Ostatnie spotkania</h3>
             <ul id="view-player-recent-list" class="recent-matches-list">
                 <li style="color: var(--text-muted); justify-content: center;">Brak rozegranych meczów</li>
             </ul>
 
-            <button class="btn-primary btn-sm" id="btn-close-view-player" style="margin-top: 20px; width: 100%;">Zamknij</button>
+            <button class="btn-primary btn-sm" id="btn-close-view-player" style="margin-top: 24px; width: 100%;">Zamknij</button>
         </div>
     </div>
 
@@ -676,23 +774,23 @@
             
             <!-- WIDOK USTALANIA TERMINU -->
             <div id="match-action-propose-view">
-                <div id="proposal-status-info" style="margin-bottom: 15px; padding: 10px; background: #252525; border-radius: 6px; text-align: center;"></div>
+                <div id="proposal-status-info" style="margin-bottom: 16px; padding: 14px; background: #0d1322; border-radius: var(--radius); text-align: center; border: 1px solid var(--card-border);"></div>
                 
-                <div id="opponent-proposal-actions" class="hidden" style="margin-bottom: 15px; text-align: center;">
+                <div id="opponent-proposal-actions" class="hidden" style="margin-bottom: 16px; text-align: center;">
                     <button class="btn-success" id="btn-accept-proposal" style="width: 100%;">✅ AKCEPTUJ TEN TERMIN</button>
-                    <p style="font-size: 11px; color: #888; margin-top: 5px;">Lub wybierz nową datę poniżej, aby zaproponować kontrofertę:</p>
+                    <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;">Lub wybierz nową datę poniżej, aby zaproponować kontrofertę:</p>
                 </div>
 
                 <div class="form-group">
                     <label>Zaproponuj / Zmień termin:</label>
                     <input type="datetime-local" id="match-propose-date">
                 </div>
-                <button class="btn-primary" id="btn-submit-proposal" style="width: 100%;">Wyślij Propozycję</button>
+                <button class="btn-primary" id="btn-submit-proposal" style="width: 100%; margin-top: 6px;">Wyślij Propozycję</button>
             </div>
 
             <!-- WIDOK WYPEŁNIANIA PROTOKOŁU -->
             <div id="match-action-report-view" class="hidden">
-                <p style="font-size: 0.9rem; color: var(--warning-color); margin-bottom: 10px;">Mecz się rozpoczął! Wprowadź uzyskane wyniki:</p>
+                <p style="font-size: 0.9rem; color: var(--warning-color); margin-bottom: 16px; font-weight: 500;">Mecz się rozpoczął! Wprowadź uzyskane wyniki:</p>
                 <div class="form-group">
                     <label><span id="report-p1-name">Gracz 1</span> - Wygrane Legi</label>
                     <input type="number" id="report-s1" min="0" value="0">
@@ -701,7 +799,7 @@
                     <label><span id="report-p1-name-avg">Gracz 1</span> - Średnia</label>
                     <input type="number" step="0.01" id="report-avg1" placeholder="np. 45.50">
                 </div>
-                <hr style="border-color: var(--border-color); margin: 10px 0;">
+                <hr style="border-color: var(--card-border); margin: 16px 0;">
                 <div class="form-group">
                     <label><span id="report-p2-name">Gracz 2</span> - Wygrane Legi</label>
                     <input type="number" id="report-s2" min="0" value="0">
@@ -710,11 +808,11 @@
                     <label><span id="report-p2-name-avg">Gracz 2</span> - Średnia</label>
                     <input type="number" step="0.01" id="report-avg2" placeholder="np. 42.10">
                 </div>
-                <button class="btn-success" id="btn-submit-report" style="width: 100%;">Wyślij Protokół do Admina</button>
+                <button class="btn-success" id="btn-submit-report" style="width: 100%; margin-top: 6px;">Wyślij Protokół do Admina</button>
             </div>
 
             <div id="match-action-msg" class="msg"></div>
-            <button class="btn-danger btn-sm" id="btn-close-match-action" style="margin-top: 15px; width: 100%;">Zamknij</button>
+            <button class="btn-danger btn-sm" id="btn-close-match-action" style="margin-top: 20px; width: 100%;">Zamknij</button>
         </div>
     </div>
 
@@ -1030,7 +1128,7 @@
                 }
             });
 
-            if (count === 0) container.innerHTML = '<p style="color: #888; font-size: 13px;">Brak nadchodzących meczów.</p>';
+            if (count === 0) container.innerHTML = '<p style="color: var(--text-muted); font-size: 0.9rem;">Brak nadchodzących meczów.</p>';
         }
 
         // MODAL AKCJI MECZOWEJ
@@ -1057,20 +1155,20 @@
 
                 if (matchData.status === 'approved') {
                     const dateStr = new Date(matchData.scheduledDate).toLocaleString('pl-PL', { dateStyle: 'short', timeStyle: 'short' });
-                    infoDiv.innerHTML = `<span style="color:#51cf66; font-weight:bold;">✅ Ustalono termin: ${dateStr}</span>`;
+                    infoDiv.innerHTML = `<span style="color:#34d399; font-weight:bold;">✅ Ustalono termin: ${dateStr}</span>`;
                     opponentActions.classList.add('hidden');
                 } else if (matchData.proposedDate) {
                     const propStr = new Date(matchData.proposedDate).toLocaleString('pl-PL', { dateStyle: 'short', timeStyle: 'short' });
                     
                     if (matchData.proposedBy === currentUid) {
-                        infoDiv.innerHTML = `<span style="color:#ffd43b; font-size:14px;">Zaproponowałeś termin:<br><b style="font-size:18px; color:#fff;">${propStr}</b><br><small style="color:#aaa;">Oczekuj na decyzję przeciwnika.</small></span>`;
+                        infoDiv.innerHTML = `<span style="color:#fbbf24; font-size:14px;">Zaproponowałeś termin:<br><b style="font-size:16px; color:#fff;">${propStr}</b><br><small style="color:var(--text-muted);">Oczekuj na decyzję przeciwnika.</small></span>`;
                         opponentActions.classList.add('hidden');
                     } else {
-                        infoDiv.innerHTML = `<span style="color:#ffd43b; font-size:14px;">Przeciwnik proponuje termin:<br><b style="font-size:18px; color:#fff;">${propStr}</b></span>`;
+                        infoDiv.innerHTML = `<span style="color:#fbbf24; font-size:14px;">Przeciwnik proponuje termin:<br><b style="font-size:16px; color:#fff;">${propStr}</b></span>`;
                         opponentActions.classList.remove('hidden');
                     }
                 } else {
-                    infoDiv.innerHTML = `<span style="color:#ccc;">Brak propozycji terminu. Wybierz datę poniżej:</span>`;
+                    infoDiv.innerHTML = `<span style="color:var(--text-muted);">Brak propozycji terminu. Wybierz datę poniżej:</span>`;
                     opponentActions.classList.add('hidden');
                 }
             }
@@ -1152,14 +1250,14 @@
                     const card = document.createElement('div');
                     card.className = 'match-card';
                     card.innerHTML = `
-                        <div class="match-vs">${m.p1Name} <br><span style="color:#1a73e8; font-size:12px;">VS</span><br> ${m.p2Name}</div>
+                        <div class="match-vs">${m.p1Name} <br><span style="color:var(--accent-blue); font-size:12px; font-weight:600;">VS</span><br> ${m.p2Name}</div>
                         <div class="match-date">📅 ${matchDate.toLocaleString('pl-PL', { dateStyle: 'short', timeStyle: 'short' })}</div>
                     `;
                     container.appendChild(card);
                 }
             });
 
-            if (count === 0) container.innerHTML = '<p style="text-align: center; color: #888; grid-column: 1/-1;">Brak zaplanowanych nadchodzących meczów.</p>';
+            if (count === 0) container.innerHTML = '<p style="text-align: center; color: var(--text-muted); grid-column: 1/-1;">Brak zaplanowanych nadchodzących meczów.</p>';
         }
 
         // --- PANEL ADMINA LOGIKA ---
@@ -1183,9 +1281,9 @@
                     const item = document.createElement('div');
                     item.className = 'admin-player-item';
                     item.innerHTML = `
-                        <div><b>${u.firstName || ''} ${u.lastName || ''}</b> (${u.email})<br><span style="font-size:12px; color:${isApproved ? '#51cf66' : '#ffd43b'}">Status: ${isApproved ? 'Zatwierdzony' : 'Oczekuje'}</span></div>
-                        <div>
-                            ${!isApproved ? `<button class="btn-sm btn-success" style="margin-right:5px;" onclick="setPlayerStatus('${uid}', 'approved', true)">Zatwierdź</button>` : ''}
+                        <div><b>${u.firstName || ''} ${u.lastName || ''}</b> <span style="color:var(--text-muted)">(${u.email})</span><br><span style="font-size:12px; font-weight:600; color:${isApproved ? '#34d399' : '#fbbf24'}">Status: ${isApproved ? 'Zatwierdzony' : 'Oczekuje'}</span></div>
+                        <div style="display:flex; gap:8px;">
+                            ${!isApproved ? `<button class="btn-sm btn-success" onclick="setPlayerStatus('${uid}', 'approved', true)">Zatwierdź</button>` : ''}
                             <button class="btn-sm btn-danger" onclick="setPlayerStatus('${uid}', 'none', false)">${isApproved ? 'Cofnij' : 'Odrzuć'}</button>
                         </div>
                     `;
@@ -1220,7 +1318,7 @@
                     pendingReportsContainer.appendChild(item);
                 }
             });
-            if (pendingCount === 0) pendingReportsContainer.innerHTML = "<p style='color:#888;'>Brak oczekujących protokołów.</p>";
+            if (pendingCount === 0) pendingReportsContainer.innerHTML = "<p style='color:var(--text-muted);'>Brak oczekujących protokołów.</p>";
 
             upcomingListContainer.innerHTML = "";
             let upcomingCount = 0;
@@ -1231,12 +1329,12 @@
                 item.className = 'admin-match-item';
                 const dateStr = m.scheduledDate ? new Date(m.scheduledDate).toLocaleString('pl-PL') : 'Brak zatw. daty';
                 item.innerHTML = `
-                    <div><b>${m.p1Name} vs ${m.p2Name}</b> - <span style="color:#ffd43b;">${dateStr}</span></div>
+                    <div><b>${m.p1Name} vs ${m.p2Name}</b> - <span style="color:#fbbf24;">${dateStr}</span></div>
                     <div><button class="btn-sm btn-danger" onclick="deleteUpcomingMatch('${matchId}')">Usuń</button></div>
                 `;
                 upcomingListContainer.appendChild(item);
             });
-            if (upcomingCount === 0) upcomingListContainer.innerHTML = "<p style='color:#888;'>Brak zaplanowanych meczów.</p>";
+            if (upcomingCount === 0) upcomingListContainer.innerHTML = "<p style='color:var(--text-muted);'>Brak zaplanowanych meczów.</p>";
 
             matchesContainer.innerHTML = "";
             Object.keys(globalMatchesMap).reverse().forEach(matchId => {
@@ -1244,7 +1342,7 @@
                 const item = document.createElement('div');
                 item.className = 'admin-match-item';
                 item.innerHTML = `
-                    <div><b>${m.p1Name}</b> [śr: ${m.avg1 || 0}] <b style="color:#1a73e8;">${m.s1}:${m.s2}</b> <b>${m.p2Name}</b> [śr: ${m.avg2 || 0}]</div>
+                    <div><b>${m.p1Name}</b> [śr: ${m.avg1 || 0}] <b style="color:var(--accent-blue);">${m.s1}:${m.s2}</b> <b>${m.p2Name}</b> [śr: ${m.avg2 || 0}]</div>
                     <div><button class="btn-sm btn-danger" onclick="deleteMatch('${matchId}')">Usuń</button></div>
                 `;
                 matchesContainer.appendChild(item);
@@ -1374,7 +1472,7 @@
                     card.innerHTML = `
                         <img class="player-avatar" src="${p.photoUrl || PRESET_AVATARS[0]}">
                         <div class="player-name">${p.firstName || ''} ${p.lastName || ''}</div>
-                        <div class="player-info">🎯 Średnia: <b>${userAvg}</b></div>
+                        <div class="player-info">🎯 Średnia: <b style="color:var(--text-color);">${userAvg}</b></div>
                         <div class="player-info">🎂 Wiek: ${calculateAge(p.birthDate)} lat</div>
                         <div class="player-info">📍 ${p.city || 'Nie podano'}</div>
                     `;
@@ -1382,7 +1480,7 @@
                     grid.appendChild(card);
                 }
             });
-            if (count === 0) grid.innerHTML = "<p style='grid-column: 1/-1; text-align: center; color: #888;'>Brak zatwierdzonych zawodników.</p>";
+            if (count === 0) grid.innerHTML = "<p style='grid-column: 1/-1; text-align: center; color: var(--text-muted);'>Brak zatwierdzonych zawodników.</p>";
         }
 
         function openPlayerModal(uid, player) {
@@ -1432,7 +1530,7 @@
                     const li = document.createElement('li');
                     li.innerHTML = `
                         <span>vs <b>${match.opponent}</b></span>
-                        <span><b>${match.score}</b> <span style="color: ${match.result === 'Z' ? '#2b8a3e' : (match.result === 'R' ? '#f59f00' : '#c92a2a')}; font-weight:bold; margin-left:5px;">[${match.result}]</span></span>
+                        <span><b>${match.score}</b> <span style="color: ${match.result === 'Z' ? '#10b981' : (match.result === 'R' ? '#f59e0b' : '#ef4444')}; font-weight:bold; margin-left:6px;">[${match.result}]</span></span>
                     `;
                     recentListContainer.appendChild(li);
                 });
@@ -1500,25 +1598,25 @@
                     <td class="player-cell"><img src="${s.photo}" class="table-avatar"> ${s.name}</td>
                     <td>${s.matches}</td><td>${s.wins}</td><td>${s.draws}</td><td>${s.losses}</td>
                     <td>${s.legsWon}:${s.legsLost}</td>
-                    <td style="color:${diff > 0 ? '#51cf66' : (diff < 0 ? '#ff6b6b' : '#ccc')}">${diff > 0 ? '+' + diff : diff}</td>
+                    <td style="color:${diff > 0 ? '#34d399' : (diff < 0 ? '#f87171' : 'var(--text-muted)')}">${diff > 0 ? '+' + diff : diff}</td>
                     <td><b>${s.playerAvg.toFixed(2)}</b></td>
-                    <td style="color:#1a73e8; font-weight:bold;">${s.points}</td>
+                    <td style="color:var(--accent-blue); font-weight:700;">${s.points}</td>
                 `;
                 tableBody.appendChild(tr);
             });
 
             historyList.innerHTML = "";
             const matchesArr = Object.values(globalMatchesMap);
-            if (matchesArr.length === 0) historyList.innerHTML = '<p style="text-align: center; color: #888;">Brak rozegranych meczów.</p>';
+            if (matchesArr.length === 0) historyList.innerHTML = '<p style="text-align: center; color: var(--text-muted);">Brak rozegranych meczów.</p>';
             else {
                 matchesArr.slice().reverse().forEach(m => {
                     const item = document.createElement('div');
                     item.className = 'match-item';
                     item.innerHTML = `
-                        <b>${m.p1Name}</b> (śr. ${(m.avg1||0).toFixed(2)}) 
-                        <span style="color:#1a73e8; font-size:18px; margin: 0 10px;">${m.s1} : ${m.s2}</span> 
-                        <b>${m.p2Name}</b> (śr. ${(m.avg2||0).toFixed(2)})
-                        <div style="font-size:11px; color:#888; margin-top:4px;">${m.date || ''}</div>
+                        <b>${m.p1Name}</b> <span style="color:var(--text-muted)">(śr. ${(m.avg1||0).toFixed(2)})</span> 
+                        <span style="color:var(--accent-blue); font-size:1.1rem; font-weight:700; margin: 0 12px;">${m.s1} : ${m.s2}</span> 
+                        <b>${m.p2Name}</b> <span style="color:var(--text-muted)">(śr. ${(m.avg2||0).toFixed(2)})</span>
+                        <div style="font-size:0.8rem; color:var(--text-muted); margin-top:6px;">${m.date || ''}</div>
                     `;
                     historyList.appendChild(item);
                 });
