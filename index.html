@@ -250,8 +250,26 @@
         .player-name {
             font-weight: 700;
             font-size: 1.1rem;
-            margin-bottom: 6px;
+            margin-bottom: 2px;
             color: #fff;
+        }
+
+        .player-nickname-display {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+            font-style: italic;
+        }
+
+        .player-title-display {
+            font-size: 0.75rem;
+            background: rgba(59, 130, 246, 0.15);
+            color: var(--accent-blue);
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: inline-block;
         }
 
         .player-info {
@@ -452,7 +470,7 @@
             box-shadow: 0 0 12px rgba(59, 130, 246, 0.5);
         }
 
-        /* --- SIATKA ODZNAK W MODALU --- */
+        /* --- SIATKA ODZNAK W MODALU (Odblokowane na górze) --- */
         .badges-grid-modal {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
@@ -479,11 +497,13 @@
         .badge-card-item.unlocked {
             border-color: rgba(16, 185, 129, 0.4);
             background: rgba(16, 185, 129, 0.03);
+            order: 1;
         }
 
         .badge-card-item.locked {
             opacity: 0.4;
             filter: grayscale(1);
+            order: 2;
         }
 
         .badge-card-emoji {
@@ -731,7 +751,9 @@
                 <div class="card" style="display: flex; gap: 24px; align-items: center; flex-wrap: wrap;">
                     <img id="prof-photo" src="" style="width: 100px; height: 100px; border-radius: 50%; border: 2px solid var(--accent-blue); object-fit: cover; box-shadow: 0 8px 20px rgba(59, 130, 246, 0.25);">
                     <div style="flex: 1;">
-                        <h2 id="prof-fullname" style="border:none; margin:0 0 4px 0; padding:0; font-size: 1.5rem;">-</h2>
+                        <h2 id="prof-fullname" style="border:none; margin:0 0 2px 0; padding:0; font-size: 1.5rem;">-</h2>
+                        <div id="prof-nickname-display" style="font-size: 0.95rem; color: var(--text-muted); font-style: italic; margin-bottom: 4px;">-</div>
+                        <div id="prof-title-display" style="font-size: 0.75rem; background: rgba(59, 130, 246, 0.15); color: var(--accent-blue); padding: 2px 10px; border-radius: 12px; font-weight: 600; display: inline-block; margin-bottom: 4px;">-</div>
                         <p style="color: var(--text-muted); font-size: 0.9rem;" id="prof-email-display">-</p>
                         
                         <!-- Gablota na profilu -->
@@ -843,6 +865,7 @@
             <h2>Edycja Profilu</h2>
             <div class="form-group"><label>Imię</label><input type="text" id="edit-firstname"></div>
             <div class="form-group"><label>Nazwisko</label><input type="text" id="edit-lastname"></div>
+            <div class="form-group"><label>Nick (Pseudonim)</label><input type="text" id="edit-nickname" placeholder="np. MasterDart"></div>
             <div class="form-group"><label>Data Urodzenia</label><input type="date" id="edit-birthdate"></div>
             <div class="form-group"><label>Miejscowość</label><input type="text" id="edit-city"></div>
             <div class="form-group"><label>Link DartCounter</label><input type="text" id="edit-dartcounter"></div>
@@ -876,7 +899,9 @@
     <div id="modal-view-player" class="modal hidden">
         <div class="modal-content" style="text-align: center;">
             <img id="view-player-photo" src="" style="width: 96px; height: 96px; border-radius: 50%; margin-bottom: 14px; object-fit: cover; border: 2px solid var(--accent-blue); box-shadow: 0 8px 20px rgba(59, 130, 246, 0.25);">
-            <h2 id="view-player-fullname" style="border:none; margin-bottom: 4px; font-size: 1.4rem;">-</h2>
+            <h2 id="view-player-fullname" style="border:none; margin-bottom: 2px; font-size: 1.4rem;">-</h2>
+            <div id="view-player-nickname" style="font-size: 0.85rem; color: var(--text-muted); font-style: italic; margin-bottom: 4px;">-</div>
+            <div id="view-player-title" style="font-size: 0.75rem; background: rgba(59, 130, 246, 0.15); color: var(--accent-blue); padding: 2px 10px; border-radius: 12px; font-weight: 600; display: inline-block; margin-bottom: 6px;">-</div>
             
             <span style="font-size:0.75rem; text-transform:uppercase; color:var(--text-muted); display:block; margin-top: 6px;">Gablota Zawodnika</span>
             <div id="view-player-showcase" class="showcase-container" style="max-width: 200px; margin: 6px auto 14px auto;"></div>
@@ -1078,6 +1103,19 @@
 
         const ALL_BADGES = getAllBadgesDefinitions();
 
+        // --- DEFINICJE TYTUŁÓW ZA MECZE ---
+        const TITLE_THRESHOLDS = [
+            { threshold: 100, name: "Legenda Klubu" },
+            { threshold: 50, name: "Weteran Boiska" },
+            { threshold: 10, name: "Stały Bywalec" },
+            { threshold: 1, name: "Debiutant" }
+        ];
+
+        function getPlayerTitle(matchesCount = 0) {
+            const found = TITLE_THRESHOLDS.find(t => matchesCount >= t.threshold);
+            return found ? found.name : "Nowy Gracz";
+        }
+
         const REGULAMIN_TEXT = `==================================================
         REGULAMIN AKADEMICKIEJ LIGI DARTA
 ==================================================
@@ -1196,7 +1234,7 @@
                 const cred = await createUserWithEmailAndPassword(auth, email, pass1);
                 const randomAvatar = PRESET_AVATARS[Math.floor(Math.random() * PRESET_AVATARS.length)];
                 await set(dbRef(db, 'users/' + cred.user.uid), {
-                    firstName: fn, lastName: ln, birthDate: document.getElementById('reg-birthdate').value || "",
+                    firstName: fn, lastName: ln, nickname: "", birthDate: document.getElementById('reg-birthdate').value || "",
                     city: document.getElementById('reg-city').value.trim() || "", dartCounter: document.getElementById('reg-dartcounter').value.trim() || "",
                     photoUrl: randomAvatar, email: email, signedUpForSeason1: false, statusSeason1: "none",
                     showcase: []
@@ -1266,6 +1304,19 @@
             const uid = auth.currentUser ? auth.currentUser.uid : null;
 
             document.getElementById('prof-fullname').innerText = `${data.firstName || ''} ${data.lastName || ''}`;
+            
+            const nickEl = document.getElementById('prof-nickname-display');
+            if (data.nickname) {
+                nickEl.innerText = `@${data.nickname}`;
+                nickEl.classList.remove('hidden');
+            } else {
+                nickEl.innerText = "";
+                nickEl.classList.add('hidden');
+            }
+
+            const matchesCount = (uid && globalPlayerDetailsStats[uid]) ? globalPlayerDetailsStats[uid].matches : 0;
+            document.getElementById('prof-title-display').innerText = `🏆 ${getPlayerTitle(matchesCount)}`;
+
             document.getElementById('prof-email-display').innerText = data.email || "";
             document.getElementById('prof-photo').src = data.photoUrl || PRESET_AVATARS[0];
             document.getElementById('prof-age').innerText = calculateAge(data.birthDate);
@@ -1676,6 +1727,7 @@
             if (!currentUserProfileData) return;
             document.getElementById('edit-firstname').value = currentUserProfileData.firstName || '';
             document.getElementById('edit-lastname').value = currentUserProfileData.lastName || '';
+            document.getElementById('edit-nickname').value = currentUserProfileData.nickname || '';
             document.getElementById('edit-birthdate').value = currentUserProfileData.birthDate || '';
             document.getElementById('edit-city').value = currentUserProfileData.city || '';
             document.getElementById('edit-dartcounter').value = currentUserProfileData.dartCounter || '';
@@ -1703,6 +1755,7 @@
                 await update(dbRef(db, 'users/' + user.uid), {
                     firstName: document.getElementById('edit-firstname').value.trim(),
                     lastName: document.getElementById('edit-lastname').value.trim(),
+                    nickname: document.getElementById('edit-nickname').value.trim(),
                     birthDate: document.getElementById('edit-birthdate').value,
                     city: document.getElementById('edit-city').value.trim(),
                     dartCounter: document.getElementById('edit-dartcounter').value.trim(),
@@ -1759,11 +1812,17 @@
                 showcaseSlotsContainer.appendChild(slotDiv);
             }
 
-            // Renderuj listę wszystkich odznak
+            // Renderuj listę wszystkich odznak (posortowane: odblokowane na górze)
             const gridContainer = document.getElementById('badges-grid-container');
             gridContainer.innerHTML = '';
 
-            Object.keys(ALL_BADGES).forEach(key => {
+            const sortedBadgeKeys = Object.keys(ALL_BADGES).sort((a, b) => {
+                const aUnlocked = unlockedKeys.includes(a);
+                const bUnlocked = unlockedKeys.includes(b);
+                return (bUnlocked === true) - (aUnlocked === true);
+            });
+
+            sortedBadgeKeys.forEach(key => {
                 const badgeDef = ALL_BADGES[key];
                 const isUnlocked = unlockedKeys.includes(key);
                 const isInShowcase = showcase.includes(key);
@@ -1829,14 +1888,18 @@
                     count++;
                     const userAvg = globalCalculatedAverages[uid] !== undefined ? globalCalculatedAverages[uid].toFixed(2) : "0.00";
                     const st = globalCalculatedStats[uid] || { hf: 0, s80: 0, s100: 0, s140: 0, s180: 0 };
+                    const details = globalPlayerDetailsStats[uid] || { matches: 0 };
                     const unlocked = calculatePlayerUnlockedBadges(uid);
                     const showcaseHtml = renderShowcaseHtml(p.showcase, unlocked);
+                    const playerTitle = getPlayerTitle(details.matches);
 
                     const card = document.createElement('div');
                     card.className = 'player-card';
                     card.innerHTML = `
                         <img class="player-avatar" src="${p.photoUrl || PRESET_AVATARS[0]}">
                         <div class="player-name">${p.firstName || ''} ${p.lastName || ''}</div>
+                        ${p.nickname ? `<div class="player-nickname-display">@${p.nickname}</div>` : ''}
+                        <div class="player-title-display">🏆 ${playerTitle}</div>
                         <div style="font-size:0.75rem; text-transform:uppercase; color:var(--text-muted); margin-top:2px;">Gablota</div>
                         <div class="showcase-container">${showcaseHtml}</div>
                         <div class="player-info" style="margin-top:6px;">🎯 Średnia: <b style="color:var(--text-color);">${userAvg}</b></div>
@@ -1860,6 +1923,19 @@
 
         function openPlayerModal(uid, player) {
             document.getElementById('view-player-fullname').innerText = `${player.firstName || ''} ${player.lastName || ''}`;
+            
+            const nickModal = document.getElementById('view-player-nickname');
+            if (player.nickname) {
+                nickModal.innerText = `@${player.nickname}`;
+                nickModal.classList.remove('hidden');
+            } else {
+                nickModal.innerText = "";
+                nickModal.classList.add('hidden');
+            }
+
+            const details = globalPlayerDetailsStats[uid] || { matches: 0 };
+            document.getElementById('view-player-title').innerText = `🏆 ${getPlayerTitle(details.matches)}`;
+
             document.getElementById('view-player-photo').src = player.photoUrl || PRESET_AVATARS[0];
             document.getElementById('view-player-age').innerText = calculateAge(player.birthDate);
             document.getElementById('view-player-avg').innerText = globalCalculatedAverages[uid] !== undefined ? globalCalculatedAverages[uid].toFixed(2) : "0.00";
