@@ -80,7 +80,7 @@
         .badge-approved { background: #16a34a; }
 
         /* LISTY DLA ADMINA */
-        .admin-player-item { display: flex; align-items: center; justify-content: space-between; background: #252525; padding: 10px 15px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #333; }
+        .admin-player-item, .admin-match-item { display: flex; align-items: center; justify-content: space-between; background: #252525; padding: 10px 15px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #333; }
         .match-item { background: #252525; padding: 12px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #333; text-align: center; }
 
         /* AWATARY AI GRID */
@@ -224,7 +224,6 @@
                 <a id="prof-dartcounter-btn" href="#" target="_blank" rel="noopener noreferrer" class="dart-link">Otwórz profil w DartCounter</a>
             </div>
 
-            <button id="btn-edit-profile" type="button" style="margin-top: 10px;">Edytuj profil</button>
             <button id="btn-logout" type="button" class="btn-sec">Wyloguj się</button>
         </div>
 
@@ -259,6 +258,13 @@
             <div id="admin-match-msg" class="msg"></div>
         </div>
 
+        <!-- SEKCJA: EDYCJA / USUWAMIE ROZEGRANYCH MECZÓW -->
+        <div class="box" style="max-width: 100%; margin-bottom: 25px;">
+            <h3>⚙️ Zarządzanie rozegranymi meczami</h3>
+            <div id="admin-matches-list">Wczytywanie listy meczów...</div>
+            <div id="admin-matches-msg" class="msg"></div>
+        </div>
+
         <!-- SEKCJA: WERYFIKACJA ZAWODNIKÓW -->
         <div class="box" style="max-width: 100%; margin-bottom: 25px;">
             <h3>👥 Zarządzanie uczestnikami 1. Sezonu</h3>
@@ -280,42 +286,31 @@
         </div>
     </div>
 
-    <!-- MODAL 1: EDYCJA PROFILU -->
-    <div id="modal-edit-profile" class="modal-overlay hidden">
+    <!-- MODAL 1: EDYCJA MECZU (ADMIN) -->
+    <div id="modal-edit-match" class="modal-overlay hidden">
         <div class="modal-content">
-            <h3>Edycja Profilu</h3>
+            <h3>Edycja wyniku meczu</h3>
+            <input type="hidden" id="edit-match-id">
             <div class="form-group">
-                <label>Wybierz awatar AI:</label>
-                <div id="avatar-picker" class="avatar-picker-grid"></div>
+                <label>Gracz 1 (Gospodarz):</label>
+                <select id="edit-match-p1"></select>
             </div>
             <div class="form-group">
-                <label for="edit-photo-url">Lub wklej własny link URL do zdjęcia:</label>
-                <input type="url" id="edit-photo-url">
+                <label>Legi Gracza 1:</label>
+                <input type="number" id="edit-match-score1" min="0">
             </div>
             <div class="form-group">
-                <label for="edit-firstname">Imię *:</label>
-                <input type="text" id="edit-firstname">
+                <label>Legi Gracza 2:</label>
+                <input type="number" id="edit-match-score2" min="0">
             </div>
             <div class="form-group">
-                <label for="edit-lastname">Nazwisko *:</label>
-                <input type="text" id="edit-lastname">
+                <label>Gracz 2 (Gość):</label>
+                <select id="edit-match-p2"></select>
             </div>
-            <div class="form-group">
-                <label for="edit-birthdate">Data urodzenia:</label>
-                <input type="date" id="edit-birthdate">
-            </div>
-            <div class="form-group">
-                <label for="edit-city">Miejscowość:</label>
-                <input type="text" id="edit-city">
-            </div>
-            <div class="form-group">
-                <label for="edit-dartcounter">Link do profilu DartCounter:</label>
-                <input type="url" id="edit-dartcounter">
-            </div>
-            <div id="edit-msg" class="msg"></div>
+            <div id="edit-match-msg" class="msg"></div>
             <div class="modal-actions">
-                <button id="btn-save-profile" type="button">Zapisz zmiany</button>
-                <button id="btn-cancel-edit" type="button" class="btn-sec">Anuluj</button>
+                <button id="btn-update-match" type="button" class="btn-success">Zapisz zmiany</button>
+                <button id="btn-cancel-edit-match" type="button" class="btn-sec">Anuluj</button>
             </div>
         </div>
     </div>
@@ -347,7 +342,7 @@
             sendEmailVerification, sendPasswordResetEmail, onAuthStateChanged, signOut 
         } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { 
-            getDatabase, ref as dbRef, set, get, update, push, onValue 
+            getDatabase, ref as dbRef, set, get, update, push, remove, onValue 
         } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         // CONFIG FIREBASE
@@ -384,7 +379,7 @@
 
         let currentUserProfileData = null;
         let globalUsersData = {};
-        let globalMatchesData = [];
+        let globalMatchesMap = {}; // Przechowuje mecze z ich ID z Firebase
 
         // --- NAWIGACJA ZAKŁADEK ---
         const tabs = {
@@ -627,7 +622,7 @@
             const historyList = document.getElementById('matches-history-list');
 
             const users = globalUsersData;
-            const matches = globalMatchesData;
+            const matches = Object.values(globalMatchesMap);
 
             let stats = {};
             Object.keys(users).forEach(uid => {
@@ -717,6 +712,7 @@
             const listContainer = document.getElementById('admin-players-list');
             const selectP1 = document.getElementById('admin-match-p1');
             const selectP2 = document.getElementById('admin-match-p2');
+            const matchesContainer = document.getElementById('admin-matches-list');
 
             const users = globalUsersData;
             listContainer.innerHTML = "";
@@ -775,6 +771,45 @@
             if (count === 0) {
                 listContainer.innerHTML = "<p style='color:#888;'>Brak zgłoszeń do 1. Sezonu.</p>";
             }
+
+            // RENDEROWANIE MECZÓW DLA ADMINA (Z EDYCJĄ I USUWANIEM)
+            matchesContainer.innerHTML = "";
+            const matchKeys = Object.keys(globalMatchesMap);
+            if (matchKeys.length === 0) {
+                matchesContainer.innerHTML = "<p style='color:#888;'>Brak wprowadzonych meczów.</p>";
+            } else {
+                matchKeys.reverse().forEach(matchId => {
+                    const m = globalMatchesMap[matchId];
+                    const item = document.createElement('div');
+                    item.className = 'admin-match-item';
+
+                    const infoDiv = document.createElement('div');
+                    infoDiv.innerHTML = `
+                        <b>${m.p1Name}</b> <span style="color:#1a73e8; font-weight:bold;">${m.s1} : ${m.s2}</span> <b>${m.p2Name}</b>
+                        <br><span style="font-size:11px; color:#888;">${m.date || ''}</span>
+                    `;
+
+                    const actionsDiv = document.createElement('div');
+
+                    const btnEdit = document.createElement('button');
+                    btnEdit.className = 'btn-sm';
+                    btnEdit.style.marginRight = '5px';
+                    btnEdit.innerText = '✏️ Edytuj';
+                    btnEdit.onclick = () => openEditMatchModal(matchId, m);
+
+                    const btnDelete = document.createElement('button');
+                    btnDelete.className = 'btn-sm btn-danger';
+                    btnDelete.innerText = '🗑️ Usuń';
+                    btnDelete.onclick = () => deleteMatch(matchId);
+
+                    actionsDiv.appendChild(btnEdit);
+                    actionsDiv.appendChild(btnDelete);
+
+                    item.appendChild(infoDiv);
+                    item.appendChild(actionsDiv);
+                    matchesContainer.appendChild(item);
+                });
+            }
         }
 
         async function setPlayerStatus(uid, status, isSigned) {
@@ -788,12 +823,12 @@
                 msg.innerText = "Status zawodnika został pomyślnie zaktualizowany!";
             } catch (err) { 
                 msg.className = "msg error";
-                msg.innerText = "Błąd zapisu (sprawdź reguły Firebase): " + err.message;
+                msg.innerText = "Błąd zapisu: " + err.message;
                 console.error(err);
             }
         }
 
-        // Zapisywanie meczu przez Admina
+        // --- ZARZĄDZANIE MECZAMI (DODAWANIE, EDYCJA, USUWAMIE) ---
         document.getElementById('btn-save-match').onclick = async () => {
             const p1Uid = document.getElementById('admin-match-p1').value;
             const p2Uid = document.getElementById('admin-match-p2').value;
@@ -828,6 +863,81 @@
             }
         };
 
+        function openEditMatchModal(matchId, matchData) {
+            document.getElementById('edit-match-id').value = matchId;
+            document.getElementById('edit-match-score1').value = matchData.s1;
+            document.getElementById('edit-match-score2').value = matchData.s2;
+
+            const editSelectP1 = document.getElementById('edit-match-p1');
+            const editSelectP2 = document.getElementById('edit-match-p2');
+            editSelectP1.innerHTML = "";
+            editSelectP2.innerHTML = "";
+
+            Object.keys(globalUsersData).forEach(uid => {
+                const u = globalUsersData[uid];
+                if (u.signedUpForSeason1 && u.statusSeason1 === "approved") {
+                    const opt1 = document.createElement('option');
+                    opt1.value = uid;
+                    opt1.innerText = `${u.firstName || ''} ${u.lastName || ''}`;
+                    if (uid === matchData.p1Uid) opt1.selected = true;
+
+                    const opt2 = opt1.cloneNode(true);
+                    if (uid === matchData.p2Uid) opt2.selected = true;
+
+                    editSelectP1.appendChild(opt1);
+                    editSelectP2.appendChild(opt2);
+                }
+            });
+
+            document.getElementById('edit-match-msg').innerText = "";
+            document.getElementById('modal-edit-match').classList.remove('hidden');
+        }
+
+        document.getElementById('btn-cancel-edit-match').onclick = () => {
+            document.getElementById('modal-edit-match').classList.add('hidden');
+        };
+
+        document.getElementById('btn-update-match').onclick = async () => {
+            const matchId = document.getElementById('edit-match-id').value;
+            const p1Uid = document.getElementById('edit-match-p1').value;
+            const p2Uid = document.getElementById('edit-match-p2').value;
+            const s1 = document.getElementById('edit-match-score1').value;
+            const s2 = document.getElementById('edit-match-score2').value;
+            const msg = document.getElementById('edit-match-msg');
+
+            if (!p1Uid || !p2Uid || p1Uid === p2Uid) {
+                msg.className = "msg error";
+                msg.innerText = "Wybierz dwóch różnych zawodników!";
+                return;
+            }
+
+            try {
+                const u1 = globalUsersData[p1Uid];
+                const u2 = globalUsersData[p2Uid];
+
+                await update(dbRef(db, 'matches/' + matchId), {
+                    p1Uid, p1Name: `${u1.firstName || ''} ${u1.lastName || ''}`,
+                    p2Uid, p2Name: `${u2.firstName || ''} ${u2.lastName || ''}`,
+                    s1: parseInt(s1), s2: parseInt(s2)
+                });
+
+                document.getElementById('modal-edit-match').classList.add('hidden');
+            } catch (err) {
+                msg.className = "msg error";
+                msg.innerText = "Błąd zapisu: " + err.message;
+            }
+        };
+
+        async function deleteMatch(matchId) {
+            if (confirm("Czy na pewno chcesz usunąć ten mecz? Tabela ligowa przeliczy się automatycznie.")) {
+                try {
+                    await remove(dbRef(db, 'matches/' + matchId));
+                } catch (err) {
+                    alert("Błąd podczas usuwania: " + err.message);
+                }
+            }
+        }
+
         // Zapisywanie treści strony
         document.getElementById('btn-save-content').onclick = async () => {
             const homeText = document.getElementById('admin-text-home').value;
@@ -844,7 +954,7 @@
             }
         };
 
-        // SUBKSKRYPCJA CZASU RZECZYWISTEGO (ONVALUE)
+        // NASŁUCHIWACZE CZASU RZECZYWISTEGO (ONVALUE)
         function initRealtimeListeners() {
             // 1. Zmiany w Użytkownikach
             onValue(dbRef(db, 'users'), (snap) => {
@@ -862,14 +972,15 @@
                 renderTableAndMatches();
             });
 
-            // 2. Zmiany w Meczach
+            // 2. Zmiany w Meczach (zachowanie struktury klucz-wartość)
             onValue(dbRef(db, 'matches'), (snap) => {
                 if (snap.exists()) {
-                    globalMatchesData = Object.values(snap.val());
+                    globalMatchesMap = snap.val();
                 } else {
-                    globalMatchesData = [];
+                    globalMatchesMap = {};
                 }
                 renderTableAndMatches();
+                renderAdminPanelData();
             });
 
             // 3. Zmiany w Treściach strony
