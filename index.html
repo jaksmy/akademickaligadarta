@@ -88,8 +88,8 @@
         .avatar-option.selected { border-color: #1a73e8; box-shadow: 0 0 10px rgba(26, 115, 232, 0.8); }
 
         /* MODALE */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.92); z-index: 9999; display: flex; justify-content: center; align-items: center; padding: 20px; }
-        .modal-content { background: #1e1e1e; border: 2px solid #1a73e8; padding: 25px; border-radius: 12px; text-align: center; max-width: 500px; width: 100%; box-shadow: 0 0 25px rgba(26, 115, 232, 0.4); max-height: 90vh; overflow-y: auto; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.92); z-index: 9999; display: flex; justify-content: center; align-items: center; padding: 15px; }
+        .modal-content { background: #1e1e1e; border: 2px solid #1a73e8; padding: 20px; border-radius: 12px; text-align: center; max-width: 500px; width: 100%; box-shadow: 0 0 25px rgba(26, 115, 232, 0.4); max-height: 90vh; overflow-y: auto; }
         .form-group { text-align: left; margin-bottom: 10px; }
         .modal-actions { display: flex; gap: 10px; margin-top: 15px; }
         .season-badge { background: #1557b0; color: #fff; font-size: 12px; padding: 4px 10px; border-radius: 12px; display: inline-block; margin-top: 5px; }
@@ -107,6 +107,13 @@
         .live-wrapper { position: relative; width: 100%; height: 650px; margin-top: 15px; border-radius: 8px; overflow: hidden; background: #1a1a1a; }
         .live-container { width: 100%; height: 100%; border: none; pointer-events: none; }
         .live-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; background: transparent; cursor: default; }
+
+        /* OPUSZCZENIE MOBILNE */
+        @media (max-width: 600px) {
+            body { padding: 10px; }
+            .modal-content { padding: 15px; }
+            .match-inputs-grid { grid-template-columns: 1fr; }
+        }
 
         /* STOPKA */
         footer { margin-top: auto; padding: 20px; text-align: center; border-top: 1px solid #333; color: #888; font-size: 13px; }
@@ -359,15 +366,15 @@
             <div id="match-action-propose-view">
                 <div id="proposal-status-info" style="margin-bottom: 15px; font-size: 14px;"></div>
                 
-                <!-- Przyciski akceptacji/odrzucenia propozycji przeciwnika -->
-                <div id="opponent-proposal-actions" class="hidden" style="margin-bottom: 20px; background: #222; padding: 12px; border-radius: 8px; border: 1px solid #444;">
-                    <button id="btn-accept-proposal" type="button" class="btn-success" style="margin-bottom: 8px; width: 100%; font-size: 15px; padding: 12px;">✅ Akceptuj ten termin</button>
-                    <p style="color:#aaa; font-size:12px; margin: 5px 0 0 0; text-align: center;">Lub wybierz nową datę poniżej i zaproponuj zmianę:</p>
+                <!-- DEDYKOWANY PRZYCISK AKCEPTACJI PROPOZYCJI -->
+                <div id="opponent-proposal-actions" class="hidden" style="margin-bottom: 15px; background: #222; padding: 15px; border-radius: 8px; border: 1px solid #28a745;">
+                    <button id="btn-accept-proposal" type="button" class="btn-success" style="width: 100%; font-size: 16px; padding: 14px; margin: 0 0 8px 0; font-weight: bold; cursor: pointer;">✅ AKCEPTUJ TEN TERMIN</button>
+                    <p style="color:#aaa; font-size:12px; margin: 0; text-align: center;">Lub wybierz inna datę poniżej i prześlij kontrpropozycję:</p>
                 </div>
 
                 <div style="border-top: 1px solid #333; padding-top: 15px;">
-                    <label for="match-propose-date" style="text-align: left;">Zaproponuj (nowy) termin:</label>
-                    <input type="datetime-local" id="match-propose-date">
+                    <label for="match-propose-date" style="text-align: left; font-weight: bold;">Zaproponuj (nowy) termin:</label>
+                    <input type="datetime-local" id="match-propose-date" style="margin-bottom: 10px;">
                     <button id="btn-submit-proposal" type="button" class="btn-sec" style="width: 100%;">Wyślij propozycję terminu</button>
                 </div>
             </div>
@@ -687,7 +694,7 @@
                     const card = document.createElement('div');
                     card.className = 'match-card';
 
-                    let statusText = "TBD - Kliknij aby zaproponować termin";
+                    let statusText = "TBD - Kliknij aby zaproponować / zaakceptować termin";
                     let dateDisplay = "Termin nieustalony";
                     let isReadyForReport = false;
 
@@ -705,7 +712,7 @@
                     } else if (m.proposedDate) {
                         const propDate = new Date(m.proposedDate);
                         dateDisplay = "Propozycja: " + propDate.toLocaleString('pl-PL', { dateStyle: 'short', timeStyle: 'short' });
-                        statusText = m.proposedBy === uid ? "Oczekuje na akceptację drugiego gracza" : "⚠️ Propozycja od przeciwnika!";
+                        statusText = "⚠️ Kliknij, aby zaakceptować lub zmienić termin";
                     }
 
                     if (m.reported) {
@@ -734,7 +741,6 @@
 
             const proposeView = document.getElementById('match-action-propose-view');
             const reportView = document.getElementById('match-action-report-view');
-            const currentUid = auth.currentUser ? auth.currentUser.uid : null;
 
             if (isReadyForReport && matchData.status === 'approved' && !matchData.reported) {
                 proposeView.classList.add('hidden');
@@ -754,15 +760,13 @@
                     opponentActions.classList.add('hidden');
                 } else if (matchData.proposedDate) {
                     const propStr = new Date(matchData.proposedDate).toLocaleString('pl-PL', { dateStyle: 'short', timeStyle: 'short' });
-                    if (matchData.proposedBy === currentUid) {
-                        infoDiv.innerHTML = `<span style="color:#ffd43b;">⏳ Twoja propozycja: <b>${propStr}</b><br>(Oczekuje na odpowiedź przeciwnika)</span>`;
-                        opponentActions.classList.add('hidden');
-                    } else {
-                        infoDiv.innerHTML = `<span style="color:#ff6b6b; font-weight:bold;">⚠️ Przeciwnik zaproponował termin:<br><span style="font-size:16px; color:#fff;">${propStr}</span></span>`;
-                        opponentActions.classList.remove('hidden');
-                    }
+                    
+                    infoDiv.innerHTML = `<span style="color:#ffd43b; font-size:15px;">⚠️ Zaproponowany termin meczu:<br><b style="font-size:18px; color:#fff;">${propStr}</b></span>`;
+                    
+                    // Pokazuj przycisk akceptacji dla propozycji
+                    opponentActions.classList.remove('hidden');
                 } else {
-                    infoDiv.innerHTML = `<span style="color:#ccc;">Brak ustalonego terminu. Zaproponuj datę poniżej:</span>`;
+                    infoDiv.innerHTML = `<span style="color:#ccc;">Brak ustalonego terminu. Wybierz datę poniżej:</span>`;
                     opponentActions.classList.add('hidden');
                 }
             }
@@ -788,14 +792,14 @@
                     proposedDate: dateVal,
                     proposedBy: user.uid,
                     status: 'pending',
-                    scheduledDate: null // Resetujemy oficjalny termin do momentu akceptacji
+                    scheduledDate: null
                 });
                 document.getElementById('modal-match-action').classList.add('hidden');
-                alert("Propozycja terminu została wysłana do przeciwnika.");
+                alert("Propozycja terminu została zapisana i wysłana.");
             } catch(err) { alert(err.message); }
         };
 
-        // AKCEPTACJA PROPOZYCJI PRZECIWNIKA
+        // AKCEPTACJA PROPOZYCJI
         document.getElementById('btn-accept-proposal').onclick = async () => {
             const matchId = document.getElementById('match-action-id').value;
             const match = globalUpcomingMatchesMap[matchId];
@@ -807,7 +811,7 @@
                     status: 'approved'
                 });
                 document.getElementById('modal-match-action').classList.add('hidden');
-                alert("Termin został zaakceptowany! Mecz pojawił się na stronie głównej.");
+                alert("Termin został zaakceptowany! Mecz pojawił się w kalendarzu.");
             } catch(err) { alert(err.message); }
         };
 
@@ -1112,7 +1116,7 @@
                 }
 
                 if (stats[m.p2Uid]) {
-                    stats[m.p2Uid].matches++; stats[m.p2Uid].legsWon += s2; stats[m.p2Uid].legsLost += s1;
+                    stats[m.p2Uid].matches++; stats[m.p2Uid].legsLost += s1; stats[m.p2Uid].legsWon += s2;
                     if (s2 > s1) { stats[m.p2Uid].wins++; stats[m.p2Uid].points += 3; }
                     else if (s1 > s2) stats[m.p2Uid].losses++;
                     else { stats[m.p2Uid].draws++; stats[m.p2Uid].points += 1; }
