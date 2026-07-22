@@ -360,14 +360,16 @@
                 <div id="proposal-status-info" style="margin-bottom: 15px; font-size: 14px;"></div>
                 
                 <!-- Przyciski akceptacji/odrzucenia propozycji przeciwnika -->
-                <div id="opponent-proposal-actions" class="hidden" style="margin-bottom: 15px;">
-                    <button id="btn-accept-proposal" type="button" class="btn-success" style="margin-bottom: 8px;">✅ Akceptuj ten termin</button>
-                    <p style="color:#aaa; font-size:12px; margin: 5px 0;">Lub wybierz nową datę poniżej i zaproponuj zmianę:</p>
+                <div id="opponent-proposal-actions" class="hidden" style="margin-bottom: 20px; background: #222; padding: 12px; border-radius: 8px; border: 1px solid #444;">
+                    <button id="btn-accept-proposal" type="button" class="btn-success" style="margin-bottom: 8px; width: 100%; font-size: 15px; padding: 12px;">✅ Akceptuj ten termin</button>
+                    <p style="color:#aaa; font-size:12px; margin: 5px 0 0 0; text-align: center;">Lub wybierz nową datę poniżej i zaproponuj zmianę:</p>
                 </div>
 
-                <label for="match-propose-date">Wybierz datę i godzinę:</label>
-                <input type="datetime-local" id="match-propose-date">
-                <button id="btn-submit-proposal" type="button" class="btn-sec">Wyślij propozycję terminu</button>
+                <div style="border-top: 1px solid #333; padding-top: 15px;">
+                    <label for="match-propose-date" style="text-align: left;">Zaproponuj (nowy) termin:</label>
+                    <input type="datetime-local" id="match-propose-date">
+                    <button id="btn-submit-proposal" type="button" class="btn-sec" style="width: 100%;">Wyślij propozycję terminu</button>
+                </div>
             </div>
 
             <!-- WARIANT B: WYPEŁNIENIE PROTOKOŁU MECZOWEGO -->
@@ -689,7 +691,6 @@
                     let dateDisplay = "Termin nieustalony";
                     let isReadyForReport = false;
 
-                    // Modyfikacja warunków z uwzględnieniem nowego statusu
                     if (m.status === 'approved' && m.scheduledDate) {
                         const matchDate = new Date(m.scheduledDate);
                         dateDisplay = matchDate.toLocaleString('pl-PL', { dateStyle: 'short', timeStyle: 'short' });
@@ -757,7 +758,7 @@
                         infoDiv.innerHTML = `<span style="color:#ffd43b;">⏳ Twoja propozycja: <b>${propStr}</b><br>(Oczekuje na odpowiedź przeciwnika)</span>`;
                         opponentActions.classList.add('hidden');
                     } else {
-                        infoDiv.innerHTML = `<span style="color:#ff6b6b; font-weight:bold;">⚠️ Przeciwnik zaproponował termin: ${propStr}</span>`;
+                        infoDiv.innerHTML = `<span style="color:#ff6b6b; font-weight:bold;">⚠️ Przeciwnik zaproponował termin:<br><span style="font-size:16px; color:#fff;">${propStr}</span></span>`;
                         opponentActions.classList.remove('hidden');
                     }
                 } else {
@@ -768,7 +769,7 @@
 
             document.getElementById('modal-match-action').classList.remove('hidden');
         }
-        
+
         document.getElementById('btn-close-match-action').onclick = () => document.getElementById('modal-match-action').classList.add('hidden');
 
         // WYSYŁANIE PROPOZYCJI TERMINU
@@ -841,7 +842,6 @@
 
             Object.keys(globalUpcomingMatchesMap).forEach(matchId => {
                 const m = globalUpcomingMatchesMap[matchId];
-                // Warunek: Mecz ma status "approved" oraz nie został jeszcze zgłoszony/zakończony
                 if (m.status === 'approved' && m.scheduledDate && !m.reported) {
                     count++;
                     const matchDate = new Date(m.scheduledDate);
@@ -968,7 +968,7 @@
                     p2Uid, p2Name: `${u2.firstName} ${u2.lastName}`,
                     scheduledDate: null, 
                     reported: false,
-                    status: 'none' // Zmieniony status domyślny przy tworzeniu przez Admina
+                    status: 'none'
                 });
                 msg.className = "msg success"; msg.innerText = "Mecz dodany do terminarza!";
             } catch(err) { msg.className = "msg error"; msg.innerText = err.message; }
@@ -980,7 +980,6 @@
             if (!m || !m.reportData) return;
 
             try {
-                // 1. Dodaj do rozegranych meczów
                 await push(dbRef(db, 'matches'), {
                     p1Uid: m.p1Uid, p1Name: m.p1Name,
                     p2Uid: m.p2Uid, p2Name: m.p2Name,
@@ -988,7 +987,6 @@
                     avg1: m.reportData.avg1, avg2: m.reportData.avg2,
                     date: new Date().toLocaleString('pl-PL')
                 });
-                // 2. Usuń z nadchodzących
                 await remove(dbRef(db, 'upcomingMatches/' + matchId));
                 alert("Wynik został zatwierdzony i trafia do tabeli ligowej!");
             } catch(err) { alert(err.message); }
