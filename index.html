@@ -33,7 +33,7 @@
             min-height: 100vh;
         }
 
-        /* --- NAGłÓWEK I NAWIGACJA --- */
+        /* --- NAGŁÓWEK I NAWIGACJA --- */
         header {
             background-color: var(--card-bg);
             border-bottom: 1px solid var(--border-color);
@@ -331,7 +331,7 @@
             box-shadow: 0 0 8px var(--accent-color);
         }
 
-        /* --- KIEDY / BILANS OSTATNICH MECZÓW --- */
+        /* --- BILANS OSTATNICH MECZÓW --- */
         .form-summary {
             display: flex;
             gap: 8px;
@@ -576,6 +576,16 @@
             <!-- TAB: ADMIN -->
             <div id="page-admin" class="page hidden">
                 <div class="card">
+                    <h2>Edycja Tekstu na Stronie Głównej</h2>
+                    <div class="form-group">
+                        <label>Treść komunikatu / aktualności</label>
+                        <textarea id="admin-home-text-input" rows="4" placeholder="Wpisz treść wiadomości na stronę główną..."></textarea>
+                    </div>
+                    <button class="btn-primary" id="btn-admin-save-hometext">Zapisz tekst na stronie głównej</button>
+                    <div id="admin-hometext-msg" class="msg"></div>
+                </div>
+
+                <div class="card">
                     <h2>Zarządzanie Zawodnikami (Sezon 1)</h2>
                     <div id="admin-players-list"></div>
                 </div>
@@ -740,16 +750,16 @@
         // Rozbudowana baza awatarów (brainroty, memy, zwierzęta, kultowe postacie)
         const PRESET_AVATARS = [
             // Zwierzęta & Memy ze zwierzakami
-            "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=150&auto=format&fit=crop&q=80", // Pies (Doggo)
-            "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=150&auto=format&fit=crop&q=80", // Kot szachista
-            "https://images.unsplash.com/photo-1534361960057-19889db9621e?w=150&auto=format&fit=crop&q=80", // Słodki mops
-            "https://images.unsplash.com/photo-1573865526739-10659fec78a5?w=150&auto=format&fit=crop&q=80", // Kot w okularach
-            "https://images.unsplash.com/photo-1548767797-d8c844163c4c?w=150&auto=format&fit=crop&q=80", // Panda wielka
-            "https://images.unsplash.com/photo-1564349683136-77e08dba1ef7?w=150&auto=format&fit=crop&q=80", // Panda mała
-            "https://images.unsplash.com/photo-1456926631375-92c8ce872def?w=150&auto=format&fit=crop&q=80", // Lis rudy
-            "https://images.unsplash.com/photo-1557050543-4d5f4e07ef46?w=150&auto=format&fit=crop&q=80", // Kapibara chill
-            "https://images.unsplash.com/photo-1535268647677-300dbf3d78d1?w=150&auto=format&fit=crop&q=80", // Śmieszny kotek
-            "https://images.unsplash.com/photo-1574158622682-e40e69881006?w=150&auto=format&fit=crop&q=80", // Kot rudzielec
+            "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=150&auto=format&fit=crop&q=80",
+            "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=150&auto=format&fit=crop&q=80",
+            "https://images.unsplash.com/photo-1534361960057-19889db9621e?w=150&auto=format&fit=crop&q=80",
+            "https://images.unsplash.com/photo-1573865526739-10659fec78a5?w=150&auto=format&fit=crop&q=80",
+            "https://images.unsplash.com/photo-1548767797-d8c844163c4c?w=150&auto=format&fit=crop&q=80",
+            "https://images.unsplash.com/photo-1564349683136-77e08dba1ef7?w=150&auto=format&fit=crop&q=80",
+            "https://images.unsplash.com/photo-1456926631375-92c8ce872def?w=150&auto=format&fit=crop&q=80",
+            "https://images.unsplash.com/photo-1557050543-4d5f4e07ef46?w=150&auto=format&fit=crop&q=80",
+            "https://images.unsplash.com/photo-1535268647677-300dbf3d78d1?w=150&auto=format&fit=crop&q=80",
+            "https://images.unsplash.com/photo-1574158622682-e40e69881006?w=150&auto=format&fit=crop&q=80",
 
             // Dicebear / Brainrot & Stylizowane postacie cyfrowe
             "https://api.dicebear.com/7.x/bottts/svg?seed=SkibidiSigma",
@@ -775,7 +785,7 @@
             "https://api.dicebear.com/7.x/avataaars/svg?seed=Pirate",
             "https://api.dicebear.com/7.x/avataaars/svg?seed=Ninja",
 
-            // Postacie / Pixel Art & Popkultura (Dicebear Adventurer / Micah)
+            // Postacie / Pixel Art & Popkultura
             "https://api.dicebear.com/7.x/adventurer/svg?seed=GigaChad",
             "https://api.dicebear.com/7.x/adventurer/svg?seed=AnimeHero",
             "https://api.dicebear.com/7.x/adventurer/svg?seed=DarkLord",
@@ -1023,7 +1033,7 @@
             if (count === 0) container.innerHTML = '<p style="color: #888; font-size: 13px;">Brak nadchodzących meczów.</p>';
         }
 
-        // MODAL AKCJI MECZOWEJ (TERMIN/PROTOKÓŁ)
+        // MODAL AKCJI MECZOWEJ
         function openMatchActionModal(matchId, matchData, isReadyForReport) {
             const currentUid = auth.currentUser ? auth.currentUser.uid : null;
             document.getElementById('match-action-id').value = matchId;
@@ -1070,7 +1080,6 @@
 
         document.getElementById('btn-close-match-action').onclick = () => document.getElementById('modal-match-action').classList.add('hidden');
 
-        // WYSYŁANIE PROPOZYCJI TERMINU
         document.getElementById('btn-submit-proposal').onclick = async () => {
             const matchId = document.getElementById('match-action-id').value;
             const dateVal = document.getElementById('match-propose-date').value;
@@ -1093,7 +1102,6 @@
             } catch(err) { alert(err.message); }
         };
 
-        // AKCEPTACJA PROPOZYCJI
         document.getElementById('btn-accept-proposal').onclick = async () => {
             const matchId = document.getElementById('match-action-id').value;
             const match = globalUpcomingMatchesMap[matchId];
@@ -1109,7 +1117,6 @@
             } catch(err) { alert(err.message); }
         };
 
-        // WYSYŁANIE PROTOKOŁU MECZOWEGO DO ADMINA
         document.getElementById('btn-submit-report').onclick = async () => {
             const matchId = document.getElementById('match-action-id').value;
             const s1 = document.getElementById('report-s1').value;
@@ -1132,7 +1139,6 @@
             } catch(err) { alert(err.message); }
         };
 
-        // STRONA GŁÓWNA - NADCHODZĄCE MECZE
         function renderHomePageUpcoming() {
             const container = document.getElementById('home-upcoming-matches');
             container.innerHTML = "";
@@ -1194,7 +1200,6 @@
                 }
             });
 
-            // PROTOKOŁY OCZEKUJĄCE NA ZATWIERDZENIE
             pendingReportsContainer.innerHTML = "";
             let pendingCount = 0;
             Object.keys(globalUpcomingMatchesMap).forEach(matchId => {
@@ -1217,7 +1222,6 @@
             });
             if (pendingCount === 0) pendingReportsContainer.innerHTML = "<p style='color:#888;'>Brak oczekujących protokołów.</p>";
 
-            // NADCHODZĄCE MECZE (ZARZĄDZANIE)
             upcomingListContainer.innerHTML = "";
             let upcomingCount = 0;
             Object.keys(globalUpcomingMatchesMap).forEach(matchId => {
@@ -1234,7 +1238,6 @@
             });
             if (upcomingCount === 0) upcomingListContainer.innerHTML = "<p style='color:#888;'>Brak zaplanowanych meczów.</p>";
 
-            // ROZEGRANE MECZE
             matchesContainer.innerHTML = "";
             Object.keys(globalMatchesMap).reverse().forEach(matchId => {
                 const m = globalMatchesMap[matchId];
@@ -1248,7 +1251,20 @@
             });
         }
 
-        // TWORZENIE NADCHODZĄCEGO MECZU PRZEZ ADMINA
+        // ZAPIS TEKSTU STRONY GŁÓWNEJ PRZEZ ADMINA
+        document.getElementById('btn-admin-save-hometext').onclick = async () => {
+            const newText = document.getElementById('admin-home-text-input').value.trim();
+            const msg = document.getElementById('admin-hometext-msg');
+            try {
+                await update(dbRef(db, 'siteContent'), { homeText: newText });
+                msg.className = "msg success";
+                msg.innerText = "Tekst na stronie głównej został zaktualizowany!";
+            } catch(err) {
+                msg.className = "msg error";
+                msg.innerText = err.message;
+            }
+        };
+
         document.getElementById('btn-admin-create-upcoming').onclick = async () => {
             const p1Uid = document.getElementById('admin-create-p1').value;
             const p2Uid = document.getElementById('admin-create-p2').value;
@@ -1272,7 +1288,6 @@
             } catch(err) { msg.className = "msg error"; msg.innerText = err.message; }
         };
 
-        // ZATWIERDZENIE WYNIKU PRZEZ ADMINA
         window.approveMatchReport = async (matchId) => {
             const m = globalUpcomingMatchesMap[matchId];
             if (!m || !m.reportData) return;
@@ -1370,7 +1385,6 @@
             if (count === 0) grid.innerHTML = "<p style='grid-column: 1/-1; text-align: center; color: #888;'>Brak zatwierdzonych zawodników.</p>";
         }
 
-        // OTWIERANIE MODALU PODGLĄDU ZAWODNIKA Z HISTORIĄ 5 OSTATNICH MECZÓW
         function openPlayerModal(uid, player) {
             document.getElementById('view-player-fullname').innerText = `${player.firstName || ''} ${player.lastName || ''}`;
             document.getElementById('view-player-photo').src = player.photoUrl || PRESET_AVATARS[0];
@@ -1429,7 +1443,6 @@
 
         document.getElementById('btn-close-view-player').onclick = () => document.getElementById('modal-view-player').classList.add('hidden');
 
-        // TABELA I HISTORIA MECZÓW
         function renderTableAndMatches() {
             const tableBody = document.getElementById('league-table-body');
             const historyList = document.getElementById('matches-history-list');
@@ -1534,7 +1547,13 @@
             onValue(dbRef(db, 'siteContent'), (snap) => {
                 if (snap.exists()) {
                     const data = snap.val();
-                    if (data.homeText) document.getElementById('home-text-display').innerText = data.homeText;
+                    if (data.homeText) {
+                        document.getElementById('home-text-display').innerText = data.homeText;
+                        const adminInput = document.getElementById('admin-home-text-input');
+                        if (adminInput && document.activeElement !== adminInput) {
+                            adminInput.value = data.homeText;
+                        }
+                    }
                     if (data.liveUrl) {
                         document.getElementById('n01-iframe').src = data.liveUrl;
                         document.getElementById('live-external-link').href = data.liveUrl;
