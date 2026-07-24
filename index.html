@@ -1070,12 +1070,10 @@
         function getAllBadgesDefinitions() {
             let defs = {};
             
-            // Mecze
             MILESTONE_THRESHOLDS.forEach(t => {
                 defs[`matches_${t}`] = { name: `${t} Mecz${t === 1 ? '' : (t < 5 ? 'e' : 'ów')}`, emoji: '🎯', desc: `Rozegrano ${t} spotkań` };
             });
 
-            // Statystyki (+80, +100, +140, 180)
             const statsMeta = [
                 { key: '80', emoji: '⭐', namePrefix: '+80' },
                 { key: '100', emoji: '🌟', namePrefix: '+100' },
@@ -1089,12 +1087,10 @@
                 });
             });
 
-            // Wszystkie legalne finishy (od 2 do 170)
             for (let f = 2; f <= 170; f++) {
                 defs[`finish_${f}`] = { name: `Finish ${f}`, emoji: '🎯', desc: `Zakonczono leg z wynikiem ${f}` };
             }
 
-            // Specjalne odznaki
             defs['special_big_fish'] = { name: 'Big Fish', emoji: '🐋', desc: 'Legendarny finish ze 170 punktów!' };
             defs['special_shanghai'] = { name: 'Shanghai', emoji: '🏙️', desc: 'Prestiżowy finish Shanghai (120 pkt)!' };
 
@@ -1103,7 +1099,6 @@
 
         const ALL_BADGES = getAllBadgesDefinitions();
 
-        // --- DEFINICJE TYTUŁÓW ZA MECZE ---
         const TITLE_THRESHOLDS = [
             { threshold: 100, name: "Legenda Klubu" },
             { threshold: 50, name: "Weteran Boiska" },
@@ -1142,7 +1137,7 @@
         let globalUpcomingMatchesMap = {};
         let globalCalculatedAverages = {}; 
         let globalCalculatedStats = {};
-        let globalPlayerDetailsStats = {}; // szczegółowe liczniki do odznak
+        let globalPlayerDetailsStats = {}; 
 
         const tabs = {
             home: { btn: document.getElementById('tab-home'), page: document.getElementById('page-home') },
@@ -1248,17 +1243,32 @@
             }
         };
 
-        // OBLICZANIE ODZNAK DLA DANEGO GRACZA
+        document.getElementById('btn-reset').onclick = async () => {
+            const email = document.getElementById('reset-email').value.trim();
+            const msg = document.getElementById('reset-msg');
+            if (!email) {
+                msg.className = "msg error";
+                msg.innerText = "Podaj adres e-mail!";
+                return;
+            }
+            try {
+                await sendPasswordResetEmail(auth, email);
+                msg.className = "msg success";
+                msg.innerText = "Link resetujący hasło został wysłany na podany e-mail!";
+            } catch (err) {
+                msg.className = "msg error";
+                msg.innerText = err.message;
+            }
+        };
+
         function calculatePlayerUnlockedBadges(uid) {
             const details = globalPlayerDetailsStats[uid] || { matches: 0, s80: 0, s100: 0, s140: 0, s180: 0, finishes: {} };
             let unlocked = [];
 
-            // Sprawdź mecze
             MILESTONE_THRESHOLDS.forEach(t => {
                 if (details.matches >= t) unlocked.push(`matches_${t}`);
             });
 
-            // Sprawdź statystyki (+80, +100, +140, 180)
             MILESTONE_THRESHOLDS.forEach(t => {
                 if (details.s80 >= t) unlocked.push(`stat_80_${t}`);
                 if (details.s100 >= t) unlocked.push(`stat_100_${t}`);
@@ -1266,7 +1276,6 @@
                 if (details.s180 >= t) unlocked.push(`stat_180_${t}`);
             });
 
-            // Sprawdź finishy
             Object.keys(details.finishes).forEach(fStr => {
                 const fVal = parseInt(fStr);
                 if (details.finishes[fVal] > 0) {
@@ -1276,14 +1285,12 @@
                 }
             });
 
-            // Specjalne
             if (details.finishes[170] > 0) unlocked.push('special_big_fish');
             if (details.finishes[120] > 0) unlocked.push('special_shanghai');
 
             return unlocked;
         }
 
-        // RENDEROWANIE GABLOTY
         function renderShowcaseHtml(showcaseArray, unlockedArray) {
             if (!showcaseArray || showcaseArray.length === 0) {
                 return '<span style="font-size:0.75rem; color:var(--text-muted); font-style:italic;">Brak ulubionych</span>';
@@ -1298,7 +1305,6 @@
             return html;
         }
 
-        // UI PROFILU & PROPOZYCJE TERMINÓW
         function updateProfileUI(data) {
             currentUserProfileData = data;
             const uid = auth.currentUser ? auth.currentUser.uid : null;
@@ -1765,7 +1771,6 @@
             } catch (err) { alert(err.message); }
         };
 
-        // --- OBSŁUGA MODALA ODZNAK ---
         document.getElementById('btn-open-my-badges').onclick = () => {
             if (auth.currentUser) {
                 openBadgesModal(auth.currentUser.uid, globalUsersData[auth.currentUser.uid], true);
@@ -1783,7 +1788,6 @@
             const unlockedKeys = calculatePlayerUnlockedBadges(uid);
             const showcase = playerData.showcase || [];
 
-            // Renderuj sloty gabloty w edycji (jeśli to własny profil)
             const showcaseSlotsContainer = document.getElementById('badges-showcase-edit-slots');
             showcaseSlotsContainer.innerHTML = '';
             
@@ -1798,7 +1802,6 @@
                     if (isOwnProfile) {
                         slotDiv.style.cursor = 'pointer';
                         slotDiv.onclick = async () => {
-                            // Usuń z gabloty
                             let newShowcase = [...showcase];
                             newShowcase.splice(i, 1);
                             await update(dbRef(db, 'users/' + uid), { showcase: newShowcase });
@@ -1812,7 +1815,6 @@
                 showcaseSlotsContainer.appendChild(slotDiv);
             }
 
-            // Renderuj listę wszystkich odznak (posortowane: odblokowane na górze)
             const gridContainer = document.getElementById('badges-grid-container');
             gridContainer.innerHTML = '';
 
@@ -1876,7 +1878,6 @@
             } catch(err) { alert(err.message); }
         };
 
-        // ZAWODNICY GRID
         function renderApprovedPlayers() {
             const grid = document.getElementById('players-grid');
             document.getElementById('players-loading').classList.add('hidden');
@@ -2136,39 +2137,27 @@
                 updateProfileUI(globalUsersData[auth.currentUser.uid]);
             }
         }
-
-        function initRealtimeListeners() {
-            onValue(dbRef(db, 'users'), (snap) => {
-                globalUsersData = snap.exists() ? snap.val() : {};
-                renderAdminPanelData(); renderApprovedPlayers(); renderTableAndMatches();
-                if (auth.currentUser && globalUsersData[auth.currentUser.uid]) updateProfileUI(globalUsersData[auth.currentUser.uid]);
+function initRealtimeListeners() { onValue(dbRef(db, 'users'), (snap) => { globalUsersData = snap.exists() ? snap.val() : {}; renderAdminPanelData(); renderApprovedPlayers(); renderTableAndMatches(); if (auth.currentUser && globalUsersData[auth.currentUser.uid]) updateProfileUI(globalUsersData[auth.currentUser.uid]); });
             });
 
             onValue(dbRef(db, 'matches'), (snap) => {
                 globalMatchesMap = snap.exists() ? snap.val() : {};
-                renderTableAndMatches(); renderAdminPanelData();
+                renderTableAndMatches();
             });
 
             onValue(dbRef(db, 'upcomingMatches'), (snap) => {
                 globalUpcomingMatchesMap = snap.exists() ? snap.val() : {};
-                renderHomePageUpcoming(); renderAdminPanelData();
-                if (auth.currentUser) renderUserUpcomingMatches(auth.currentUser.uid);
+                renderHomePageUpcoming();
+                if (auth.currentUser && globalUsersData[auth.currentUser.uid]) {
+                    renderUserUpcomingMatches(auth.currentUser.uid);
+                }
             });
 
             onValue(dbRef(db, 'siteContent'), (snap) => {
-                if (snap.exists()) {
-                    const data = snap.val();
-                    if (data.homeText) {
-                        document.getElementById('home-text-display').innerText = data.homeText;
-                        const adminInput = document.getElementById('admin-home-text-input');
-                        if (adminInput && document.activeElement !== adminInput) {
-                            adminInput.value = data.homeText;
-                        }
-                    }
-                    if (data.liveUrl) {
-                        document.getElementById('n01-iframe').src = data.liveUrl;
-                        document.getElementById('live-external-link').href = data.liveUrl;
-                    }
+                if (snap.exists() && snap.val().homeText) {
+                    const text = snap.val().homeText;
+                    document.getElementById('home-text-display').innerText = text;
+                    document.getElementById('admin-home-text-input').value = text;
                 }
             });
         }
