@@ -1273,8 +1273,8 @@
             let unlocked = [];
 
             // Sprawdź mecze
-            MILESTONE_THRESHOLDS.forEach(t => {
-                if (details.matches >= t) unlocked.push(`matches_${t}`);
+           MILESTONE_THRESHOLDS.forEach(t => {
+    if (details.matches >= t) unlocked.push('matches_' + t);
             });
 
             // Sprawdź statystyki (+80, +100, +140, 180)
