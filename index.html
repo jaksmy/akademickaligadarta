@@ -1240,11 +1240,29 @@
                     showcase: []
                 });
                 await sendEmailVerification(cred.user);
-                alert("Konto utworzone! Potwierdź e-mail linkiem aktywacyjnym.");
-                await signOut(auth);
+                document.getElementById('reg-msg').className = "msg success";
+                document.getElementById('reg-msg').innerText = "Konto utworzone! Wysłano e-mail weryfikacyjny. Sprawdź skrzynkę.";
             } catch (err) {
                 document.getElementById('reg-msg').className = "msg error";
                 document.getElementById('reg-msg').innerText = err.message;
+            }
+        };
+
+        document.getElementById('btn-reset').onclick = async () => {
+            const email = document.getElementById('reset-email').value.trim();
+            const msg = document.getElementById('reset-msg');
+            if (!email) {
+                msg.className = "msg error";
+                msg.innerText = "Podaj adres e-mail.";
+                return;
+            }
+            try {
+                await sendPasswordResetEmail(auth, email);
+                msg.className = "msg success";
+                msg.innerText = "Link do resetowania hasła został wysłany na podany e-mail.";
+            } catch (err) {
+                msg.className = "msg error";
+                msg.innerText = err.message;
             }
         };
 
@@ -1364,6 +1382,18 @@
 
             renderUserUpcomingMatches(uid);
         }
+
+        document.getElementById('btn-toggle-season').onclick = async () => {
+            const user = auth.currentUser;
+            if (!user || !currentUserProfileData) return;
+            const newState = !currentUserProfileData.signedUpForSeason1;
+            try {
+                await update(dbRef(db, 'users/' + user.uid), {
+                    signedUpForSeason1: newState,
+                    statusSeason1: newState ? "pending" : "none"
+                });
+            } catch (err) { alert(err.message); }
+        };
 
         function renderUserUpcomingMatches(uid) {
             const container = document.getElementById('user-upcoming-matches');
@@ -2156,24 +2186,18 @@
             });
 
             onValue(dbRef(db, 'siteContent'), (snap) => {
-                if (snap.exists()) {
-                    const data = snap.val();
-                    if (data.homeText) {
-                        document.getElementById('home-text-display').innerText = data.homeText;
-                        const adminInput = document.getElementById('admin-home-text-input');
-                        if (adminInput && document.activeElement !== adminInput) {
-                            adminInput.value = data.homeText;
-                        }
-                    }
-                    if (data.liveUrl) {
-                        document.getElementById('n01-iframe').src = data.liveUrl;
-                        document.getElementById('live-external-link').href = data.liveUrl;
+                if (snap.exists() && snap.val().homeText) {
+                    const text = snap.val().homeText;
+                    document.getElementById('home-text-display').innerText = text;
+                    const adminInput = document.getElementById('admin-home-text-input');
+                    if (adminInput && document.activeElement !== adminInput) {
+                        adminInput.value = text;
                     }
                 }
             });
         }
 
         initRealtimeListeners();
-   
+    </script>
 </body>
 </html>
