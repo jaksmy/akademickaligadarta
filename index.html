@@ -855,7 +855,7 @@
         </main>
 
         <footer>
-            <p>Akademicka Liga Darta &copy; 2026 | <a id="footer-rules-link" href="#" download="Regulamin_Akademickiej_Ligi_Darta.txt">Pobierz Regulamin (.txt)</a></p>
+            <p>Akademicka Liga Darta &copy; 2026 | <a id="footer-rules-link" href="#" download="Regulamin_ALD.txt">Pobierz Regulamin (.txt)</a></p>
         </footer>
     </div>
 
@@ -1117,7 +1117,6 @@
         }
 
         const REGULAMIN_TEXT = `==================================================
-       ==================================================
         REGULAMIN AKADEMICKIEJ LIGI DARTA
 ==================================================
 
@@ -1128,7 +1127,7 @@
 2. SYSTEM ROZGRYWEK
 2.1. Gracze proponują terminy meczów w swoich profilach.
 2.2. Po rozegraniu meczu gracze wprowadzają wynik w protokole.
-2.3. Administrator weryfikuje i zatwierdza wynik, który trafia do tabeli.
+2.3. Administrator weryfikuje i zatwierdza wynik, który trafia do tabeli.`;
 
         function generateRulesFile() {
             const blob = new Blob([REGULAMIN_TEXT], { type: 'text/plain;charset=utf-8' });
@@ -1273,8 +1272,8 @@
             let unlocked = [];
 
             // Sprawdź mecze
-           MILESTONE_THRESHOLDS.forEach(t => {
-    if (details.matches >= t) unlocked.push('matches_' + t);
+            MILESTONE_THRESHOLDS.forEach(t => {
+                if (details.matches >= t) unlocked.push(`matches_${t}`);
             });
 
             // Sprawdź statystyki (+80, +100, +140, 180)
