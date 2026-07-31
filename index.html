@@ -405,15 +405,6 @@
             font-weight: 600;
         }
 
-        .match-item {
-            background: #0d1322;
-            border: 1px solid var(--card-border);
-            padding: 16px 20px;
-            border-radius: var(--radius);
-            margin-bottom: 12px;
-            text-align: center;
-        }
-
         .modal {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -470,7 +461,6 @@
             box-shadow: 0 0 12px rgba(59, 130, 246, 0.5);
         }
 
-        /* --- SIATKA ODZNAK W MODALU (Odblokowane na górze) --- */
         .badges-grid-modal {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
@@ -680,6 +670,7 @@
             <nav>
                 <button class="nav-btn active" id="tab-home">Główna</button>
                 <button class="nav-btn" id="tab-info">Tabela i Mecze</button>
+                <button class="nav-btn hidden" id="tab-archive">Archiwum</button>
                 <button class="nav-btn" id="tab-players">Gracze</button>
                 <button class="nav-btn" id="tab-live">Na Żywo</button>
                 <button class="nav-btn" id="tab-account">Konto</button>
@@ -724,6 +715,24 @@
                 </div>
             </div>
 
+            <!-- TAB: ARCHIVE -->
+            <div id="page-archive" class="page hidden">
+                <div class="card">
+                    <h2>Archiwum - Tabela Wyników po 1. Sezonie</h2>
+                    <div style="overflow-x: auto;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th><th>Gracz</th><th>M</th><th>W</th><th>R</th><th>P</th>
+                                    <th>Legi</th><th>Różnica</th><th>Średnia</th><th>Pkt</th>
+                                </tr>
+                            </thead>
+                            <tbody id="archive-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
             <!-- TAB: PLAYERS -->
             <div id="page-players" class="page hidden">
                 <div class="card">
@@ -756,7 +765,6 @@
                         <div id="prof-title-display" style="font-size: 0.75rem; background: rgba(59, 130, 246, 0.15); color: var(--accent-blue); padding: 2px 10px; border-radius: 12px; font-weight: 600; display: inline-block; margin-bottom: 4px;">-</div>
                         <p style="color: var(--text-muted); font-size: 0.9rem;" id="prof-email-display">-</p>
                         
-                        <!-- Gablota na profilu -->
                         <div style="margin-top: 8px;">
                             <span style="font-size:0.75rem; text-transform:uppercase; color:var(--text-muted); display:block; margin-bottom:2px;">Gablota odznak</span>
                             <div id="prof-showcase" class="showcase-container" style="justify-content: flex-start; width: fit-content; padding: 4px 10px;"></div>
@@ -809,6 +817,15 @@
             <!-- TAB: ADMIN -->
             <div id="page-admin" class="page hidden">
                 <div class="card">
+                    <h2>Zarządzanie Sezonem</h2>
+                    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                        <button class="btn-danger" id="btn-admin-finish-season">🏁 Zakończ Sezon</button>
+                        <button class="btn-success" id="btn-admin-restore-season">🔄 Przywróć Sezon</button>
+                    </div>
+                    <div id="admin-season-msg" class="msg"></div>
+                </div>
+
+                <div class="card">
                     <h2>Edycja Tekstu na Stronie Głównej</h2>
                     <div class="form-group">
                         <label>Treść komunikatu / aktualności</label>
@@ -819,7 +836,7 @@
                 </div>
 
                 <div class="card">
-                    <h2>Zarządzanie Zawodnikami (Sezon 1)</h2>
+                    <h2>Zarządzanie Zawodnikami</h2>
                     <div id="admin-players-list"></div>
                 </div>
 
@@ -880,7 +897,7 @@
         </div>
     </div>
 
-    <!-- MODAL: ZARZĄDZANIE ODZNAKAMI (GABLOTA / PRZEGLĄD) -->
+    <!-- MODAL: ZARZĄDZANIE ODZNAKAMI -->
     <div id="modal-badges" class="modal hidden">
         <div class="modal-content">
             <h2 id="badges-modal-title">Odznaki Zawodnika</h2>
@@ -933,7 +950,7 @@
         </div>
     </div>
 
-    <!-- MODAL: AKCJA MECZOWA (TERMIN / PROTOKÓŁ) -->
+    <!-- MODAL: AKCJA MECZOWA -->
     <div id="modal-match-action" class="modal hidden">
         <div class="modal-content">
             <h2 id="match-action-title">Mecz</h2>
@@ -1031,7 +1048,7 @@
             "https://images.unsplash.com/photo-1456926631375-92c8ce872def?w=150&auto=format&fit=crop&q=80",
             "https://images.unsplash.com/photo-1557050543-4d5f4e07ef46?w=150&auto=format&fit=crop&q=80",
             "https://images.unsplash.com/photo-1535268647677-300dbf3d78d1?w=150&auto=format&fit=crop&q=80",
-            "https://images.unsplash.com/photo-1574158622682-e40e69881006?w=150&auto=format&fit=crop&q=80",
+            "https://images.unsplash.com/photo-1574158622682-e40e69881006?w=150&auto=format&fit=crop&q=80"
             "https://api.dicebear.com/7.x/bottts/svg?seed=SkibidiSigma",
             "https://api.dicebear.com/7.x/bottts/svg?seed=OhioBoss",
             "https://api.dicebear.com/7.x/bottts/svg?seed=Gigachad",
@@ -1064,18 +1081,14 @@
             "https://api.dicebear.com/7.x/micah/svg?seed=SusImpostor"
         ];
 
-        // --- DEFINICJE ODZNAK I KAMIENI MILOWYCH ---
         const MILESTONE_THRESHOLDS = [1, 5, 10, 25, 50, 100, 250, 500, 1000];
         
         function getAllBadgesDefinitions() {
             let defs = {};
-            
-            // Mecze
             MILESTONE_THRESHOLDS.forEach(t => {
                 defs[`matches_${t}`] = { name: `${t} Mecz${t === 1 ? '' : (t < 5 ? 'e' : 'ów')}`, emoji: '🎯', desc: `Rozegrano ${t} spotkań` };
             });
 
-            // Statystyki (+80, +100, +140, 180)
             const statsMeta = [
                 { key: '80', emoji: '⭐', namePrefix: '+80' },
                 { key: '100', emoji: '🌟', namePrefix: '+100' },
@@ -1089,12 +1102,10 @@
                 });
             });
 
-            // Wszystkie legalne finishy (od 2 do 170)
             for (let f = 2; f <= 170; f++) {
                 defs[`finish_${f}`] = { name: `Finish ${f}`, emoji: '🎯', desc: `Zakonczono leg z wynikiem ${f}` };
             }
 
-            // Specjalne odznaki
             defs['special_big_fish'] = { name: 'Big Fish', emoji: '🐋', desc: 'Legendarny finish ze 170 punktów!' };
             defs['special_shanghai'] = { name: 'Shanghai', emoji: '🏙️', desc: 'Prestiżowy finish Shanghai (120 pkt)!' };
 
@@ -1103,7 +1114,6 @@
 
         const ALL_BADGES = getAllBadgesDefinitions();
 
-        // --- DEFINICJE TYTUŁÓW ZA MECZE ---
         const TITLE_THRESHOLDS = [
             { threshold: 100, name: "Legenda Klubu" },
             { threshold: 50, name: "Weteran Boiska" },
@@ -1122,12 +1132,7 @@
 
 1. POSTANOWIENIA OGÓLNE
 1.1. Rozgrywki Akademickiej LIGI DARTA (ALD) mają na celu wyłonienie najlepszego zawodnika ligi.
-1.2. Przestrzegamy zasad fair play.
-
-2. SYSTEM ROZGRYWEK
-2.1. Gracze proponują terminy meczów w swoich profilach.
-2.2. Po rozegraniu meczu gracze wprowadzają wynik w protokole.
-2.3. Administrator weryfikuje i zatwierdza wynik, który trafia do tabeli.`;
+1.2. Przestrzegamy zasad fair play.`;
 
         function generateRulesFile() {
             const blob = new Blob([REGULAMIN_TEXT], { type: 'text/plain;charset=utf-8' });
@@ -1142,11 +1147,13 @@
         let globalUpcomingMatchesMap = {};
         let globalCalculatedAverages = {}; 
         let globalCalculatedStats = {};
-        let globalPlayerDetailsStats = {}; // szczegółowe liczniki do odznak
+        let globalPlayerDetailsStats = {}; 
+        let seasonStateData = { finished: false };
 
         const tabs = {
             home: { btn: document.getElementById('tab-home'), page: document.getElementById('page-home') },
             info: { btn: document.getElementById('tab-info'), page: document.getElementById('page-info') },
+            archive: { btn: document.getElementById('tab-archive'), page: document.getElementById('page-archive') },
             players: { btn: document.getElementById('tab-players'), page: document.getElementById('page-players') },
             live: { btn: document.getElementById('tab-live'), page: document.getElementById('page-live') },
             account: { btn: document.getElementById('tab-account'), page: document.getElementById('page-account') },
@@ -1163,6 +1170,7 @@
 
             if (activeKey === 'players') renderApprovedPlayers();
             if (activeKey === 'info') renderTableAndMatches();
+            if (activeKey === 'archive') renderArchiveTable();
             if (activeKey === 'admin') renderAdminPanelData();
             if (activeKey === 'home') renderHomePageUpcoming();
         }
@@ -1179,7 +1187,6 @@
             return age >= 0 ? age : "-";
         }
 
-        // --- AUTH ---
         onAuthStateChanged(auth, async (user) => {
             if (user && user.emailVerified) {
                 document.getElementById('view-login').classList.add('hidden');
@@ -1266,17 +1273,14 @@
             }
         };
 
-        // OBLICZANIE ODZNAK DLA DANEGO GRACZA
         function calculatePlayerUnlockedBadges(uid) {
             const details = globalPlayerDetailsStats[uid] || { matches: 0, s80: 0, s100: 0, s140: 0, s180: 0, finishes: {} };
             let unlocked = [];
 
-            // Sprawdź mecze
             MILESTONE_THRESHOLDS.forEach(t => {
                 if (details.matches >= t) unlocked.push(`matches_${t}`);
             });
 
-            // Sprawdź statystyki (+80, +100, +140, 180)
             MILESTONE_THRESHOLDS.forEach(t => {
                 if (details.s80 >= t) unlocked.push(`stat_80_${t}`);
                 if (details.s100 >= t) unlocked.push(`stat_100_${t}`);
@@ -1284,24 +1288,19 @@
                 if (details.s180 >= t) unlocked.push(`stat_180_${t}`);
             });
 
-            // Sprawdź finishy
             Object.keys(details.finishes).forEach(fStr => {
                 const fVal = parseInt(fStr);
-                if (details.finishes[fVal] > 0) {
-                    if (ALL_BADGES[`finish_${fVal}`]) {
-                        unlocked.push(`finish_${fVal}`);
-                    }
+                if (details.finishes[fVal] > 0 && ALL_BADGES[`finish_${fVal}`]) {
+                    unlocked.push(`finish_${fVal}`);
                 }
             });
 
-            // Specjalne
             if (details.finishes[170] > 0) unlocked.push('special_big_fish');
             if (details.finishes[120] > 0) unlocked.push('special_shanghai');
 
             return unlocked;
         }
 
-        // RENDEROWANIE GABLOTY
         function renderShowcaseHtml(showcaseArray, unlockedArray) {
             if (!showcaseArray || showcaseArray.length === 0) {
                 return '<span style="font-size:0.75rem; color:var(--text-muted); font-style:italic;">Brak ulubionych</span>';
@@ -1316,7 +1315,6 @@
             return html;
         }
 
-        // UI PROFILU & PROPOZYCJE TERMINÓW
         function updateProfileUI(data) {
             currentUserProfileData = data;
             const uid = auth.currentUser ? auth.currentUser.uid : null;
@@ -1368,15 +1366,17 @@
             const btnToggleSeason = document.getElementById('btn-toggle-season');
             const badgeContainer = document.getElementById('prof-status-badge');
 
+            const seasonLabelNum = seasonStateData.finished ? "2. Sezon" : "1. Sezon";
+
             if (data.signedUpForSeason1) {
                 badgeContainer.innerHTML = data.statusSeason1 === "approved" 
-                    ? '<span class="season-badge badge-approved">Zatwierdzony w 1. Sezonie</span>'
-                    : '<span class="season-badge badge-pending">Zgłoszono (Oczekuje na weryfikację)</span>';
-                btnToggleSeason.innerText = "Wypisz się z 1. Sezonu";
+                    ? `<span class="season-badge badge-approved">Zatwierdzony w ${seasonLabelNum}</span>`
+                    : `<span class="season-badge badge-pending">Zgłoszono do ${seasonLabelNum} (Oczekuje)</span>`;
+                btnToggleSeason.innerText = `Wypisz się z ${seasonLabelNum}`;
                 btnToggleSeason.className = "btn-danger";
             } else {
                 badgeContainer.innerHTML = '';
-                btnToggleSeason.innerText = "Zapisz się na 1. Sezon!";
+                btnToggleSeason.innerText = `Zapisz się na ${seasonLabelNum}!`;
                 btnToggleSeason.className = "btn-success";
             }
 
@@ -1597,7 +1597,7 @@
             if (count === 0) container.innerHTML = '<p style="text-align: center; color: var(--text-muted); grid-column: 1/-1;">Brak zaplanowanych nadchodzących meczów.</p>';
         }
 
-        // --- PANEL ADMINA LOGIKA ---
+        // --- PANEL ADMINA ---
         function renderAdminPanelData() {
             const listContainer = document.getElementById('admin-players-list');
             const selectP1 = document.getElementById('admin-create-p1');
@@ -1685,6 +1685,37 @@
                 matchesContainer.appendChild(item);
             });
         }
+
+        document.getElementById('btn-admin-finish-season').onclick = async () => {
+            if (!confirm("Czy na pewno chcesz zakończyć sezon? Wszyscy gracze zostaną wypisani z zapisów, a tabela trafi do archiwum.")) return;
+            try {
+                // Wypisz wszystkich graczy z obecnego sezonu
+                const updates = {};
+                Object.keys(globalUsersData).forEach(uid => {
+                    updates[`users/${uid}/signedUpForSeason1`] = false;
+                    updates[`users/${uid}/statusSeason1`] = "none";
+                });
+                updates['seasonState/finished'] = true;
+                await update(dbRef(db), updates);
+                document.getElementById('admin-season-msg').className = "msg success";
+                document.getElementById('admin-season-msg').innerText = "Sezon został zakończony, a tabela przeniesiona do archiwum!";
+            } catch(err) {
+                document.getElementById('admin-season-msg').className = "msg error";
+                document.getElementById('admin-season-msg').innerText = err.message;
+            }
+        };
+
+        document.getElementById('btn-admin-restore-season').onclick = async () => {
+            if (!confirm("Czy na pewno chcesz przywrócić zakończony sezon?")) return;
+            try {
+                await set(dbRef(db, 'seasonState'), { finished: false });
+                document.getElementById('admin-season-msg').className = "msg success";
+                document.getElementById('admin-season-msg').innerText = "Sezon został przywrócony!";
+            } catch(err) {
+                document.getElementById('admin-season-msg').className = "msg error";
+                document.getElementById('admin-season-msg').innerText = err.message;
+            }
+        };
 
         document.getElementById('btn-admin-save-hometext').onclick = async () => {
             const newText = document.getElementById('admin-home-text-input').value.trim();
@@ -1795,7 +1826,6 @@
             } catch (err) { alert(err.message); }
         };
 
-        // --- OBSŁUGA MODALA ODZNAK ---
         document.getElementById('btn-open-my-badges').onclick = () => {
             if (auth.currentUser) {
                 openBadgesModal(auth.currentUser.uid, globalUsersData[auth.currentUser.uid], true);
@@ -1813,7 +1843,6 @@
             const unlockedKeys = calculatePlayerUnlockedBadges(uid);
             const showcase = playerData.showcase || [];
 
-            // Renderuj sloty gabloty w edycji (jeśli to własny profil)
             const showcaseSlotsContainer = document.getElementById('badges-showcase-edit-slots');
             showcaseSlotsContainer.innerHTML = '';
             
@@ -1828,7 +1857,6 @@
                     if (isOwnProfile) {
                         slotDiv.style.cursor = 'pointer';
                         slotDiv.onclick = async () => {
-                            // Usuń z gabloty
                             let newShowcase = [...showcase];
                             newShowcase.splice(i, 1);
                             await update(dbRef(db, 'users/' + uid), { showcase: newShowcase });
@@ -1842,7 +1870,6 @@
                 showcaseSlotsContainer.appendChild(slotDiv);
             }
 
-            // Renderuj listę wszystkich odznak (posortowane: odblokowane na górze)
             const gridContainer = document.getElementById('badges-grid-container');
             gridContainer.innerHTML = '';
 
@@ -1906,7 +1933,6 @@
             } catch(err) { alert(err.message); }
         };
 
-        // ZAWODNICY GRID
         function renderApprovedPlayers() {
             const grid = document.getElementById('players-grid');
             document.getElementById('players-loading').classList.add('hidden');
@@ -2037,10 +2063,7 @@
 
         document.getElementById('btn-close-view-player').onclick = () => document.getElementById('modal-view-player').classList.add('hidden');
 
-        function renderTableAndMatches() {
-            const tableBody = document.getElementById('league-table-body');
-            const historyList = document.getElementById('matches-history-list');
-
+        function computeTableStats() {
             let stats = {};
             let playerAveragesMap = {}; 
             globalCalculatedStats = {};
@@ -2048,7 +2071,7 @@
 
             Object.keys(globalUsersData).forEach(uid => {
                 const u = globalUsersData[uid];
-                if (u.signedUpForSeason1 && u.statusSeason1 === "approved") {
+                if (u.signedUpForSeason1 && u.statusSeason1 === "approved" || true) {
                     stats[uid] = {
                         uid, name: `${u.firstName || ''} ${u.lastName || ''}`, photo: u.photoUrl || PRESET_AVATARS[0],
                         matches: 0, wins: 0, draws: 0, losses: 0, legsWon: 0, legsLost: 0, points: 0, playerAvg: 0
@@ -2077,9 +2100,7 @@
                         p1Details.s100 += (m.s100_1 || 0);
                         p1Details.s140 += (m.s140_1 || 0);
                         p1Details.s180 += (m.s180_1 || 0);
-                        if (m.hf1 > 0) {
-                            p1Details.finishes[m.hf1] = (p1Details.finishes[m.hf1] || 0) + 1;
-                        }
+                        if (m.hf1 > 0) p1Details.finishes[m.hf1] = (p1Details.finishes[m.hf1] || 0) + 1;
                     }
                     if (p1St) {
                         if ((m.hf1 || 0) > p1St.hf) p1St.hf = m.hf1;
@@ -2105,9 +2126,7 @@
                         p2Details.s100 += (m.s100_2 || 0);
                         p2Details.s140 += (m.s140_2 || 0);
                         p2Details.s180 += (m.s180_2 || 0);
-                        if (m.hf2 > 0) {
-                            p2Details.finishes[m.hf2] = (p2Details.finishes[m.hf2] || 0) + 1;
-                        }
+                        if (m.hf2 > 0) p2Details.finishes[m.hf2] = (p2Details.finishes[m.hf2] || 0) + 1;
                     }
                     if (p2St) {
                         if ((m.hf2 || 0) > p2St.hf) p2St.hf = m.hf2;
@@ -2127,9 +2146,51 @@
                 if (stats[uid]) stats[uid].playerAvg = mean;
             });
 
-            const sortedStats = Object.values(stats).sort((a, b) => b.points - a.points || (b.legsWon - b.legsLost) - (a.legsWon - a.legsLost));
+            return Object.values(stats).sort((a, b) => b.points - a.points || (b.legsWon - b.legsLost) - (a.legsWon - a.legsLost));
+        }
+
+        function renderTableAndMatches() {
+            const tableBody = document.getElementById('league-table-body');
+            const historyList = document.getElementById('matches-history-list');
+
+            const sortedStats = computeTableStats();
 
             tableBody.innerHTML = "";
+            sortedStats.forEach((s, idx) => {
+                if (s.matches > 0 || globalUsersData[s.uid]?.statusSeason1 === 'approved') {
+                    const diff = s.legsWon - s.legsLost;
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><b>${idx + 1}</b></td>
+                        <td class="player-cell"><img src="${s.photo}" class="table-avatar"> ${s.name}</td>
+                        <td>${s.matches}</td><td>${s.wins}</td><td>${s.draws}</td><td>${s.losses}</td>
+                        <td>${s.legsWon}:${s.legsLost}</td>
+                        <td style="color:${diff > 0 ? '#34d399' : (diff < 0 ? '#f87171' : 'var(--text-muted)')}">${diff > 0 ? '+' + diff : diff}</td>
+                        <td><b>${s.playerAvg.toFixed(2)}</b></td>
+                        <td style="color:var(--accent-blue); font-weight:700;">${s.points}</td>
+                    `;
+                    tableBody.appendChild(tr);
+                }
+            });
+
+            historyList.innerHTML = "";
+            Object.keys(globalMatchesMap).reverse().forEach(matchId => {
+                const m = globalMatchesMap[matchId];
+                const item = document.createElement('div');
+                item.className = 'match-card';
+                item.innerHTML = `
+                    <div class="match-vs">${m.p1Name} <b style="color:var(--accent-blue); margin: 0 8px;">${m.s1}:${m.s2}</b> ${m.p2Name}</div>
+                    <div class="match-date">${m.date || ''}</div>
+                `;
+                historyList.appendChild(item);
+            });
+        }
+
+        function renderArchiveTable() {
+            const archiveBody = document.getElementById('archive-table-body');
+            archiveBody.innerHTML = "";
+            const sortedStats = computeTableStats();
+
             sortedStats.forEach((s, idx) => {
                 const diff = s.legsWon - s.legsLost;
                 const tr = document.createElement('tr');
@@ -2142,62 +2203,58 @@
                     <td><b>${s.playerAvg.toFixed(2)}</b></td>
                     <td style="color:var(--accent-blue); font-weight:700;">${s.points}</td>
                 `;
-                tableBody.appendChild(tr);
+                archiveBody.appendChild(tr);
             });
+        }
 
-            historyList.innerHTML = "";
-            const matchesArr = Object.values(globalMatchesMap);
-            if (matchesArr.length === 0) historyList.innerHTML = '<p style="text-align: center; color: var(--text-muted);">Brak rozegranych meczów.</p>';
-            else {
-                matchesArr.slice().reverse().forEach(m => {
-                    const item = document.createElement('div');
-                    item.className = 'match-item';
-                    item.innerHTML = `
-                        <b>${m.p1Name}</b> <span style="color:var(--text-muted)">(śr. ${(m.avg1||0).toFixed(2)})</span> 
-                        <span style="color:var(--accent-blue); font-size:1.1rem; font-weight:700; margin: 0 12px;">${m.s1} : ${m.s2}</span> 
-                        <b>${m.p2Name}</b> <span style="color:var(--text-muted)">(śr. ${(m.avg2||0).toFixed(2)})</span>
-                        <div style="font-size:0.8rem; color:var(--text-muted); margin-top:6px;">${m.date || ''}</div>
-                    `;
-                    historyList.appendChild(item);
-                });
-            }
-
+        // NASŁUCHIWANIE FIREBASE REALTIME
+        onValue(dbRef(db, 'users'), (snapshot) => {
+            globalUsersData = snapshot.val() || {};
             if (auth.currentUser && globalUsersData[auth.currentUser.uid]) {
                 updateProfileUI(globalUsersData[auth.currentUser.uid]);
             }
-        }
+            if (!tabs.players.page.classList.contains('hidden')) renderApprovedPlayers();
+            if (!tabs.info.page.classList.contains('hidden')) renderTableAndMatches();
+            if (!tabs.admin.page.classList.contains('hidden')) renderAdminPanelData();
+        });
 
-        function initRealtimeListeners() {
-            onValue(dbRef(db, 'users'), (snap) => {
-                globalUsersData = snap.exists() ? snap.val() : {};
-                renderAdminPanelData(); renderApprovedPlayers(); renderTableAndMatches();
-                if (auth.currentUser && globalUsersData[auth.currentUser.uid]) updateProfileUI(globalUsersData[auth.currentUser.uid]);
-            });
+        onValue(dbRef(db, 'matches'), (snapshot) => {
+            globalMatchesMap = snapshot.val() || {};
+            computeTableStats();
+            if (!tabs.info.page.classList.contains('hidden')) renderTableAndMatches();
+            if (!tabs.archive.page.classList.contains('hidden')) renderArchiveTable();
+        });
 
-            onValue(dbRef(db, 'matches'), (snap) => {
-                globalMatchesMap = snap.exists() ? snap.val() : {};
-                renderTableAndMatches(); renderAdminPanelData();
-            });
+        onValue(dbRef(db, 'upcomingMatches'), (snapshot) => {
+            globalUpcomingMatchesMap = snapshot.val() || {};
+            if (auth.currentUser && globalUsersData[auth.currentUser.uid]) {
+                renderUserUpcomingMatches(auth.currentUser.uid);
+            }
+            if (!tabs.home.page.classList.contains('hidden')) renderHomePageUpcoming();
+            if (!tabs.admin.page.classList.contains('hidden')) renderAdminPanelData();
+        });
 
-            onValue(dbRef(db, 'upcomingMatches'), (snap) => {
-                globalUpcomingMatchesMap = snap.exists() ? snap.val() : {};
-                renderHomePageUpcoming(); renderAdminPanelData();
-                if (auth.currentUser) renderUserUpcomingMatches(auth.currentUser.uid);
-            });
+        onValue(dbRef(db, 'siteContent'), (snapshot) => {
+            const data = snapshot.val();
+            if (data && data.homeText) {
+                document.getElementById('home-text-display').innerText = data.homeText;
+                document.getElementById('admin-home-text-input').value = data.homeText;
+            }
+        });
 
-            onValue(dbRef(db, 'siteContent'), (snap) => {
-                if (snap.exists() && snap.val().homeText) {
-                    const text = snap.val().homeText;
-                    document.getElementById('home-text-display').innerText = text;
-                    const adminInput = document.getElementById('admin-home-text-input');
-                    if (adminInput && document.activeElement !== adminInput) {
-                        adminInput.value = text;
-                    }
-                }
-            });
-        }
-
-        initRealtimeListeners();
+        onValue(dbRef(db, 'seasonState'), (snapshot) => {
+            seasonStateData = snapshot.val() || { finished: false };
+            const archiveTabBtn = document.getElementById('tab-archive');
+            if (seasonStateData.finished) {
+                archiveTabBtn.classList.remove('hidden');
+            } else {
+                archiveTabBtn.classList.add('hidden');
+                if (!tabs.archive.page.classList.contains('hidden')) switchTab('info');
+            }
+            if (auth.currentUser && globalUsersData[auth.currentUser.uid]) {
+                updateProfileUI(globalUsersData[auth.currentUser.uid]);
+            }
+        });
     </script>
 </body>
 </html>
