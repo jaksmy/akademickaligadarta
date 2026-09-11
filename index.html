@@ -1251,25 +1251,20 @@
 
          document.getElementById('btn-login').onclick = async () => {
             try {
-                const userCred = await signInWithEmailAndPassword(auth, document.getElementById('login-email').value.trim(), document.getElementById('login-pass').value);
-                if (!userCred.user.emailVerified) {
-                    await signOut(auth);
-                    document.getElementById('login-msg').className = "msg error";
-                    document.getElementById('login-msg').innerText = "Aktywuj konto klikając link w mailu!";
-                } catch (err) {
+               document.getElementById('btn-login').onclick = async () => {
+        try {
+            const userCred = await signInWithEmailAndPassword(auth, document.getElementById('login-email').value.trim(), document.getElementById('login-pass').value);
+            if (!userCred.user.emailVerified) {
+                await signOut(auth);
                 document.getElementById('login-msg').className = "msg error";
-                document.getElementById('login-msg').innerText = "Błędny email lub hasło.";
+                document.getElementById('login-msg').innerText = "Aktywuj konto klikając link w mailu!";
             }
         } catch (err) {
-            if (msgDiv) {
-                msgDiv.className = "msg error";
-                msgDiv.innerText = "Błędny email lub hasło.";
-            }
+            document.getElementById('login-msg').className = "msg error";
+            document.getElementById('login-msg').innerText = "Błędny email lub hasło.";
             console.error("Błąd logowania:", err);
         }
     };
-} else {
-    console.error("Nie znaleziono przycisku btn-login w DOM!");
 }
 
         document.getElementById('btn-register').onclick = async () => {
