@@ -1249,19 +1249,38 @@
         document.getElementById('btn-go-login-from-reset').onclick = () => { document.getElementById('view-reset').classList.add('hidden'); document.getElementById('view-login').classList.remove('hidden'); };
         document.getElementById('btn-logout').onclick = () => signOut(auth);
 
-        document.getElementById('btn-login').onclick = async () => {
-            try {
-                const userCred = await signInWithEmailAndPassword(auth, document.getElementById('login-email').value.trim(), document.getElementById('login-pass').value);
-                if (!userCred.user.emailVerified) {
-                    await signOut(auth);
-                    document.getElementById('login-msg').className = "msg error";
-                    document.getElementById('login-msg').innerText = "Aktywuj konto klikając link w mailu!";
+       const loginBtn = document.getElementById('btn-login');
+if (loginBtn) {
+    loginBtn.onclick = async () => {
+        const emailInput = document.getElementById('login-email');
+        const passInput = document.getElementById('login-pass');
+        const msgDiv = document.getElementById('login-msg');
+
+        if (!emailInput || !passInput) {
+            console.error("Nie znaleziono pól formularza logowania!");
+            return;
+        }
+
+        try {
+            const userCred = await signInWithEmailAndPassword(auth, emailInput.value.trim(), passInput.value);
+            if (!userCred.user.emailVerified) {
+                await signOut(auth);
+                if (msgDiv) {
+                    msgDiv.className = "msg error";
+                    msgDiv.innerText = "Aktywuj konto klikając link w mailu!";
                 }
-            } catch (err) {
-                document.getElementById('login-msg').className = "msg error";
-                document.getElementById('login-msg').innerText = "Błędny email lub hasło.";
             }
-        };
+        } catch (err) {
+            if (msgDiv) {
+                msgDiv.className = "msg error";
+                msgDiv.innerText = "Błędny email lub hasło.";
+            }
+            console.error("Błąd logowania:", err);
+        }
+    };
+} else {
+    console.error("Nie znaleziono przycisku btn-login w DOM!");
+}
 
         document.getElementById('btn-register').onclick = async () => {
             const email = document.getElementById('reg-email').value.trim();
