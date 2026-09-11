@@ -978,7 +978,29 @@
             <button class="btn-primary btn-sm" id="btn-close-view-player" style="margin-top: 24px; width: 100%;">Zamknij</button>
         </div>
     </div>
-
+    
+ 
+    <div id="modal-place-bet" class="modal hidden">
+    <div class="modal-content" style="max-width: 400px; text-align: center;">
+        <h2>Obstaw wynik meczu</h2>
+        <p id="bet-modal-match-title" style="color: var(--text-muted); margin-bottom: 14px;"></p>
+        <p id="bet-modal-selection-info" style="color: var(--accent-blue); font-weight: bold; margin-bottom: 14px;"></p>
+        <input type="hidden" id="bet-match-id">
+        <input type="hidden" id="bet-selected-player">
+        <input type="hidden" id="bet-selected-odds">
+        
+        <div class="form-group">
+            <label>Kwota (DK):</label>
+            <input type="number" id="bet-amount-input" min="1" value="10">
+        </div>
+        <div id="bet-modal-msg" class="msg"></div>
+        
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button class="btn-danger btn-sm" id="btn-close-bet-modal" style="flex: 1;">Anuluj</button>
+            <button class="btn-success btn-sm" id="btn-confirm-bet" style="flex: 1;">Postaw zakład</button>
+        </div>
+    </div>
+</div>
     <!-- MODAL: AKCJA MECZOWA -->
     <div id="modal-match-action" class="modal hidden">
         <div class="modal-content">
@@ -1695,28 +1717,7 @@ card.innerHTML = `
             document.getElementById('modal-match-action').classList.remove('hidden');
         }
 
-    // MODAL 
-    <div id="modal-place-bet" class="modal hidden">
-    <div class="modal-content" style="max-width: 400px; text-align: center;">
-        <h2>Obstaw wynik meczu</h2>
-        <p id="bet-modal-match-title" style="color: var(--text-muted); margin-bottom: 14px;"></p>
-        <p id="bet-modal-selection-info" style="color: var(--accent-blue); font-weight: bold; margin-bottom: 14px;"></p>
-        <input type="hidden" id="bet-match-id">
-        <input type="hidden" id="bet-selected-player">
-        <input type="hidden" id="bet-selected-odds">
-        
-        <div class="form-group">
-            <label>Kwota (DK):</label>
-            <input type="number" id="bet-amount-input" min="1" value="10">
-        </div>
-        <div id="bet-modal-msg" class="msg"></div>
-        
-        <div style="display: flex; gap: 10px; margin-top: 20px;">
-            <button class="btn-danger btn-sm" id="btn-close-bet-modal" style="flex: 1;">Anuluj</button>
-            <button class="btn-success btn-sm" id="btn-confirm-bet" style="flex: 1;">Postaw zakład</button>
-        </div>
-    </div>
-</div>
+
 
         document.getElementById('btn-close-match-action').onclick = () => document.getElementById('modal-match-action').classList.add('hidden');
 
