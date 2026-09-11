@@ -1598,65 +1598,66 @@ function calculateMatchOdds(p1Uid, p2Uid) {
                     const card = document.createElement('div');
                     card.className = 'match-card';
 
-                    // --- TUTAJ OBLICZAMY I DODAJEMY KOD BUKMACHERSKI ---
-// --- OBLICZANIE BUKMACHERA ---
-const oddsData = calculateMatchOdds(m.p1Uid, m.p2Uid);
-const isAdmin = auth.currentUser && auth.currentUser.email === ADMIN_EMAIL;
+                    // --- OBLICZANIE BUKMACHERA ---
+                    const oddsData = calculateMatchOdds(m.p1Uid, m.p2Uid);
+                    const isAdmin = auth.currentUser && auth.currentUser.email === ADMIN_EMAIL;
 
-let adminPowerInfo = "";
-if (isAdmin) {
-    adminPowerInfo = `<div style="font-size: 11px; color: var(--warning-color); margin-top: 4px;">[Admin Power] ${m.p1Name}: ${oddsData.p1Power} | ${m.p2Name}: ${oddsData.p2Power}</div>`;
-}
+                    let adminPowerInfo = "";
+                    if (isAdmin) {
+                        adminPowerInfo = `<div style="font-size: 11px; color: var(--warning-color); margin-top: 4px;">[Admin Power] ${m.p1Name}: ${oddsData.p1Power} | ${m.p2Name}: ${oddsData.p2Power}</div>`;
+                    }
 
-const bettingHtml = `
-    <div style="margin-top: 10px; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;" onclick="event.stopPropagation()">
-        <button class="btn-sm btn-primary" onclick="openBetModal('${matchId}', '${m.p1Uid}', '${m.p1Name}', ${oddsData.odds1})">Obstaw ${m.p1Name} (${oddsData.odds1})</button>
-        <button class="btn-sm btn-primary" onclick="openBetModal('${matchId}', '${m.p2Uid}', '${m.p2Name}', ${oddsData.odds2})">Obstaw ${m.p2Name} (${oddsData.odds2})</button>
-    </div>
-    ${adminPowerInfo}
-`;
-// ----------------------------
+                    const bettingHtml = `
+                        <div style="margin-top: 10px; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;" onclick="event.stopPropagation()">
+                            <button class="btn-sm btn-primary" onclick="openBetModal('${matchId}', '${m.p1Uid}', '${m.p1Name}', ${oddsData.odds1})">Obstaw ${m.p1Name} (${oddsData.odds1})</button>
+                            <button class="btn-sm btn-primary" onclick="openBetModal('${matchId}', '${m.p2Uid}', '${m.p2Name}', ${oddsData.odds2})">Obstaw ${m.p2Name} (${oddsData.odds2})</button>
+                        </div>
+                        ${adminPowerInfo}
+                    `;
+                    // ----------------------------
 
-let statusText = "Zaproponuj termin";
-let dateDisplay = "Termin nieustalony";
-let isReadyForReport = false;
+                    let statusText = "Zaproponuj termin";
+                    let dateDisplay = "Termin nieustalony";
+                    let isReadyForReport = false;
 
-if (m.status === 'approved' && m.scheduledDate) {
-    const matchDate = new Date(m.scheduledDate);
-    dateDisplay = matchDate.toLocaleString('pl-PL', { dateStyle: 'short', timeStyle: 'short' });
+                    if (m.status === 'approved' && m.scheduledDate) {
+                        const matchDate = new Date(m.scheduledDate);
+                        dateDisplay = matchDate.toLocaleString('pl-PL', { dateStyle: 'short', timeStyle: 'short' });
 
-    if (now >= matchDate) {
-        isReadyForReport = true;
-        card.classList.add('ready-for-report');
-        statusText = "📋 Wypełnij protokół";
-    } else {
-        statusText = "Termin zatwierdzony";
-    }
-} else if (m.proposedDate) {
-    const propDate = new Date(m.proposedDate);
-    dateDisplay = "Propozycja: " + propDate.toLocaleString('pl-PL', { dateStyle: 'short', timeStyle: 'short' });
-    
-    if (m.proposedBy === uid) {
-        statusText = "⌛ Oczekuje na przeciwnika";
-    } else {
-        statusText = "✅ Kliknij, aby zaakceptować";
-    }
-}
+                        if (now >= matchDate) {
+                            isReadyForReport = true;
+                            card.classList.add('ready-for-report');
+                            statusText = "📋 Wypełnij protokół";
+                        } else {
+                            statusText = "Termin zatwierdzony";
+                        }
+                    } else if (m.proposedDate) {
+                        const propDate = new Date(m.proposedDate);
+                        dateDisplay = "Propozycja: " + propDate.toLocaleString('pl-PL', { dateStyle: 'short', timeStyle: 'short' });
+                        
+                        if (m.proposedBy === uid) {
+                            statusText = "⌛ Oczekuje na przeciwnika";
+                        } else {
+                            statusText = "✅ Kliknij, aby zaakceptować";
+                        }
+                    }
 
-if (m.reported) {
-    statusText = "⏳ Oczekuje na Admina";
-}
+                    if (m.reported) {
+                        statusText = "⏳ Oczekuje na Admina";
+                    }
 
-// TUTAJ DODANO bettinghtml, ABY PRZYCISKI SIĘ WYŚWIETLIŁY
-card.innerHTML = `
-    <div class="match-vs">vs ${opponentName}</div>
-    <div class="match-date">${dateDisplay}</div>
-    <div class="match-status-tag">${statusText}</div>
-    ${bettingHtml}
-`;
+                    // Poprawiono literówkę z bettinghtml na bettingHtml
+                    card.innerHTML = `
+                        <div class="match-vs">vs ${opponentName}</div>
+                        <div class="match-date">${dateDisplay}</div>
+                        <div class="match-status-tag">${statusText}</div>
+                        ${bettingHtml}
+                    `;
 
-card.onclick = () => openMatchActionModal(matchId, m, isReadyForReport);
-container.appendChild(card);
+                    card.onclick = () => openMatchActionModal(matchId, m, isReadyForReport);
+                    container.appendChild(card);
+                }
+            });
 
             if (count === 0) container.innerHTML = '<p style="color: var(--text-muted); font-size: 0.9rem;">Brak nadchodzących meczów.</p>';
         }
