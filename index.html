@@ -1109,6 +1109,17 @@ document.getElementById('btn-confirm-bet').onclick = async () => {
     const userBalance = currentUserProfileData.dartKasa || 0;
     const msgEl = document.getElementById('bet-modal-msg');
 
+    // Sprawdzanie czy użytkownik nie próbuje obstawić własnego meczu
+    const matchSnap = await get(dbRef(db, `upcomingMatches/${matchId}`));
+    if (matchSnap.exists()) {
+        const matchData = matchSnap.val();
+        if (matchData.p1Uid === user.uid || matchData.p2Uid === user.uid) {
+            msgEl.className = "msg error";
+            msgEl.innerText = "Nie możesz obstawiać meczu, w którym sam grasz!";
+            return;
+        }
+    }
+
     if (isNaN(amount) || amount <= 0) {
         msgEl.className = "msg error";
         msgEl.innerText = "Podaj poprawną kwotę!";
@@ -1598,24 +1609,6 @@ function calculateMatchOdds(p1Uid, p2Uid) {
                     const card = document.createElement('div');
                     card.className = 'match-card';
 
-                    // --- OBLICZANIE BUKMACHERA ---
-                    const oddsData = calculateMatchOdds(m.p1Uid, m.p2Uid);
-                    const isAdmin = auth.currentUser && auth.currentUser.email === ADMIN_EMAIL;
-
-                    let adminPowerInfo = "";
-                    if (isAdmin) {
-                        adminPowerInfo = `<div style="font-size: 11px; color: var(--warning-color); margin-top: 4px;">[Admin Power] ${m.p1Name}: ${oddsData.p1Power} | ${m.p2Name}: ${oddsData.p2Power}</div>`;
-                    }
-
-                    const bettingHtml = `
-                        <div style="margin-top: 10px; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;" onclick="event.stopPropagation()">
-                            <button class="btn-sm btn-primary" onclick="openBetModal('${matchId}', '${m.p1Uid}', '${m.p1Name}', ${oddsData.odds1})">Obstaw ${m.p1Name} (${oddsData.odds1})</button>
-                            <button class="btn-sm btn-primary" onclick="openBetModal('${matchId}', '${m.p2Uid}', '${m.p2Name}', ${oddsData.odds2})">Obstaw ${m.p2Name} (${oddsData.odds2})</button>
-                        </div>
-                        ${adminPowerInfo}
-                    `;
-                    // ----------------------------
-
                     let statusText = "Zaproponuj termin";
                     let dateDisplay = "Termin nieustalony";
                     let isReadyForReport = false;
@@ -1646,12 +1639,10 @@ function calculateMatchOdds(p1Uid, p2Uid) {
                         statusText = "⏳ Oczekuje na Admina";
                     }
 
-                    // Poprawiono literówkę z bettinghtml na bettingHtml
                     card.innerHTML = `
                         <div class="match-vs">vs ${opponentName}</div>
                         <div class="match-date">${dateDisplay}</div>
                         <div class="match-status-tag">${statusText}</div>
-                        ${bettingHtml}
                     `;
 
                     card.onclick = () => openMatchActionModal(matchId, m, isReadyForReport);
@@ -1785,6 +1776,7 @@ function calculateMatchOdds(p1Uid, p2Uid) {
             const container = document.getElementById('home-upcoming-matches');
             container.innerHTML = "";
             let count = 0;
+            const currentUid = auth.currentUser ? auth.currentUser.uid : null;
 
             Object.keys(globalUpcomingMatchesMap).forEach(matchId => {
                 const m = globalUpcomingMatchesMap[matchId];
@@ -1793,9 +1785,40 @@ function calculateMatchOdds(p1Uid, p2Uid) {
                     const matchDate = new Date(m.scheduledDate);
                     const card = document.createElement('div');
                     card.className = 'match-card';
+                    card.style.flexDirection = 'column';
+                    card.style.alignItems = 'stretch';
+
+                    // Obliczanie kursów i Power Rankingu dla admina
+                    const oddsData = calculateMatchOdds(m.p1Uid, m.p2Uid);
+                    const isAdmin = auth.currentUser && auth.currentUser.email === ADMIN_EMAIL;
+
+                    let adminPowerInfo = "";
+                    if (isAdmin) {
+                        adminPowerInfo = `<div style="font-size: 11px; color: var(--warning-color); margin-top: 4px; text-align: center;">[Admin Power] ${m.p1Name}: ${oddsData.p1Power} | ${m.p2Name}: ${oddsData.p2Power}</div>`;
+                    }
+
+                    // Sprawdzenie czy użytkownik gra w tym meczu
+                    const isPlayerInMatch = currentUid && (currentUid === m.p1Uid || currentUid === m.p2Uid);
+                    let bettingHtml = "";
+
+                    if (isPlayerInMatch) {
+                        bettingHtml = `<div style="font-size: 12px; color: var(--text-muted); margin-top: 10px; text-align: center; font-style: italic;">Nie możesz obstawiać meczu, w którym sam bierzesz udział.</div>`;
+                    } else {
+                        bettingHtml = `
+                            <div style="margin-top: 10px; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;" onclick="event.stopPropagation()">
+                                <button class="btn-sm btn-primary" onclick="openBetModal('${matchId}', '${m.p1Uid}', '${m.p1Name}', ${oddsData.odds1})">Obstaw ${m.p1Name} (${oddsData.odds1})</button>
+                                <button class="btn-sm btn-primary" onclick="openBetModal('${matchId}', '${m.p2Uid}', '${m.p2Name}', ${oddsData.odds2})">Obstaw ${m.p2Name} (${oddsData.odds2})</button>
+                            </div>
+                            ${adminPowerInfo}
+                        `;
+                    }
+
                     card.innerHTML = `
-                        <div class="match-vs">${m.p1Name} <br><span style="color:var(--accent-blue); font-size:12px; font-weight:600;">VS</span><br> ${m.p2Name}</div>
-                        <div class="match-date">📅 ${matchDate.toLocaleString('pl-PL', { dateStyle: 'short', timeStyle: 'short' })}</div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                            <div class="match-vs">${m.p1Name} <br><span style="color:var(--accent-blue); font-size:12px; font-weight:600;">VS</span><br> ${m.p2Name}</div>
+                            <div class="match-date">📅 ${matchDate.toLocaleString('pl-PL', { dateStyle: 'short', timeStyle: 'short' })}</div>
+                        </div>
+                        ${bettingHtml}
                     `;
                     container.appendChild(card);
                 }
