@@ -1005,6 +1005,12 @@
             <label>Kwota (DK):</label>
             <input type="number" id="bet-amount-input" min="1" value="10">
         </div>
+        <div class="form-group">
+            <label>Aktywuj bonus z ekwipunku:</label>
+            <select id="bet-bonus-select">
+                <option value="none">Brak (Czysty zakład)</option>
+            </select>
+        </div>
         <div id="bet-modal-msg" class="msg"></div>
         
         <div style="display: flex; gap: 10px; margin-top: 20px;">
@@ -1103,6 +1109,21 @@ window.openBetModal = (matchId, playerUid, playerName, odds) => {
     document.getElementById('bet-modal-selection-info').innerText = `Typujesz na: ${playerName} (Kurs: ${odds})`;
     document.getElementById('bet-amount-input').value = 10;
     document.getElementById('bet-modal-msg').innerText = "";
+    
+    // Wypełnienie listy wyboru bonusów z ekwipunku użytkownika
+    const bonusSelect = document.getElementById('bet-bonus-select');
+    bonusSelect.innerHTML = `<option value="none">Brak (Czysty zakład)</option>`;
+    
+    if (currentUserProfileData && currentUserProfileData.inventory) {
+        const inv = currentUserProfileData.inventory;
+        if (inv.boost_25 && inv.boost_25 > 0) {
+            bonusSelect.innerHTML += `<option value="boost_25">Booster Kursu +25% (Posiadasz: ${inv.boost_25})</option>`;
+        }
+        if (inv.insurance && inv.insurance > 0) {
+            bonusSelect.innerHTML += `<option value="insurance">Ubezpieczenie Kuponu (Posiadasz: ${inv.insurance})</option>`;
+        }
+    }
+
     document.getElementById('modal-place-bet').classList.remove('hidden');
 };
 
@@ -1118,6 +1139,7 @@ document.getElementById('btn-confirm-bet').onclick = async () => {
     const chosenPlayerUid = document.getElementById('bet-selected-player').value;
     const odds = parseFloat(document.getElementById('bet-selected-odds').value);
     const amount = parseInt(document.getElementById('bet-amount-input').value);
+    const selectedBonus = document.getElementById('bet-bonus-select').value;
     const userBalance = currentUserProfileData.dartKasa || 0;
     const msgEl = document.getElementById('bet-modal-msg');
 
@@ -1153,13 +1175,25 @@ document.getElementById('btn-confirm-bet').onclick = async () => {
             return;
         }
 
+        let inventory = currentUserProfileData.inventory ? {...currentUserProfileData.inventory} : {};
+        if (selectedBonus !== 'none') {
+            if (!inventory[selectedBonus] || inventory[selectedBonus] <= 0) {
+                msgEl.className = "msg error";
+                msgEl.innerText = "Nie posiadasz wybranego bonusu w ekwipunku!";
+                return;
+            }
+            inventory[selectedBonus] -= 1; // Pobieramy bonus z ekwipunku od razu przy obstawianiu
+        }
+
         const updates = {};
         updates[`bets/${matchId}/${user.uid}`] = {
             playerUid: chosenPlayerUid,
             amount: amount,
-            odds: odds
+            odds: odds,
+            bonus: selectedBonus
         };
         updates[`users/${user.uid}/dartKasa`] = userBalance - amount;
+        updates[`users/${user.uid}/inventory`] = inventory;
 
         await update(dbRef(db), updates);
         document.getElementById('modal-place-bet').classList.add('hidden');
@@ -1596,7 +1630,8 @@ function calculateMatchOdds(p1Uid, p2Uid) {
             }
 
             const matchesCount = (uid && globalPlayerDetailsStats[uid]) ? globalPlayerDetailsStats[uid].matches : 0;
-            document.getElementById('prof-title-display').innerText = `🏆 ${data.activeTitle || getPlayerTitle(matchesCount)}`;
+            const displayTitle = data.activeTitle ? data.activeTitle : getPlayerTitle(matchesCount);
+            document.getElementById('prof-title-display').innerText = `🏆 ${displayTitle}`;
 
             document.getElementById('prof-email-display').innerText = data.email || "";
             document.getElementById('prof-photo').src = data.photoUrl || PRESET_AVATARS[0];
@@ -2201,26 +2236,22 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
                 if (bettorUserSnap.exists()) {
                     const bettorData = bettorUserSnap.val();
                     let currentBalance = bettorData.dartKasa || 0;
-                    let inventory = bettorData.inventory || {};
 
                     if (matchWinnerUid && betInfo.playerUid === matchWinnerUid) {
                         let winnings = Math.round(betInfo.amount * betInfo.odds);
-                        if (inventory.boost_25 && inventory.boost_25 > 0) {
+                        if (betInfo.bonus === 'boost_25') {
                             winnings = Math.round(winnings * 1.25);
-                            inventory.boost_25 -= 1;
                         }
                         currentBalance += winnings;
                     } else {
-                        if (inventory.insurance && inventory.insurance > 0) {
+                        if (betInfo.bonus === 'insurance') {
                             const refund = Math.round(betInfo.amount * 0.5);
                             currentBalance += refund;
-                            inventory.insurance -= 1;
                         }
                     }
 
                     await update(dbRef(db, `users/${bettorUid}`), {
-                        dartKasa: currentBalance,
-                        inventory: inventory
+                        dartKasa: currentBalance
                     });
                 }
             }
@@ -2406,7 +2437,7 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
                     const details = globalPlayerDetailsStats[uid] || { matches: 0 };
                     const unlocked = calculatePlayerUnlockedBadges(uid);
                     const showcaseHtml = renderShowcaseHtml(p.showcase, unlocked);
-                    const playerTitle = p.activeTitle || getPlayerTitle(details.matches);
+                    const playerTitle = p.activeTitle ? p.activeTitle : getPlayerTitle(details.matches);
 
                     const card = document.createElement('div');
                     card.className = 'player-card';
@@ -2449,7 +2480,7 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
             }
 
             const details = globalPlayerDetailsStats[uid] || { matches: 0 };
-            document.getElementById('view-player-title').innerText = `🏆 ${player.activeTitle || getPlayerTitle(details.matches)}`;
+            document.getElementById('view-player-title').innerText = `🏆 ${player.activeTitle ? player.activeTitle : getPlayerTitle(details.matches)}`;
 
             document.getElementById('view-player-photo').src = player.photoUrl || PRESET_AVATARS[0];
             document.getElementById('view-player-age').innerText = calculateAge(player.birthDate);
