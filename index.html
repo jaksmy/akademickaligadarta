@@ -1060,6 +1060,70 @@
             appId: "1:832284758287:web:1a156fb2cf197634aa6e7a",
             measurementId: "G-LN9B7YDB6K"
         };
+        // --- OBSŁUGA MODALA I ZAPISU ZAKŁADÓW ---
+window.openBetModal = (matchId, playerUid, playerName, odds) => {
+    document.getElementById('bet-match-id').value = matchId;
+    document.getElementById('bet-selected-player').value = playerUid;
+    document.getElementById('bet-selected-odds').value = odds;
+    document.getElementById('bet-modal-match-title').innerText = "Wybór bukmachera";
+    document.getElementById('bet-modal-selection-info').innerText = `Typujesz na: ${playerName} (Kurs: ${odds})`;
+    document.getElementById('bet-amount-input').value = 10;
+    document.getElementById('bet-modal-msg').innerText = "";
+    document.getElementById('modal-place-bet').classList.remove('hidden');
+};
+
+document.getElementById('btn-close-bet-modal').onclick = () => {
+    document.getElementById('modal-place-bet').classList.add('hidden');
+};
+
+document.getElementById('btn-confirm-bet').onclick = async () => {
+    const user = auth.currentUser;
+    if (!user || !currentUserProfileData) return;
+
+    const matchId = document.getElementById('bet-match-id').value;
+    const chosenPlayerUid = document.getElementById('bet-selected-player').value;
+    const odds = parseFloat(document.getElementById('bet-selected-odds').value);
+    const amount = parseInt(document.getElementById('bet-amount-input').value);
+    const userBalance = currentUserProfileData.dartKasa || 0;
+    const msgEl = document.getElementById('bet-modal-msg');
+
+    if (isNaN(amount) || amount <= 0) {
+        msgEl.className = "msg error";
+        msgEl.innerText = "Podaj poprawną kwotę!";
+        return;
+    }
+
+    if (amount > userBalance) {
+        msgEl.className = "msg error";
+        msgEl.innerText = "Kwota przekracza Twoje saldo!";
+        return;
+    }
+
+    try {
+        const betsRef = dbRef(db, `bets/${matchId}/${user.uid}`);
+        const snap = await get(betsRef);
+        if (snap.exists()) {
+            msgEl.className = "msg error";
+            msgEl.innerText = "Już obstawiłeś ten mecz!";
+            return;
+        }
+
+        const updates = {};
+        updates[`bets/${matchId}/${user.uid}`] = {
+            playerUid: chosenPlayerUid,
+            amount: amount,
+            odds: odds
+        };
+        updates[`users/${user.uid}/dartKasa`] = userBalance - amount;
+
+        await update(dbRef(db), updates);
+        document.getElementById('modal-place-bet').classList.add('hidden');
+        alert("Zakład został pomyślnie przyjęty!");
+    } catch (err) {
+        msgEl.className = "msg error";
+        msgEl.innerText = err.message;
+    }
+};
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
@@ -1121,6 +1185,49 @@
         ];
 
         const MILESTONE_THRESHOLDS = [1, 5, 10, 25, 50, 100, 250, 500, 1000];
+
+        // --- SYSTEM BUKMACHERSKI I POWER RANKING ---
+
+function calculatePlayerPower(uid) {
+    const avg = globalCalculatedAverages[uid] || 35.0; // Bazowa średnia
+    const details = globalPlayerDetailsStats[uid] || { matches: 0 };
+    
+    // Obliczanie formy z ostatnich meczów
+    let formPoints = 0;
+    let matchCount = 0;
+    Object.values(globalMatchesMap).forEach(m => {
+        if (m.p1Uid === uid || m.p2Uid === uid) {
+            matchCount++;
+            const isP1 = m.p1Uid === uid;
+            const myLegs = isP1 ? parseInt(m.s1) : parseInt(m.s2);
+            const oppLegs = isP1 ? parseInt(m.s2) : parseInt(m.s1);
+            if (myLegs > oppLegs) formPoints += 3;
+            else if (myLegs === oppLegs) formPoints += 1;
+        }
+    });
+
+    // Wzór na Power Ranking: (Średnia * 3) + (Punkty z formy * 2) + (Liczba rozegranych meczów * 0.5)
+    let power = (avg * 3) + (formPoints * 2) + (details.matches * 0.5);
+    return Math.max(10, Math.round(power * 10) / 10);
+}
+
+function calculateMatchOdds(p1Uid, p2Uid) {
+    const p1Power = calculatePlayerPower(p1Uid);
+    const p2Power = calculatePlayerPower(p2Uid);
+    
+    // Europejski system kursów (od 1.01 wzwyż)
+    // Im wyższy power ranking, tym niższy kurs (faworyt)
+    const totalPower = p1Power + p2Power;
+    
+    let odds1 = Number((totalPower / (p1Power || 1)).toFixed(2));
+    let odds2 = Number((totalPower / (p2Power || 1)).toFixed(2));
+
+    // Margines bukmacherski i zabezpieczenie przed kursem poniżej 1.01
+    odds1 = Math.max(1.01, Number((odds1 * 0.95).toFixed(2)));
+    odds2 = Math.max(1.01, Number((odds2 * 0.95).toFixed(2)));
+
+    return { odds1, odds2, p1Power, p2Power };
+}
         
         function getAllBadgesDefinitions() {
             let defs = {};
@@ -1469,6 +1576,31 @@
                     const card = document.createElement('div');
                     card.className = 'match-card';
 
+                    // --- TUTAJ OBLICZAMY I DODAJEMY KOD BUKMACHERSKI ---
+const oddsData = calculateMatchOdds(m.p1Uid, m.p2Uid);
+const isAdmin = auth.currentUser && auth.currentUser.email === ADMIN_EMAIL;
+
+let adminPowerInfo = "";
+if (isAdmin) {
+    adminPowerInfo = `<div style="font-size: 11px; color: var(--warning-color); margin-top: 4px;">[Admin Power] ${m.p1Name}: ${oddsData.p1Power} | ${m.p2Name}: ${oddsData.p2Power}</div>`;
+}
+
+const bettingHtml = `
+    <div style="margin-top: 10px; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+        <button class="btn-sm btn-primary" onclick="openBetModal('${matchId}', '${m.p1Uid}', '${m.p1Name}', ${oddsData.odds1})">Obstaw ${m.p1Name} (${oddsData.odds1})</button>
+        <button class="btn-sm btn-primary" onclick="openBetModal('${matchId}', '${m.p2Uid}', '${m.p2Name}', ${oddsData.odds2})">Obstaw ${m.p2Name} (${oddsData.odds2})</button>
+    </div>
+    ${adminPowerInfo}
+`;
+// ----------------------------------------------------
+
+card.innerHTML = `
+    <div class="match-vs">vs ${opponentName}</div>
+    <div class="match-date">${dateDisplay}</div>
+    <div class="match-status-tag">${statusText}</div>
+    ${bettingHtml} <!-- Wstawiamy przyciski bukmacherskie na końcu karty -->
+`;
+
                     let statusText = "Zaproponuj termin";
                     let dateDisplay = "Termin nieustalony";
                     let isReadyForReport = false;
@@ -1562,6 +1694,29 @@
 
             document.getElementById('modal-match-action').classList.remove('hidden');
         }
+
+        <!-- MODAL: OBSTAWIANIE MECZU -->
+<div id="modal-place-bet" class="modal hidden">
+    <div class="modal-content" style="max-width: 400px; text-align: center;">
+        <h2>Obstaw wynik meczu</h2>
+        <p id="bet-modal-match-title" style="color: var(--text-muted); margin-bottom: 14px;"></p>
+        <p id="bet-modal-selection-info" style="color: var(--accent-blue); font-weight: bold; margin-bottom: 14px;"></p>
+        <input type="hidden" id="bet-match-id">
+        <input type="hidden" id="bet-selected-player">
+        <input type="hidden" id="bet-selected-odds">
+        
+        <div class="form-group">
+            <label>Kwota (DK):</label>
+            <input type="number" id="bet-amount-input" min="1" value="10">
+        </div>
+        <div id="bet-modal-msg" class="msg"></div>
+        
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button class="btn-danger btn-sm" id="btn-close-bet-modal" style="flex: 1;">Anuluj</button>
+            <button class="btn-success btn-sm" id="btn-confirm-bet" style="flex: 1;">Postaw zakład</button>
+        </div>
+    </div>
+</div>
 
         document.getElementById('btn-close-match-action').onclick = () => document.getElementById('modal-match-action').classList.add('hidden');
 
@@ -1898,59 +2053,78 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
         };
 
         window.approveMatchReport = async (matchId) => {
-            const m = globalUpcomingMatchesMap[matchId];
-            if (!m || !m.reportData) return;
+    const m = globalUpcomingMatchesMap[matchId];
+    if (!m || !m.reportData) return;
 
-            try {
-                const s1 = m.reportData.s1;
-                const s2 = m.reportData.s2;
+    try {
+        const s1 = m.reportData.s1;
+        const s2 = m.reportData.s2;
 
-                let p1Delta = 5; // 5 za przegraną
-                let p2Delta = 5; 
+        let p1Delta = 5; // 5 za przegraną
+        let p2Delta = 5; 
 
-                if (s1 > s2) {
-                    p1Delta = 40; // 40 za wygraną
-                    p2Delta = 5;  // 5 za przegraną
-                } else if (s2 > s1) {
-                    p1Delta = 5;  
-                    p2Delta = 40; 
-                } else {
-                    p1Delta = 20; // 20 za remis
-                    p2Delta = 20;
+        if (s1 > s2) {
+            p1Delta = 40; // 40 za wygraną
+            p2Delta = 5;  // 5 za przegraną
+        } else if (s2 > s1) {
+            p1Delta = 5;  
+            p2Delta = 40; 
+        } else {
+            p1Delta = 20; // 20 za remis
+            p2Delta = 20;
+        }
+
+        // Dodatkowe bonusy funkcyjne z Dart Kasy (np. +15 za każdą 180-tkę, +20 za wysoki finish >= 100)
+        const r1_180 = m.reportData.s180_1 || 0;
+        const r2_180 = m.reportData.s180_2 || 0;
+        p1Delta += (r1_180 * 15);
+        p2Delta += (r2_180 * 15);
+
+        if ((m.reportData.hf1 || 0) >= 100) p1Delta += 20;
+        if ((m.reportData.hf2 || 0) >= 100) p2Delta += 20;
+
+        const u1Snap = await get(dbRef(db, 'users/' + m.p1Uid));
+        const u2Snap = await get(dbRef(db, 'users/' + m.p2Uid));
+
+        const u1Kasa = (u1Snap.exists() && u1Snap.val().dartKasa !== undefined) ? u1Snap.val().dartKasa : 0;
+        const u2Kasa = (u2Snap.exists() && u2Snap.val().dartKasa !== undefined) ? u2Snap.val().dartKasa : 0;
+
+        await update(dbRef(db, 'users/' + m.p1Uid), { dartKasa: u1Kasa + p1Delta });
+        await update(dbRef(db, 'users/' + m.p2Uid), { dartKasa: u2Kasa + p2Delta });
+
+        await push(dbRef(db, 'matches'), {
+            p1Uid: m.p1Uid, p1Name: m.p1Name,
+            p2Uid: m.p2Uid, p2Name: m.p2Name,
+            s1: m.reportData.s1, s2: m.reportData.s2,
+            avg1: m.reportData.avg1, avg2: m.reportData.avg2,
+            hf1: m.reportData.hf1 || 0, s80_1: m.reportData.s80_1 || 0, s100_1: m.reportData.s100_1 || 0, s140_1: m.reportData.s140_1 || 0, s180_1: m.reportData.s180_1 || 0,
+            hf2: m.reportData.hf2 || 0, s80_2: m.reportData.s80_2 || 0, s100_2: m.reportData.s100_2 || 0, s140_2: m.reportData.s140_2 || 0, s180_2: m.reportData.s180_2 || 0,
+            date: new Date().toLocaleString('pl-PL')
+        });
+
+        // --- TUTAJ DODANE ROZLICZENIE ZAKŁADÓW BUKMACHERSKICH ---
+        const betsSnap = await get(dbRef(db, `bets/${matchId}`));
+        if (betsSnap.exists()) {
+            const betsData = betsSnap.val();
+            const matchWinnerUid = (s1 > s2) ? m.p1Uid : ((s2 > s1) ? m.p2Uid : null);
+
+            for (const [bettorUid, betInfo] of Object.entries(betsData)) {
+                const userSnap = await get(dbRef(db, `users/${bettorUid}`));
+                if (userSnap.exists()) {
+                    const currentBalance = userSnap.val().dartKasa || 0;
+                    if (matchWinnerUid && betInfo.playerUid === matchWinnerUid) {
+                        const winnings = Math.round(betInfo.amount * betInfo.odds);
+                        await update(dbRef(db, `users/${bettorUid}`), { dartKasa: currentBalance + winnings });
+                    }
                 }
+            }
+        }
+        // --------------------------------------------------------
 
-                // Dodatkowe bonusy funkcyjne z Dart Kasy (np. +15 za każdą 180-tkę, +20 za wysoki finish >= 100)
-                const r1_180 = m.reportData.s180_1 || 0;
-                const r2_180 = m.reportData.s180_2 || 0;
-                p1Delta += (r1_180 * 15);
-                p2Delta += (r2_180 * 15);
-
-                if ((m.reportData.hf1 || 0) >= 100) p1Delta += 20;
-                if ((m.reportData.hf2 || 0) >= 100) p2Delta += 20;
-
-                const u1Snap = await get(dbRef(db, 'users/' + m.p1Uid));
-                const u2Snap = await get(dbRef(db, 'users/' + m.p2Uid));
-
-                const u1Kasa = (u1Snap.exists() && u1Snap.val().dartKasa !== undefined) ? u1Snap.val().dartKasa : 0;
-                const u2Kasa = (u2Snap.exists() && u2Snap.val().dartKasa !== undefined) ? u2Snap.val().dartKasa : 0;
-
-                await update(dbRef(db, 'users/' + m.p1Uid), { dartKasa: u1Kasa + p1Delta });
-                await update(dbRef(db, 'users/' + m.p2Uid), { dartKasa: u2Kasa + p2Delta });
-
-                await push(dbRef(db, 'matches'), {
-                    p1Uid: m.p1Uid, p1Name: m.p1Name,
-                    p2Uid: m.p2Uid, p2Name: m.p2Name,
-                   s1: m.reportData.s1, s2: m.reportData.s2,
-                    avg1: m.reportData.avg1, avg2: m.reportData.avg2,
-                    hf1: m.reportData.hf1 || 0, s80_1: m.reportData.s80_1 || 0, s100_1: m.reportData.s100_1 || 0, s140_1: m.reportData.s140_1 || 0, s180_1: m.reportData.s180_1 || 0,
-                    hf2: m.reportData.hf2 || 0, s80_2: m.reportData.s80_2 || 0, s100_2: m.reportData.s100_2 || 0, s140_2: m.reportData.s140_2 || 0, s180_2: m.reportData.s180_2 || 0,
-                    date: new Date().toLocaleString('pl-PL')
-                });
-                await remove(dbRef(db, 'upcomingMatches/' + matchId));
-                alert(`Wynik został zatwierdzony! Przyznano Dart Kasę: ${m.p1Name} (+${p1Delta} DK), ${m.p2Name} (+${p2Delta} DK).`);
-            } catch(err) { alert(err.message); }
-        };
-
+        await remove(dbRef(db, 'upcomingMatches/' + matchId));
+        alert(`Wynik został zatwierdzony! Przyznano Dart Kasę: ${m.p1Name} (+${p1Delta} DK), ${m.p2Name} (+${p2Delta} DK). Zakłady zostały rozliczone.`);
+    } catch(err) { alert(err.message); }
+};
         window.deleteUpcomingMatch = async (id) => {
             if (confirm("Usunąć ten mecz z terminarza?")) await remove(dbRef(db, 'upcomingMatches/' + id));
         };
