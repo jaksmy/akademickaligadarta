@@ -928,7 +928,15 @@
             <div class="form-group"><label>Miejscowość</label><input type="text" id="edit-city"></div>
             <div class="form-group"><label>Link DartCounter</label><input type="text" id="edit-dartcounter"></div>
             <div class="form-group">
-                <label>Wybierz Awatar</label>
+                <label>Własny Link Awatara (URL)</label>
+                <input type="text" id="edit-custom-avatar-url" placeholder="https://example.com/moje-zdjecie.jpg">
+            </div>
+            <div class="form-group">
+                <label>Lub wgraj plik z dysku</label>
+                <input type="file" id="edit-avatar-file" accept="image/*">
+            </div>
+            <div class="form-group">
+                <label>Wybierz Awatar z gotowych</label>
                 <div class="avatar-selection" id="edit-avatar-selection"></div>
             </div>
             <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
@@ -2282,6 +2290,8 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
             document.getElementById('edit-birthdate').value = currentUserProfileData.birthDate || '';
             document.getElementById('edit-city').value = currentUserProfileData.city || '';
             document.getElementById('edit-dartcounter').value = currentUserProfileData.dartCounter || '';
+            document.getElementById('edit-custom-avatar-url').value = '';
+            document.getElementById('edit-avatar-file').value = '';
             selectedAvatarUrl = currentUserProfileData.photoUrl || PRESET_AVATARS[0];
             renderAvatarPicker();
             document.getElementById('modal-edit-profile').classList.remove('hidden');
@@ -2302,6 +2312,28 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
         document.getElementById('btn-save-profile').onclick = async () => {
             const user = auth.currentUser;
             if (!user) return;
+
+            let finalAvatarUrl = selectedAvatarUrl;
+            const customUrlInput = document.getElementById('edit-custom-avatar-url').value.trim();
+            const fileInput = document.getElementById('edit-avatar-file');
+
+            if (customUrlInput) {
+                finalAvatarUrl = customUrlInput;
+            } else if (fileInput.files && fileInput.files[0]) {
+                const file = fileInput.files[0];
+                const reader = new FileReader();
+                reader.onload = async function(e) {
+                    finalAvatarUrl = e.target.result;
+                    await saveProfileData(user, finalAvatarUrl);
+                };
+                reader.readAsDataURL(file);
+                return;
+            }
+
+            await saveProfileData(user, finalAvatarUrl);
+        };
+
+        async function saveProfileData(user, avatarUrl) {
             try {
                 await update(dbRef(db, 'users/' + user.uid), {
                     firstName: document.getElementById('edit-firstname').value.trim(),
@@ -2310,11 +2342,11 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
                     birthDate: document.getElementById('edit-birthdate').value,
                     city: document.getElementById('edit-city').value.trim(),
                     dartCounter: document.getElementById('edit-dartcounter').value.trim(),
-                    photoUrl: selectedAvatarUrl
+                    photoUrl: avatarUrl
                 });
                 document.getElementById('modal-edit-profile').classList.add('hidden');
             } catch (err) { alert(err.message); }
-        };
+        }
 
         document.getElementById('btn-open-my-badges').onclick = () => {
             if (auth.currentUser) {
