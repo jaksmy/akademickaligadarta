@@ -1738,6 +1738,7 @@ Akademicka Liga Darta © 2026`;
         document.getElementById('btn-admin-finish-season').onclick = async () => {
             if (!confirm("Czy na pewno chcesz zakończyć sezon? Wszyscy gracze zostaną wypisani z zapisów, a tabela trafi do archiwum.")) return;
             try {
+                // Wypisz wszystkich graczy z obecnego sezonu
                 const updates = {};
                 Object.keys(globalUsersData).forEach(uid => {
                     updates[`users/${uid}/signedUpForSeason1`] = false;
@@ -2100,7 +2101,7 @@ Akademicka Liga Darta © 2026`;
                     const li = document.createElement('li');
                     li.innerHTML = `
                         <span>vs <b>${match.opponent}</b></span>
-                        <span><b>${match.score}</b> <span style="color: ${match.result === 'Z' ? '#10b981' : (match.result === 'R' ? '#f59e0b' : '#ef4444')}; font-size: 0.8rem; margin-left: 8px;">(${match.result})</span></span>
+                        <span><b>${match.score}</b> <span style="color: ${match.result === 'Z' ? '#10b981' : (match.result === 'R' ? '#f59e0b' : '#ef4444')}; font-weight:bold; margin-left:6px;">[${match.result}]</span></span>
                     `;
                     recentListContainer.appendChild(li);
                 });
@@ -2109,240 +2110,200 @@ Akademicka Liga Darta © 2026`;
             document.getElementById('modal-view-player').classList.remove('hidden');
         }
 
-        document.getElementById('btn-close-view-player').onclick = () => {
-            document.getElementById('modal-view-player').classList.add('hidden');
-        };
+        document.getElementById('btn-close-view-player').onclick = () => document.getElementById('modal-view-player').classList.add('hidden');
 
-        // Realtime Listeners
-        onValue(dbRef(db, 'users'), snapshot => {
-            globalUsersData = snapshot.val() || {};
-            if (currentUserProfileData && auth.currentUser) {
-                updateProfileUI(globalUsersData[auth.currentUser.uid] || currentUserProfileData);
-            }
-            if (!document.getElementById('page-players').classList.contains('hidden')) renderApprovedPlayers();
-            if (!document.getElementById('page-admin').classList.contains('hidden')) renderAdminPanelData();
-        });
-
-        onValue(dbRef(db, 'matches'), snapshot => {
-            globalMatchesMap = snapshot.val() || {};
-            calculateGlobalStats();
-            if (!document.getElementById('page-info').classList.contains('hidden')) renderTableAndMatches();
-            if (!document.getElementById('page-admin').classList.contains('hidden')) renderAdminPanelData();
-            if (!document.getElementById('page-players').classList.contains('hidden')) renderApprovedPlayers();
-            if (auth.currentUser && !document.getElementById('page-account').classList.contains('hidden')) {
-                updateProfileUI(globalUsersData[auth.currentUser.uid] || currentUserProfileData);
-            }
-        });
-
-        onValue(dbRef(db, 'upcomingMatches'), snapshot => {
-            globalUpcomingMatchesMap = snapshot.val() || {};
-            if (!document.getElementById('page-home').classList.contains('hidden')) renderHomePageUpcoming();
-            if (!document.getElementById('page-admin').classList.contains('hidden')) renderAdminPanelData();
-            if (auth.currentUser && !document.getElementById('page-account').classList.contains('hidden')) {
-                renderUserUpcomingMatches(auth.currentUser.uid);
-            }
-        });
-
-        onValue(dbRef(db, 'seasonState'), snapshot => {
-            seasonStateData = snapshot.val() || { finished: false };
-            if (seasonStateData.finished) {
-                tabs.archive.btn.classList.remove('hidden');
-                tabs.info.btn.classList.add('hidden');
-            } else {
-                tabs.archive.btn.classList.add('hidden');
-                tabs.info.btn.classList.remove('hidden');
-            }
-            if (auth.currentUser && !document.getElementById('page-account').classList.contains('hidden')) {
-                updateProfileUI(globalUsersData[auth.currentUser.uid] || currentUserProfileData);
-            }
-        });
-
-        onValue(dbRef(db, 'siteContent/homeText'), snapshot => {
-            const txt = snapshot.val();
-            if (txt) {
-                document.getElementById('home-text-display').innerText = txt;
-                document.getElementById('admin-home-text-input').value = txt;
-            }
-        });
-
-        function calculateGlobalStats() {
-            globalCalculatedAverages = {};
+        function computeTableStats() {
+            let stats = {};
+            let playerAveragesMap = {}; 
             globalCalculatedStats = {};
             globalPlayerDetailsStats = {};
 
             Object.keys(globalUsersData).forEach(uid => {
-                globalCalculatedAverages[uid] = 0;
-                globalCalculatedStats[uid] = { hf: 0, s80: 0, s100: 0, s140: 0, s180: 0 };
-                globalPlayerDetailsStats[uid] = { matches: 0, s80: 0, s100: 0, s140: 0, s180: 0, finishes: {} };
-            });
-
-            let avgSum = {};
-            let avgCount = {};
-
-            Object.values(globalMatchesMap).forEach(m => {
-                const uid1 = m.p1Uid;
-                const uid2 = m.p2Uid;
-
-                if (!avgSum[uid1]) { avgSum[uid1] = 0; avgCount[uid1] = 0; }
-                avgSum[uid1] += parseFloat(m.avg1 || 0);
-                avgCount[uid1]++;
-                
-                if (globalCalculatedStats[uid1]) {
-                    globalCalculatedStats[uid1].hf = Math.max(globalCalculatedStats[uid1].hf, m.hf1 || 0);
-                    globalCalculatedStats[uid1].s80 += parseInt(m.s80_1 || 0);
-                    globalCalculatedStats[uid1].s100 += parseInt(m.s100_1 || 0);
-                    globalCalculatedStats[uid1].s140 += parseInt(m.s140_1 || 0);
-                    globalCalculatedStats[uid1].s180 += parseInt(m.s180_1 || 0);
-
-                    globalPlayerDetailsStats[uid1].matches++;
-                    globalPlayerDetailsStats[uid1].s80 += parseInt(m.s80_1 || 0);
-                    globalPlayerDetailsStats[uid1].s100 += parseInt(m.s100_1 || 0);
-                    globalPlayerDetailsStats[uid1].s140 += parseInt(m.s140_1 || 0);
-                    globalPlayerDetailsStats[uid1].s180 += parseInt(m.s180_1 || 0);
-                    
-                    const f1 = parseInt(m.hf1 || 0);
-                    if (f1 > 0) {
-                        globalPlayerDetailsStats[uid1].finishes[f1] = (globalPlayerDetailsStats[uid1].finishes[f1] || 0) + 1;
-                    }
-                }
-
-                if (!avgSum[uid2]) { avgSum[uid2] = 0; avgCount[uid2] = 0; }
-                avgSum[uid2] += parseFloat(m.avg2 || 0);
-                avgCount[uid2]++;
-                
-                if (globalCalculatedStats[uid2]) {
-                    globalCalculatedStats[uid2].hf = Math.max(globalCalculatedStats[uid2].hf, m.hf2 || 0);
-                    globalCalculatedStats[uid2].s80 += parseInt(m.s80_2 || 0);
-                    globalCalculatedStats[uid2].s100 += parseInt(m.s100_2 || 0);
-                    globalCalculatedStats[uid2].s140 += parseInt(m.s140_2 || 0);
-                    globalCalculatedStats[uid2].s180 += parseInt(m.s180_2 || 0);
-
-                    globalPlayerDetailsStats[uid2].matches++;
-                    globalPlayerDetailsStats[uid2].s80 += parseInt(m.s80_2 || 0);
-                    globalPlayerDetailsStats[uid2].s100 += parseInt(m.s100_2 || 0);
-                    globalPlayerDetailsStats[uid2].s140 += parseInt(m.s140_2 || 0);
-                    globalPlayerDetailsStats[uid2].s180 += parseInt(m.s180_2 || 0);
-                    
-                    const f2 = parseInt(m.hf2 || 0);
-                    if (f2 > 0) {
-                        globalPlayerDetailsStats[uid2].finishes[f2] = (globalPlayerDetailsStats[uid2].finishes[f2] || 0) + 1;
-                    }
-                }
-            });
-
-            Object.keys(avgSum).forEach(uid => {
-                if (avgCount[uid] > 0) {
-                    globalCalculatedAverages[uid] = avgSum[uid] / avgCount[uid];
-                }
-            });
-        }
-
-        function generateTableData() {
-            const tableMap = {};
-            Object.keys(globalUsersData).forEach(uid => {
                 const u = globalUsersData[uid];
-                if (u.signedUpForSeason1 && u.statusSeason1 === 'approved') {
-                    tableMap[uid] = {
-                        uid, name: u.firstName + " " + u.lastName, photo: u.photoUrl || PRESET_AVATARS[0],
-                        m: 0, w: 0, r: 0, p: 0, legsW: 0, legsL: 0, diff: 0, points: 0, avg: 0
+                if (u.signedUpForSeason1 && u.statusSeason1 === "approved" || true) {
+                    stats[uid] = {
+                        uid, name: `${u.firstName || ''} ${u.lastName || ''}`, photo: u.photoUrl || PRESET_AVATARS[0],
+                        matches: 0, wins: 0, draws: 0, losses: 0, legsWon: 0, legsLost: 0, points: 0, playerAvg: 0
                     };
+                    playerAveragesMap[uid] = [];
+                    globalCalculatedStats[uid] = { hf: 0, s80: 0, s100: 0, s140: 0, s180: 0 };
+                    globalPlayerDetailsStats[uid] = { matches: 0, s80: 0, s100: 0, s140: 0, s180: 0, finishes: {} };
                 }
             });
 
             Object.values(globalMatchesMap).forEach(m => {
-                const uid1 = m.p1Uid; const uid2 = m.p2Uid;
-                const s1 = parseInt(m.s1); const s2 = parseInt(m.s2);
-                
-                if (tableMap[uid1]) {
-                    tableMap[uid1].m++; tableMap[uid1].legsW += s1; tableMap[uid1].legsL += s2;
-                    if (s1 > s2) { tableMap[uid1].w++; tableMap[uid1].points += 3; }
-                    else if (s1 === s2) { tableMap[uid1].r++; tableMap[uid1].points += 1; }
-                    else { tableMap[uid1].p++; }
+                const s1 = parseInt(m.s1), s2 = parseInt(m.s2);
+
+                if (stats[m.p1Uid]) {
+                    stats[m.p1Uid].matches++; stats[m.p1Uid].legsWon += s1; stats[m.p1Uid].legsLost += s2;
+                    if (s1 > s2) { stats[m.p1Uid].wins++; stats[m.p1Uid].points += 3; }
+                    else if (s2 > s1) stats[m.p1Uid].losses++;
+                    else { stats[m.p1Uid].draws++; stats[m.p1Uid].points += 1; }
+                    if (m.avg1) playerAveragesMap[m.p1Uid].push(parseFloat(m.avg1));
+
+                    const p1St = globalCalculatedStats[m.p1Uid];
+                    const p1Details = globalPlayerDetailsStats[m.p1Uid];
+                    if (p1Details) {
+                        p1Details.matches++;
+                        p1Details.s80 += (m.s80_1 || 0);
+                        p1Details.s100 += (m.s100_1 || 0);
+                        p1Details.s140 += (m.s140_1 || 0);
+                        p1Details.s180 += (m.s180_1 || 0);
+                        if (m.hf1 > 0) p1Details.finishes[m.hf1] = (p1Details.finishes[m.hf1] || 0) + 1;
+                    }
+                    if (p1St) {
+                        if ((m.hf1 || 0) > p1St.hf) p1St.hf = m.hf1;
+                        p1St.s80 += (m.s80_1 || 0);
+                        p1St.s100 += (m.s100_1 || 0);
+                        p1St.s140 += (m.s140_1 || 0);
+                        p1St.s180 += (m.s180_1 || 0);
+                    }
                 }
-                if (tableMap[uid2]) {
-                    tableMap[uid2].m++; tableMap[uid2].legsW += s2; tableMap[uid2].legsL += s1;
-                    if (s2 > s1) { tableMap[uid2].w++; tableMap[uid2].points += 3; }
-                    else if (s1 === s2) { tableMap[uid2].r++; tableMap[uid2].points += 1; }
-                    else { tableMap[uid2].p++; }
+
+                if (stats[m.p2Uid]) {
+                    stats[m.p2Uid].matches++; stats[m.p2Uid].legsLost += s1; stats[m.p2Uid].legsWon += s2;
+                    if (s2 > s1) { stats[m.p2Uid].wins++; stats[m.p2Uid].points += 3; }
+                    else if (s1 > s2) stats[m.p2Uid].losses++;
+                    else { stats[m.p2Uid].draws++; stats[m.p2Uid].points += 1; }
+                    if (m.avg2) playerAveragesMap[m.p2Uid].push(parseFloat(m.avg2));
+
+                    const p2St = globalCalculatedStats[m.p2Uid];
+                    const p2Details = globalPlayerDetailsStats[m.p2Uid];
+                    if (p2Details) {
+                        p2Details.matches++;
+                        p2Details.s80 += (m.s80_2 || 0);
+                        p2Details.s100 += (m.s100_2 || 0);
+                        p2Details.s140 += (m.s140_2 || 0);
+                        p2Details.s180 += (m.s180_2 || 0);
+                        if (m.hf2 > 0) p2Details.finishes[m.hf2] = (p2Details.finishes[m.hf2] || 0) + 1;
+                    }
+                    if (p2St) {
+                        if ((m.hf2 || 0) > p2St.hf) p2St.hf = m.hf2;
+                        p2St.s80 += (m.s80_2 || 0);
+                        p2St.s100 += (m.s100_2 || 0);
+                        p2St.s140 += (m.s140_2 || 0);
+                        p2St.s180 += (m.s180_2 || 0);
+                    }
                 }
             });
 
-            const arr = Object.values(tableMap).map(p => {
-                p.diff = p.legsW - p.legsL;
-                p.avg = globalCalculatedAverages[p.uid] || 0;
-                return p;
+            globalCalculatedAverages = {};
+            Object.keys(playerAveragesMap).forEach(uid => {
+                const avgs = playerAveragesMap[uid];
+                const mean = avgs.length > 0 ? avgs.reduce((a, b) => a + b, 0) / avgs.length : 0;
+                globalCalculatedAverages[uid] = mean;
+                if (stats[uid]) stats[uid].playerAvg = mean;
             });
 
-            arr.sort((a, b) => {
-                if (b.points !== a.points) return b.points - a.points;
-                if (b.diff !== a.diff) return b.diff - a.diff;
-                if (b.legsW !== a.legsW) return b.legsW - a.legsW;
-                return b.avg - a.avg;
-            });
-            
-            return arr;
+            return Object.values(stats).sort((a, b) => b.points - a.points || (b.legsWon - b.legsLost) - (a.legsWon - a.legsLost));
         }
 
         function renderTableAndMatches() {
-            const tbody = document.getElementById('league-table-body');
-            tbody.innerHTML = "";
-            const arr = generateTableData();
+            const tableBody = document.getElementById('league-table-body');
+            const historyList = document.getElementById('matches-history-list');
 
-            arr.forEach((p, idx) => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${idx + 1}</td>
-                    <td class="player-cell"><img src="${p.photo}" class="table-avatar"> ${p.name}</td>
-                    <td>${p.m}</td><td>${p.w}</td><td>${p.r}</td><td>${p.p}</td>
-                    <td>${p.legsW}:${p.legsL}</td><td>${p.diff > 0 ? '+'+p.diff : p.diff}</td>
-                    <td>${p.avg.toFixed(2)}</td>
-                    <td><b style="color:var(--accent-blue);">${p.points}</b></td>
-                `;
-                tbody.appendChild(tr);
+            const sortedStats = computeTableStats();
+
+            tableBody.innerHTML = "";
+            sortedStats.forEach((s, idx) => {
+                if (s.matches > 0 || globalUsersData[s.uid]?.statusSeason1 === 'approved') {
+                    const diff = s.legsWon - s.legsLost;
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><b>${idx + 1}</b></td>
+                        <td class="player-cell"><img src="${s.photo}" class="table-avatar"> ${s.name}</td>
+                        <td>${s.matches}</td><td>${s.wins}</td><td>${s.draws}</td><td>${s.losses}</td>
+                        <td>${s.legsWon}:${s.legsLost}</td>
+                        <td style="color:${diff > 0 ? '#34d399' : (diff < 0 ? '#f87171' : 'var(--text-muted)')}">${diff > 0 ? '+' + diff : diff}</td>
+                        <td><b>${s.playerAvg.toFixed(2)}</b></td>
+                        <td style="color:var(--accent-blue); font-weight:700;">${s.points}</td>
+                    `;
+                    tableBody.appendChild(tr);
+                }
             });
 
-            const historyContainer = document.getElementById('matches-history-list');
-            historyContainer.innerHTML = "";
-            const matchesArr = Object.values(globalMatchesMap).reverse();
-            
-            if (matchesArr.length === 0) {
-                historyContainer.innerHTML = '<p style="color: var(--text-muted);">Brak rozegranych meczów.</p>';
-            } else {
-                matchesArr.forEach(m => {
-                    const card = document.createElement('div');
-                    card.className = 'match-card';
-                    card.style.cursor = 'default';
-                    card.innerHTML = `
-                        <div>
-                            <div class="match-vs">${m.p1Name} <b style="color:var(--accent-blue); font-size:1.2rem; margin:0 8px;">${m.s1}:${m.s2}</b> ${m.p2Name}</div>
-                            <div class="match-date" style="margin-top: 4px;">Średnie: ${parseFloat(m.avg1).toFixed(2)} vs ${parseFloat(m.avg2).toFixed(2)}</div>
-                        </div>
-                        <div class="match-status-tag" style="background: rgba(16, 185, 129, 0.1); color: #10b981;">Zakończony</div>
-                    `;
-                    historyContainer.appendChild(card);
-                });
-            }
+            historyList.innerHTML = "";
+            Object.keys(globalMatchesMap).reverse().forEach(matchId => {
+                const m = globalMatchesMap[matchId];
+                const item = document.createElement('div');
+                item.className = 'match-card';
+                item.innerHTML = `
+                    <div class="match-vs">${m.p1Name} <b style="color:var(--accent-blue); margin: 0 8px;">${m.s1}:${m.s2}</b> ${m.p2Name}</div>
+                    <div class="match-date">${m.date || ''}</div>
+                `;
+                historyList.appendChild(item);
+            });
         }
 
         function renderArchiveTable() {
-            const tbody = document.getElementById('archive-table-body');
-            tbody.innerHTML = "";
-            const arr = generateTableData(); 
-            
-            arr.forEach((p, idx) => {
+            const archiveBody = document.getElementById('archive-table-body');
+            archiveBody.innerHTML = "";
+            const sortedStats = computeTableStats();
+
+            sortedStats.forEach((s, idx) => {
+                const diff = s.legsWon - s.legsLost;
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td>${idx + 1}</td>
-                    <td class="player-cell"><img src="${p.photo}" class="table-avatar"> ${p.name}</td>
-                    <td>${p.m}</td><td>${p.w}</td><td>${p.r}</td><td>${p.p}</td>
-                    <td>${p.legsW}:${p.legsL}</td><td>${p.diff > 0 ? '+'+p.diff : p.diff}</td>
-                    <td>${p.avg.toFixed(2)}</td>
-                    <td><b style="color:var(--accent-blue);">${p.points}</b></td>
+                    <td><b>${idx + 1}</b></td>
+                    <td class="player-cell"><img src="${s.photo}" class="table-avatar"> ${s.name}</td>
+                    <td>${s.matches}</td><td>${s.wins}</td><td>${s.draws}</td><td>${s.losses}</td>
+                    <td>${s.legsWon}:${s.legsLost}</td>
+                    <td style="color:${diff > 0 ? '#34d399' : (diff < 0 ? '#f87171' : 'var(--text-muted)')}">${diff > 0 ? '+' + diff : diff}</td>
+                    <td><b>${s.playerAvg.toFixed(2)}</b></td>
+                    <td style="color:var(--accent-blue); font-weight:700;">${s.points}</td>
                 `;
-                tbody.appendChild(tr);
+                archiveBody.appendChild(tr);
             });
         }
+
+        // NASŁUCHIWANIE FIREBASE REALTIME
+        onValue(dbRef(db, 'users'), (snapshot) => {
+            globalUsersData = snapshot.val() || {};
+            if (auth.currentUser && globalUsersData[auth.currentUser.uid]) {
+                updateProfileUI(globalUsersData[auth.currentUser.uid]);
+            }
+            if (!tabs.players.page.classList.contains('hidden')) renderApprovedPlayers();
+            if (!tabs.info.page.classList.contains('hidden')) renderTableAndMatches();
+            if (!tabs.admin.page.classList.contains('hidden')) renderAdminPanelData();
+        });
+
+        onValue(dbRef(db, 'matches'), (snapshot) => {
+            globalMatchesMap = snapshot.val() || {};
+            computeTableStats();
+            if (!tabs.info.page.classList.contains('hidden')) renderTableAndMatches();
+            if (!tabs.archive.page.classList.contains('hidden')) renderArchiveTable();
+        });
+
+        onValue(dbRef(db, 'upcomingMatches'), (snapshot) => {
+            globalUpcomingMatchesMap = snapshot.val() || {};
+            if (auth.currentUser && globalUsersData[auth.currentUser.uid]) {
+                renderUserUpcomingMatches(auth.currentUser.uid);
+            }
+            if (!tabs.home.page.classList.contains('hidden')) renderHomePageUpcoming();
+            if (!tabs.admin.page.classList.contains('hidden')) renderAdminPanelData();
+        });
+
+        onValue(dbRef(db, 'siteContent'), (snapshot) => {
+            const data = snapshot.val();
+            if (data && data.homeText) {
+                document.getElementById('home-text-display').innerText = data.homeText;
+                document.getElementById('admin-home-text-input').value = data.homeText;
+            }
+        });
+
+        onValue(dbRef(db, 'seasonState'), (snapshot) => {
+            seasonStateData = snapshot.val() || { finished: false };
+            const archiveTabBtn = document.getElementById('tab-archive');
+            if (seasonStateData.finished) {
+                archiveTabBtn.classList.remove('hidden');
+            } else {
+                archiveTabBtn.classList.add('hidden');
+                if (!tabs.archive.page.classList.contains('hidden')) switchTab('info');
+            }
+            if (auth.currentUser && globalUsersData[auth.currentUser.uid]) {
+                updateProfileUI(globalUsersData[auth.currentUser.uid]);
+            }
+        });
     </script>
 </body>
 </html>
-```[cite: 4]
