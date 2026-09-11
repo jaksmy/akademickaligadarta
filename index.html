@@ -1252,17 +1252,18 @@
          document.getElementById('btn-login').onclick = async () => {
             try {
                document.getElementById('btn-login').onclick = async () => {
-        try {
-            const userCred = await signInWithEmailAndPassword(auth, document.getElementById('login-email').value.trim(), document.getElementById('login-pass').value);
-            if (!userCred.user.emailVerified) {
-                await signOut(auth);
+            try {
+                const userCred = await signInWithEmailAndPassword(auth, document.getElementById('login-email').value.trim(), document.getElementById('login-pass').value);
+                if (!userCred.user.emailVerified) {
+                    await signOut(auth);
+                    document.getElementById('login-msg').className = "msg error";
+                    document.getElementById('login-msg').innerText = "Aktywuj konto klikając link w mailu!";
+                }
+            } catch (err) {
                 document.getElementById('login-msg').className = "msg error";
-                document.getElementById('login-msg').innerText = "Aktywuj konto klikając link w mailu!";
+                document.getElementById('login-msg').innerText = "Błędny email lub hasło.";
             }
-        } catch (err) {
-            document.getElementById('login-msg').className = "msg error";
-            document.getElementById('login-msg').innerText = "Błędny email lub hasło.";
-            console.error("Błąd logowania:", err);
+        };
         }
     };
 }
