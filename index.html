@@ -1199,6 +1199,17 @@
             admin: { btn: document.getElementById('tab-admin'), page: document.getElementById('page-admin') }
         };
 
+        function getCombinedCareerMatches() {
+    let allMatches = { ...(globalMatchesMap || {}) };
+    const history = seasonStateData.archiveHistory || {};
+    Object.values(history).forEach(season => {
+        if (season.matches) {
+            Object.assign(allMatches, season.matches);
+        }
+    });
+    return allMatches;
+}
+
         function switchTab(activeKey) {
             Object.keys(tabs).forEach(key => {
                 tabs[key].btn.classList.remove('active');
@@ -2312,22 +2323,21 @@
     keys.forEach(seasonKey => {
         const seasonData = history[seasonKey];
         const headerTr = document.createElement('tr');
-        headerTr.innerHTML = `<td colspan="10" style="background:#0d1322; color:var(--accent-blue); font-weight:bold; text-align:center;">--- ${seasonKey.toUpperCase()} ---</td>`;
+        headerTr.innerHTML = `<td colspan="10" style="background:#0d1322; color:var(--accent-blue); font-weight:bold; text-align:center; text-transform:uppercase;">--- ${seasonKey.replace('_', ' ')} ---</td>`;
         archiveBody.appendChild(headerTr);
 
-        // Wyświetlenie tabeli z tamtego sezonu
         if (seasonData.leaderboard) {
             seasonData.leaderboard.forEach((row, idx) => {
-                const u = globalUsersData[row.uid] || { firstName: 'Nieznany', lastName: 'Gracz', photoUrl: PRESET_AVATARS[0] };
+                const u = globalUsersData[row.uid] || { firstName: 'Gracz', lastName: 'Usunięty', photoUrl: PRESET_AVATARS[0] };
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td><b>${idx + 1}</b></td>
                     <td class="player-cell"><img src="${u.photoUrl || PRESET_AVATARS[0]}" class="table-avatar"> ${u.firstName} ${u.lastName}</td>
-                    <td>-</td><td>${row.wins}</td><td>-</td><td>-</td>
+                    <td>-</td><td>${row.wins || 0}</td><td>-</td><td>-</td>
                     <td>-</td>
-                    <td>${row.diff > 0 ? '+' + row.diff : row.diff}</td>
+                    <td>${row.diff > 0 ? '+' + row.diff : (row.diff || 0)}</td>
                     <td>-</td>
-                    <td><b style="color:var(--accent-blue);">${row.points}</b></td>
+                    <td><b style="color:var(--accent-blue);">${row.points || 0}</b></td>
                 `;
                 archiveBody.appendChild(tr);
             });
@@ -2354,6 +2364,8 @@
             // Przeliczanie statystyk szczegółowych
             globalPlayerDetailsStats = {};
             globalCalculatedStats = {};
+
+            const careerMatches = getCombinedCareerMatches();
 
             Object.values(globalMatchesMap).forEach(m => {
                 [m.p1Uid, m.p2Uid].forEach((uid, idx) => {
@@ -2405,11 +2417,18 @@
         });
 
         onValue(dbRef(db, 'seasonState'), (snapshot) => {
-            seasonStateData = snapshot.val() || { finished: false };
-            if (auth.currentUser && globalUsersData[auth.currentUser.uid]) {
-                updateProfileUI(globalUsersData[auth.currentUser.uid]);
-            }
-        });
+    seasonStateData = snapshot.val() || { finished: false };
+    const archiveTabBtn = document.getElementById('tab-archive');
+    if (seasonStateData.finished || (seasonStateData.archiveHistory && Object.keys(seasonStateData.archiveHistory).length > 0)) {
+        archiveTabBtn.classList.remove('hidden');
+    } else {
+        archiveTabBtn.classList.add('hidden');
+        if (!tabs.archive.page.classList.contains('hidden')) switchTab('info');
+    }
+    if (auth.currentUser && globalUsersData[auth.currentUser.uid]) {
+        updateProfileUI(globalUsersData[auth.currentUser.uid]);
+    }
+});
 
         onValue(dbRef(db, 'siteContent/homeText'), (snapshot) => {
             const txt = snapshot.val();
