@@ -1758,7 +1758,7 @@
         };
 
         document.getElementById('btn-admin-finish-season').onclick = async () => {
-    if (!confirm("Czy na pewno chcesz zakończyć obecny sezon? Tabela trafi do archiwum, a licznik sezonów wzrośnie.")) return;
+    if (!confirm("Czy na pewno chcesz zakończyć obecny sezon? Tabela i mecze trafią do archiwum.")) return;
     try {
         let scores = {};
         Object.keys(globalUsersData).forEach(uid => {
@@ -1794,6 +1794,8 @@
 
         const currentSeasonNum = seasonStateData.seasonNumber || 1;
         const currentHistory = seasonStateData.archiveHistory || {};
+        
+        // Zapisujemy tabelę oraz wszystkie rozegrane mecze sezonu
         currentHistory[`season_${currentSeasonNum}`] = {
             matches: globalMatchesMap,
             leaderboard: sortedLeaderboard
@@ -1808,32 +1810,51 @@
             updates[`users/${uid}/signedUpForSeason1`] = false;
             updates[`users/${uid}/statusSeason1`] = "none";
         });
-        updates['matches'] = null; // Reset historii meczów dla nowego sezonu
+        updates['matches'] = null; // Czyszczenie meczów pod nowy sezon
 
         await update(dbRef(db), updates);
         document.getElementById('admin-season-msg').className = "msg success";
-        document.getElementById('admin-season-msg').innerText = `Zakończono Sezon ${currentSeasonNum}! Rozpoczęto zapisy do nowego sezonu.`;
+        document.getElementById('admin-season-msg').innerText = `Zakończono Sezon ${currentSeasonNum} i zarchiwizowano mecze!`;
     } catch(err) {
         document.getElementById('admin-season-msg').className = "msg error";
         document.getElementById('admin-season-msg').innerText = err.message;
     }
 };
 
-        document.getElementById('btn-admin-restore-season').onclick = async () => {
-    if (!confirm("Czy na pewno chcesz przywrócić poprzedni sezon? Bonus 300 DK zostanie odjęty od zwycięzcy.")) return;
+document.getElementById('btn-admin-restore-season').onclick = async () => {
+    if (!confirm("Czy na pewno chcesz przywrócić ostatni zarchiwizowany sezon? Mecze zostaną przywrócone, a bonus 300 DK odjęty.")) return;
     try {
+        const history = seasonStateData.archiveHistory || {};
+        const seasonKeys = Object.keys(history);
+        if (seasonKeys.length === 0) {
+            alert("Brak zarchiwizowanych sezonów do przywrócenia.");
+            return;
+        }
+
+        // Pobieramy ostatni zarchiwizowany sezon
+        const lastKey = seasonKeys[seasonKeys.length - 1];
+        const lastSeasonData = history[lastKey];
+
         const updates = {};
         const lastWinner = seasonStateData.lastWinnerUid;
         if (lastWinner && globalUsersData[lastWinner]) {
             const currentKasa = globalUsersData[lastWinner].dartKasa || 0;
             updates[`users/${lastWinner}/dartKasa`] = Math.max(0, currentKasa - 300);
         }
+
+        // Przywracamy mecze z archiwum do głównej bazy
+        updates['matches'] = lastSeasonData.matches || null;
+        
+        // Usuwamy ten sezon z historii archiwum
+        delete history[lastKey];
+        updates['seasonState/archiveHistory'] = history;
         updates['seasonState/finished'] = false;
+        updates['seasonState/seasonNumber'] = parseInt(lastKey.replace('season_', '')) || 1;
         updates['seasonState/lastWinnerUid'] = null;
 
         await update(dbRef(db), updates);
         document.getElementById('admin-season-msg').className = "msg success";
-        document.getElementById('admin-season-msg').innerText = "Sezon został przywrócony, a bonusy wyrównane.";
+        document.getElementById('admin-season-msg').innerText = "Sezon oraz jego mecze zostały pomyślnie przywrócone!";
     } catch(err) {
         document.getElementById('admin-season-msg').className = "msg error";
         document.getElementById('admin-season-msg').innerText = err.message;
