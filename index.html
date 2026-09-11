@@ -700,6 +700,7 @@
                     <button class="nav-btn" id="tab-info">Tabela i Mecze</button>
                     <button class="nav-btn hidden" id="tab-archive">Archiwum</button>
                     <button class="nav-btn" id="tab-players">Gracze</button>
+                    <button class="nav-btn" id="tab-shop">🛍️ Sklep</button>
                     <button class="nav-btn" id="tab-live">Na Żywo</button>
                     <button class="nav-btn" id="tab-account">Konto</button>
                     <button class="nav-btn hidden" id="tab-admin" style="background: rgba(239, 68, 68, 0.15); color: #f87171;">Admin</button>
@@ -768,6 +769,17 @@
                     <h2>Zatwierdzeni Zawodnicy</h2>
                     <div id="players-loading" style="color: var(--text-muted);">Ładowanie zawodników...</div>
                     <div class="grid-container" id="players-grid"></div>
+                </div>
+            </div>
+
+            <!-- TAB: SHOP -->
+            <div id="page-shop" class="page hidden">
+                <div class="card">
+                    <h2>Sklep Ligowy</h2>
+                    <p style="color: var(--text-muted); margin-bottom: 20px;">Wydawaj zarobioną Dart Kasę (DK) na bonusy bukmacherskie i dodatki kosmetyczne!</p>
+                    <div id="shop-items-grid" class="grid-container">
+                        <!-- Przedmioty ładowane dynamicznie -->
+                    </div>
                 </div>
             </div>
 
@@ -1334,6 +1346,7 @@ function calculateMatchOdds(p1Uid, p2Uid) {
             info: { btn: document.getElementById('tab-info'), page: document.getElementById('page-info') },
             archive: { btn: document.getElementById('tab-archive'), page: document.getElementById('page-archive') },
             players: { btn: document.getElementById('tab-players'), page: document.getElementById('page-players') },
+            shop: { btn: document.getElementById('tab-shop'), page: document.getElementById('page-shop') },
             live: { btn: document.getElementById('tab-live'), page: document.getElementById('page-live') },
             account: { btn: document.getElementById('tab-account'), page: document.getElementById('page-account') },
             admin: { btn: document.getElementById('tab-admin'), page: document.getElementById('page-admin') }
@@ -1361,11 +1374,67 @@ function calculateMatchOdds(p1Uid, p2Uid) {
             if (activeKey === 'players') renderApprovedPlayers();
             if (activeKey === 'info') renderTableAndMatches();
             if (activeKey === 'archive') renderArchiveTable();
+            if (activeKey === 'shop') renderShop();
             if (activeKey === 'admin') renderAdminPanelData();
             if (activeKey === 'home') renderHomePageUpcoming();
         }
 
         Object.keys(tabs).forEach(key => tabs[key].btn.onclick = () => switchTab(key));
+
+        // --- SKLEP I BONUSY ---
+        function renderShop() {
+            const grid = document.getElementById('shop-items-grid');
+            grid.innerHTML = "";
+
+            const items = {
+                boost_25: { name: "Booster Kursu +25%", price: 50, desc: "Zwiększa wygraną z wygranego zakładu o 25% (jednorazowy żeton).", icon: "⚡" },
+                insurance: { name: "Ubezpieczenie Kuponu", price: 80, desc: "Zwraca 50% stawki, jeśli Twój typ okaże się błędny.", icon: "🛡️" },
+                title_highroller: { name: "Tytuł: High Roller", price: 150, desc: "Ekskluzywny tytuł wyświetlany na profilu.", icon: "👑" }
+            };
+
+            Object.keys(items).forEach(itemId => {
+                const item = items[itemId];
+                const card = document.createElement('div');
+                card.className = "player-card";
+                card.innerHTML = `
+                    <div style="font-size: 2.5rem; margin-bottom: 10px;">${item.icon}</div>
+                    <div class="player-name">${item.name}</div>
+                    <div class="player-info" style="margin: 8px 0; text-align: center;">${item.desc}</div>
+                    <div style="margin-top: auto; font-weight: 700; color: #34d399; margin-bottom: 12px;">🪙 ${item.price} DK</div>
+                    <button class="btn-primary btn-sm" onclick="buyShopItem('${itemId}', ${item.price})">Kup przedmiot</button>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        window.buyShopItem = async (itemId, price) => {
+            const user = auth.currentUser;
+            if (!user || !currentUserProfileData) return;
+
+            const userBalance = currentUserProfileData.dartKasa || 0;
+            if (userBalance < price) {
+                alert("Nie masz wystarczającej ilości Dart Kasy!");
+                return;
+            }
+
+            try {
+                const updates = {};
+                updates[`users/${user.uid}/dartKasa`] = userBalance - price;
+
+                if (itemId.startsWith('title_')) {
+                    const titleName = itemId === 'title_highroller' ? "High Roller" : "Stylista";
+                    updates[`users/${user.uid}/activeTitle`] = titleName;
+                } else {
+                    const currentCount = currentUserProfileData.inventory?.[itemId] || 0;
+                    updates[`users/${user.uid}/inventory/${itemId}`] = currentCount + 1;
+                }
+
+                await update(dbRef(db), updates);
+                alert("Zakup zakończony sukcesem!");
+            } catch (err) {
+                alert(err.message);
+            }
+        };
 
         function calculateAge(birthDateString) {
             if (!birthDateString) return "-";
@@ -1527,7 +1596,7 @@ function calculateMatchOdds(p1Uid, p2Uid) {
             }
 
             const matchesCount = (uid && globalPlayerDetailsStats[uid]) ? globalPlayerDetailsStats[uid].matches : 0;
-            document.getElementById('prof-title-display').innerText = `🏆 ${getPlayerTitle(matchesCount)}`;
+            document.getElementById('prof-title-display').innerText = `🏆 ${data.activeTitle || getPlayerTitle(matchesCount)}`;
 
             document.getElementById('prof-email-display').innerText = data.email || "";
             document.getElementById('prof-photo').src = data.photoUrl || PRESET_AVATARS[0];
@@ -2121,20 +2190,38 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
             date: new Date().toLocaleString('pl-PL')
         });
 
-        // --- TUTAJ DODANE ROZLICZENIE ZAKŁADÓW BUKMACHERSKICH ---
+        // --- ROZLICZENIE ZAKŁADÓW BUKMACHERSKICH Z UWZGLĘDNIENIEM BOOSTEREK I UBEZPIECZEŃ ---
         const betsSnap = await get(dbRef(db, `bets/${matchId}`));
         if (betsSnap.exists()) {
             const betsData = betsSnap.val();
             const matchWinnerUid = (s1 > s2) ? m.p1Uid : ((s2 > s1) ? m.p2Uid : null);
 
             for (const [bettorUid, betInfo] of Object.entries(betsData)) {
-                const userSnap = await get(dbRef(db, `users/${bettorUid}`));
-                if (userSnap.exists()) {
-                    const currentBalance = userSnap.val().dartKasa || 0;
+                const bettorUserSnap = await get(dbRef(db, `users/${bettorUid}`));
+                if (bettorUserSnap.exists()) {
+                    const bettorData = bettorUserSnap.val();
+                    let currentBalance = bettorData.dartKasa || 0;
+                    let inventory = bettorData.inventory || {};
+
                     if (matchWinnerUid && betInfo.playerUid === matchWinnerUid) {
-                        const winnings = Math.round(betInfo.amount * betInfo.odds);
-                        await update(dbRef(db, `users/${bettorUid}`), { dartKasa: currentBalance + winnings });
+                        let winnings = Math.round(betInfo.amount * betInfo.odds);
+                        if (inventory.boost_25 && inventory.boost_25 > 0) {
+                            winnings = Math.round(winnings * 1.25);
+                            inventory.boost_25 -= 1;
+                        }
+                        currentBalance += winnings;
+                    } else {
+                        if (inventory.insurance && inventory.insurance > 0) {
+                            const refund = Math.round(betInfo.amount * 0.5);
+                            currentBalance += refund;
+                            inventory.insurance -= 1;
+                        }
                     }
+
+                    await update(dbRef(db, `users/${bettorUid}`), {
+                        dartKasa: currentBalance,
+                        inventory: inventory
+                    });
                 }
             }
         }
@@ -2319,7 +2406,7 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
                     const details = globalPlayerDetailsStats[uid] || { matches: 0 };
                     const unlocked = calculatePlayerUnlockedBadges(uid);
                     const showcaseHtml = renderShowcaseHtml(p.showcase, unlocked);
-                    const playerTitle = getPlayerTitle(details.matches);
+                    const playerTitle = p.activeTitle || getPlayerTitle(details.matches);
 
                     const card = document.createElement('div');
                     card.className = 'player-card';
@@ -2362,7 +2449,7 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
             }
 
             const details = globalPlayerDetailsStats[uid] || { matches: 0 };
-            document.getElementById('view-player-title').innerText = `🏆 ${getPlayerTitle(details.matches)}`;
+            document.getElementById('view-player-title').innerText = `🏆 ${player.activeTitle || getPlayerTitle(details.matches)}`;
 
             document.getElementById('view-player-photo').src = player.photoUrl || PRESET_AVATARS[0];
             document.getElementById('view-player-age').innerText = calculateAge(player.birthDate);
