@@ -2607,18 +2607,18 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
         });
 
         onValue(dbRef(db, 'seasonState'), (snapshot) => {
-    seasonStateData = snapshot.val() || { finished: false };
-    const archiveTabBtn = document.getElementById('tab-archive');
-    if (seasonStateData.finished || (seasonStateData.archiveHistory && Object.keys(seasonStateData.archiveHistory).length > 0)) {
-        archiveTabBtn.classList.remove('hidden');
-    } else {
-        archiveTabBtn.classList.add('hidden');
-        if (!tabs.archive.page.classList.contains('hidden')) switchTab('info');
-    }
-    if (auth.currentUser && globalUsersData[auth.currentUser.uid]) {
-        updateProfileUI(globalUsersData[auth.currentUser.uid]);
-    }
-});
+            seasonStateData = snapshot.val() || { finished: false };
+            const archiveTabBtn = document.getElementById('tab-archive');
+            if (seasonStateData.finished || (seasonStateData.archiveHistory && Object.keys(seasonStateData.archiveHistory).length > 0)) {
+                archiveTabBtn.classList.remove('hidden');
+            } else {
+                archiveTabBtn.classList.add('hidden');
+                if (!tabs.archive.page.classList.contains('hidden')) switchTab('info');
+            }
+            if (auth.currentUser && globalUsersData[auth.currentUser.uid]) {
+                updateProfileUI(globalUsersData[auth.currentUser.uid]);
+            }
+        });
 
         onValue(dbRef(db, 'siteContent/homeText'), (snapshot) => {
             const txt = snapshot.val();
@@ -2627,7 +2627,6 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
                 document.getElementById('admin-home-text-input').value = txt;
             }
         });
-    });
     </script>
 </body>
 </html>
