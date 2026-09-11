@@ -1256,7 +1256,9 @@
                     await signOut(auth);
                     document.getElementById('login-msg').className = "msg error";
                     document.getElementById('login-msg').innerText = "Aktywuj konto klikając link w mailu!";
-                }
+                } catch (err) {
+                document.getElementById('login-msg').className = "msg error";
+                document.getElementById('login-msg').innerText = "Błędny email lub hasło.";
             }
         } catch (err) {
             if (msgDiv) {
