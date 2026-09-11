@@ -69,6 +69,27 @@
             color: var(--accent-red);
         }
 
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .wallet-widget {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-weight: 700;
+            color: #34d399;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1);
+            user-select: none;
+        }
+
         nav {
             display: flex;
             gap: 8px;
@@ -573,6 +594,8 @@
             background: #0d1322;
             margin-bottom: 8px;
             border-radius: var(--radius);
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
         footer {
@@ -603,6 +626,7 @@
 
         @media (max-width: 768px) {
             header { flex-direction: column; gap: 14px; padding: 14px 20px; }
+            .header-right { width: 100%; justify-content: space-between; }
             nav { width: 100%; overflow-x: auto; justify-content: flex-start; padding-bottom: 4px; }
             .nav-btn { padding: 8px 14px; font-size: 0.85rem; white-space: nowrap; }
             .avatar-selection { grid-template-columns: repeat(4, 1fr); }
@@ -667,15 +691,20 @@
     <div id="view-app" class="hidden">
         <header>
             <div class="logo">🎯 AKADEMICKA LIGA <span>DARTA</span></div>
-            <nav>
-                <button class="nav-btn active" id="tab-home">Główna</button>
-                <button class="nav-btn" id="tab-info">Tabela i Mecze</button>
-                <button class="nav-btn hidden" id="tab-archive">Archiwum</button>
-                <button class="nav-btn" id="tab-players">Gracze</button>
-                <button class="nav-btn" id="tab-live">Na Żywo</button>
-                <button class="nav-btn" id="tab-account">Konto</button>
-                <button class="nav-btn hidden" id="tab-admin" style="background: rgba(239, 68, 68, 0.15); color: #f87171;">Admin</button>
-            </nav>
+            <div class="header-right">
+                <div class="wallet-widget" title="Twoje saldo Dart Kasa">
+                    🪙 <span id="wallet-balance-display">0</span> DK
+                </div>
+                <nav>
+                    <button class="nav-btn active" id="tab-home">Główna</button>
+                    <button class="nav-btn" id="tab-info">Tabela i Mecze</button>
+                    <button class="nav-btn hidden" id="tab-archive">Archiwum</button>
+                    <button class="nav-btn" id="tab-players">Gracze</button>
+                    <button class="nav-btn" id="tab-live">Na Żywo</button>
+                    <button class="nav-btn" id="tab-account">Konto</button>
+                    <button class="nav-btn hidden" id="tab-admin" style="background: rgba(239, 68, 68, 0.15); color: #f87171;">Admin</button>
+                </nav>
+            </div>
         </header>
 
         <main>
@@ -743,18 +772,17 @@
             </div>
 
             <!-- TAB: LIVE -->
-        <div id="page-live" class="page hidden">
-    <div class="card">
-        <h2>Transmisja / Wyniki Na Żywo</h2>
-        <p style="margin-bottom: 14px;">
-            <a id="live-external-link" href="https://n01darts.com/n01/tournament/comp.php?id=t_30JY_2230&tab=live" target="_blank" style="color: var(--accent-blue); font-weight: 600; text-decoration: none;">Otwórz w nowej karcie ↗</a>
-        </p>
-        <div style="width: 100%; height: 600px; background: #000; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--card-border); position: relative;">
-            <!-- Dodano pointer-events: none; -->
-            <iframe id="n01-iframe" src="https://n01darts.com/n01/tournament/comp.php?id=t_30JY_2230&tab=live" style="width:100%; height:100%; border:none; pointer-events: none;"></iframe>
-        </div>
-    </div>
-</div>
+            <div id="page-live" class="page hidden">
+                <div class="card">
+                    <h2>Transmisja / Wyniki Na Żywo</h2>
+                    <p style="margin-bottom: 14px;">
+                        <a id="live-external-link" href="https://n01darts.com/n01/tournament/comp.php?id=t_30JY_2230&tab=live" target="_blank" style="color: var(--accent-blue); font-weight: 600; text-decoration: none;">Otwórz w nowej karcie ↗</a>
+                    </p>
+                    <div style="width: 100%; height: 600px; background: #000; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--card-border); position: relative;">
+                        <iframe id="n01-iframe" src="https://n01darts.com/n01/tournament/comp.php?id=t_30JY_2230&tab=live" style="width:100%; height:100%; border:none; pointer-events: none;"></iframe>
+                    </div>
+                </div>
+            </div>
 
             <!-- TAB: ACCOUNT -->
             <div id="page-account" class="page hidden">
@@ -820,7 +848,7 @@
                 <div class="card">
                     <h2>Zarządzanie Sezonem</h2>
                     <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-                        <button class="btn-danger" id="btn-admin-finish-season">🏁 Zakończ Sezon</button>
+                        <button class="btn-danger" id="btn-admin-finish-season">🏁 Zakończ Sezon (Przyznaj 300 DK triumfatorowi)</button>
                         <button class="btn-success" id="btn-admin-restore-season">🔄 Przywróć Sezon</button>
                     </div>
                     <div id="admin-season-msg" class="msg"></div>
@@ -837,7 +865,7 @@
                 </div>
 
                 <div class="card">
-                    <h2>Zarządzanie Zawodnikami</h2>
+                    <h2>Zarządzanie Zawodnikami i Portfelami (Dart Kasa)</h2>
                     <div id="admin-players-list"></div>
                 </div>
 
@@ -1141,47 +1169,9 @@
         REGULAMIN AKADEMICKIEJ LIGI DARTA
 ==================================================
 
-Postanowienia Ogólne
-Niniejszy regulamin określa zasady organizacji, przeprowadzania oraz uczestnictwa w rozgrywkach Akademickiej Ligi Darta. Celem ligi jest popularyzacja darta (steeldart) w środowisku akademickim, integracja studentów i pracowników uczelni wyższych oraz wyłonienie najlepszych zawodników i drużyn. Organizatorem rozgrywek jest Komitet Organizacyjny Akademickiej Ligi Darta. Wszyscy uczestnicy rozgrywek zobowiązani są do przestrzegania zasad fair play, niniejszego regulaminu oraz ogólnych przepisów sportowych.
-
-Warunki Uczestnictwa i Zgłoszenia
-W rozgrywkach mogą brać udział studenci, doktoranci, absolwenci oraz pracownicy uczelni wyższych. Warunkiem dopuszczenia do ligi jest terminowe przesłanie formularza zgłoszeniowego oraz uiszczenie opłaty wpisowej w wyznaczonym przez organizatora terminie. Każdy zawodnik ma obowiązek posiadać ważną legitymację studencką lub pracowniczą oraz dokument tożsamości podczas turniejów i spotkań ligowych. Zawodnicy niepełnoletni zobowiązani są do dostarczenia pisemnej zgody rodziców lub opiekunów prawnych na udział w rozgrywkach.
-
-System Rozgrywek
-Rozgrywki prowadzone są w formule ligowej (podział na dywizje, np. I liga i II liga) oraz w trybie turniejów otwartych lub mistrzostw uczelnianych. Mecze ligowe rozgrywane są systemem "każdy z każdym" z rundą rewanżową lub w formie turniejów zjazdowych. Standardowy format pojedynku to Best of 3 Legs (501 Double Out) do 2 wygranych legów. Każdy leg rozpoczyna się od stanu 301 punktów i musi zostać zakończony rzutem w pole podwójne (Double Out). Faza PlayOff w systemie BO5 501 i oraz finał BO7 501.
-
-Zasady Rozgrywania Meczu i Sędziowanie
-Mecz rozpoczyna się od rzutu do środka tarczy (Bulls-eye). Zawodnik, którego lotka ląduje bliżej środka, rozpoczyna pierwszego lega oraz wszystkie kolejne legi nieparzyste. W przypadku trafienia przez obu zawodników w ten sam pierścień, rzuty są powtarzane przy zmienionej kolejności. Każda kolejka składa się maksymalnie z 3 lotek. Punkty zaliczane są wyłącznie wtedy, gdy grot lotki pozostaje w tarczy do momentu podsumowania. Lotki, które odbiją się od tarczy lub wypadną przed zaliczeniem punktów, nie podlegają ponownemu rzutowi. Wszelkie protesty dotyczące liczenia punktów muszą być zgłoszone przed rozpoczęciem kolejnej kolejki rzutów.
-
-Punktacja i Tabela Wyników
-Za rozegrane spotkania przyznawane są punkty do ogólnej tabeli ligowej:
-
-Zwycięstwo w meczu: 3 punkty
-
-Remis w meczu: 1 punkt
-
-Porażka w meczu: 0 punktów
-
-Kryteria ustalania kolejności w tabeli:
-
-Liczba zdobytych punktów
-
-Bilans legów
-
-Bezpośredni pojedynek ("mała tabela")
-
-Liczba najwyższych zamknięć
-
-Awans i Spadek (System Ligowy)
-Po zakończeniu sezonu następują awanse i spadki między dywizjami. Zwycięzca I ligi otrzymuje tytuł Mistrza Akademickiej Ligi Darta. Zawodnicy z ostatnich miejsc w I lidze spadają do II ligi lub rozgrywają mecze barażowe.
-
-Dyscyplina, Ubiór i Zasady Zachowania
-Obowiązuje całkowity zakaz spożywania alkoholu oraz używania środków odurzających podczas spotkań. Obowiązuje zakaz palenia wyrobów tytoniowych oraz e-papierosów w strefie stanowisk rzutowych. Od uczestników wymagany jest schludny ubiór sportowo-elegancki lub klubowy. Trzykrotne niestawienie się na wyznaczone mecze bez usprawiedliwienia skutkuje skreśleniem z listy uczestników (walkowery).
-
-Postanowienia Końcowe
-Wszelkie kwestie sporne i sytuacje nieobjęte regulaminem rozstrzyga Komitet Organizacyjny. Oficjalne komunikaty i tabele wynikowe publikowane są na bieżąco na stronie internetowej ligi.
-
-Akademicka Liga Darta © 2026`;
+1. POSTANOWIENIA OGÓLNE
+1.1. Rozgrywki Akademickiej LIGI DARTA (ALD) mają na celu wyłonienie najlepszego zawodnika ligi.
+1.2. Przestrzegamy zasad fair play.`;
 
         function generateRulesFile() {
             const blob = new Blob([REGULAMIN_TEXT], { type: 'text/plain;charset=utf-8' });
@@ -1293,11 +1283,12 @@ Akademicka Liga Darta © 2026`;
                     firstName: fn, lastName: ln, nickname: "", birthDate: document.getElementById('reg-birthdate').value || "",
                     city: document.getElementById('reg-city').value.trim() || "", dartCounter: document.getElementById('reg-dartcounter').value.trim() || "",
                     photoUrl: randomAvatar, email: email, signedUpForSeason1: false, statusSeason1: "none",
-                    showcase: []
+                    showcase: [],
+                    dartKasa: 25 // 25 za rejestrację
                 });
                 await sendEmailVerification(cred.user);
                 document.getElementById('reg-msg').className = "msg success";
-                document.getElementById('reg-msg').innerText = "Konto utworzone! Wysłano e-mail weryfikacyjny. Sprawdź skrzynkę.";
+                document.getElementById('reg-msg').innerText = "Konto utworzone! Otrzymano 25 Dart Kasa za rejestrację. Wysłano e-mail weryfikacyjny.";
             } catch (err) {
                 document.getElementById('reg-msg').className = "msg error";
                 document.getElementById('reg-msg').innerText = err.message;
@@ -1367,6 +1358,10 @@ Akademicka Liga Darta © 2026`;
         function updateProfileUI(data) {
             currentUserProfileData = data;
             const uid = auth.currentUser ? auth.currentUser.uid : null;
+
+            // Widget Dart Kasa w prawym górnym rogu
+            const walletBalance = data.dartKasa !== undefined ? data.dartKasa : 0;
+            document.getElementById('wallet-balance-display').innerText = walletBalance;
 
             document.getElementById('prof-fullname').innerText = `${data.firstName || ''} ${data.lastName || ''}`;
             
@@ -1664,11 +1659,18 @@ Akademicka Liga Darta © 2026`;
                 const u = users[uid];
                 if (u.signedUpForSeason1) {
                     const isApproved = u.statusSeason1 === "approved";
+                    const currentKasa = u.dartKasa !== undefined ? u.dartKasa : 0;
                     const item = document.createElement('div');
                     item.className = 'admin-player-item';
                     item.innerHTML = `
-                        <div><b>${u.firstName || ''} ${u.lastName || ''}</b> <span style="color:var(--text-muted)">(${u.email})</span><br><span style="font-size:12px; font-weight:600; color:${isApproved ? '#34d399' : '#fbbf24'}">Status: ${isApproved ? 'Zatwierdzony' : 'Oczekuje'}</span></div>
-                        <div style="display:flex; gap:8px;">
+                        <div>
+                            <b>${u.firstName || ''} ${u.lastName || ''}</b> <span style="color:var(--text-muted)">(${u.email})</span><br>
+                            <span style="font-size:12px; font-weight:600; color:${isApproved ? '#34d399' : '#fbbf24'}">Status: ${isApproved ? 'Zatwierdzony' : 'Oczekuje'}</span> | 
+                            <span style="font-size:12px; color:#34d399;">Kasa: <b>${currentKasa} DK</b></span>
+                        </div>
+                        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                            <input type="number" id="admin-kasa-${uid}" value="${currentKasa}" style="width: 80px; padding: 6px; font-size: 0.85rem;">
+                            <button class="btn-sm btn-primary" onclick="updatePlayerWallet('${uid}')">Zmień DK</button>
                             ${!isApproved ? `<button class="btn-sm btn-success" onclick="setPlayerStatus('${uid}', 'approved', true)">Zatwierdź</button>` : ''}
                             <button class="btn-sm btn-danger" onclick="setPlayerStatus('${uid}', 'none', false)">${isApproved ? 'Cofnij' : 'Odrzuć'}</button>
                         </div>
@@ -1735,19 +1737,63 @@ Akademicka Liga Darta © 2026`;
             });
         }
 
-        document.getElementById('btn-admin-finish-season').onclick = async () => {
-            if (!confirm("Czy na pewno chcesz zakończyć sezon? Wszyscy gracze zostaną wypisani z zapisów, a tabela trafi do archiwum.")) return;
+        window.updatePlayerWallet = async (uid) => {
+            const inputVal = parseInt(document.getElementById(`admin-kasa-${uid}`).value) || 0;
             try {
-                // Wypisz wszystkich graczy z obecnego sezonu
+                await update(dbRef(db, 'users/' + uid), { dartKasa: inputVal });
+                alert("Portfel zawodnika został zaktualizowany!");
+            } catch(err) { alert(err.message); }
+        };
+
+        document.getElementById('btn-admin-finish-season').onclick = async () => {
+            if (!confirm("Czy na pewno chcesz zakończyć sezon? Zwycięzca tabeli otrzyma 300 Dart Kasa, wszyscy gracze zostaną wypisani z zapisów, a tabela trafi do archiwum.")) return;
+            try {
+                // Wyznaczenie triumfatora ligi na podstawie aktualnej tabeli w locie
+                // Obliczamy statystyki graczy z globalMatchesMap
+                let statsMap = {};
+                Object.values(globalUsersData).forEach((u, uid) => {
+                    // Jeśli potrzebne, ale pobierzemy po kluczach uid z users zatwierdzonych
+                });
+
+                // Prosta kalkulacja punktów z globalMatchesMap do wyłonienia zwycięzcy
+                let scores = {};
+                Object.keys(globalUsersData).forEach(uid => {
+                    if (globalUsersData[uid].signedUpForSeason1 && globalUsersData[uid].statusSeason1 === "approved") {
+                        scores[uid] = { points: 0, diff: 0, wins: 0, uid };
+                    }
+                });
+
+                Object.values(globalMatchesMap).forEach(m => {
+                    if (scores[m.p1Uid]) {
+                        scores[m.p1Uid].diff += (parseInt(m.s1) - parseInt(m.s2));
+                        if (parseInt(m.s1) > parseInt(m.s2)) { scores[m.p1Uid].points += 3; scores[m.p1Uid].wins++; }
+                        else if (parseInt(m.s1) === parseInt(m.s2)) { scores[m.p1Uid].points += 1; }
+                    }
+                    if (scores[m.p2Uid]) {
+                        scores[m.p2Uid].diff += (parseInt(m.s2) - parseInt(m.s1));
+                        if (parseInt(m.s2) > parseInt(m.s1)) { scores[m.p2Uid].points += 3; scores[m.p2Uid].wins++; }
+                        else if (parseInt(m.s2) === parseInt(m.s1)) { scores[m.p2Uid].points += 1; }
+                    }
+                });
+
+                let sortedLeaderboard = Object.values(scores).sort((a, b) => b.points - a.points || b.diff - a.diff || b.wins - a.wins);
+                
                 const updates = {};
+                if (sortedLeaderboard.length > 0) {
+                    const winnerUid = sortedLeaderboard[0].uid;
+                    const winnerCurrentKasa = globalUsersData[winnerUid].dartKasa !== undefined ? globalUsersData[winnerUid].dartKasa : 0;
+                    updates[`users/${winnerUid}/dartKasa`] = winnerCurrentKasa + 300; // 300 za triumf w lidze
+                }
+
                 Object.keys(globalUsersData).forEach(uid => {
                     updates[`users/${uid}/signedUpForSeason1`] = false;
                     updates[`users/${uid}/statusSeason1`] = "none";
                 });
                 updates['seasonState/finished'] = true;
+
                 await update(dbRef(db), updates);
                 document.getElementById('admin-season-msg').className = "msg success";
-                document.getElementById('admin-season-msg').innerText = "Sezon został zakończony, a tabela przeniesiona do archiwum!";
+                document.getElementById('admin-season-msg').innerText = "Sezon został zakończony! Przyznano 300 Dart Kasa triumfatorowi ligi, a tabela trafiła do archiwum.";
             } catch(err) {
                 document.getElementById('admin-season-msg').className = "msg error";
                 document.getElementById('admin-season-msg').innerText = err.message;
@@ -1807,17 +1853,52 @@ Akademicka Liga Darta © 2026`;
             if (!m || !m.reportData) return;
 
             try {
+                const s1 = m.reportData.s1;
+                const s2 = m.reportData.s2;
+
+                let p1Delta = 5; // 5 za przegraną
+                let p2Delta = 5; 
+
+                if (s1 > s2) {
+                    p1Delta = 40; // 40 za wygraną
+                    p2Delta = 5;  // 5 za przegraną
+                } else if (s2 > s1) {
+                    p1Delta = 5;  
+                    p2Delta = 40; 
+                } else {
+                    p1Delta = 20; // 20 za remis
+                    p2Delta = 20;
+                }
+
+                // Dodatkowe bonusy funkcyjne z Dart Kasy (np. +15 za każdą 180-tkę, +20 za wysoki finish >= 100)
+                const r1_180 = m.reportData.s180_1 || 0;
+                const r2_180 = m.reportData.s180_2 || 0;
+                p1Delta += (r1_180 * 15);
+                p2Delta += (r2_180 * 15);
+
+                if ((m.reportData.hf1 || 0) >= 100) p1Delta += 20;
+                if ((m.reportData.hf2 || 0) >= 100) p2Delta += 20;
+
+                const u1Snap = await get(dbRef(db, 'users/' + m.p1Uid));
+                const u2Snap = await get(dbRef(db, 'users/' + m.p2Uid));
+
+                const u1Kasa = (u1Snap.exists() && u1Snap.val().dartKasa !== undefined) ? u1Snap.val().dartKasa : 0;
+                const u2Kasa = (u2Snap.exists() && u2Snap.val().dartKasa !== undefined) ? u2Snap.val().dartKasa : 0;
+
+                await update(dbRef(db, 'users/' + m.p1Uid), { dartKasa: u1Kasa + p1Delta });
+                await update(dbRef(db, 'users/' + m.p2Uid), { dartKasa: u2Kasa + p2Delta });
+
                 await push(dbRef(db, 'matches'), {
                     p1Uid: m.p1Uid, p1Name: m.p1Name,
                     p2Uid: m.p2Uid, p2Name: m.p2Name,
-                    s1: m.reportData.s1, s2: m.reportData.s2,
+                   s1: m.reportData.s1, s2: m.reportData.s2,
                     avg1: m.reportData.avg1, avg2: m.reportData.avg2,
                     hf1: m.reportData.hf1 || 0, s80_1: m.reportData.s80_1 || 0, s100_1: m.reportData.s100_1 || 0, s140_1: m.reportData.s140_1 || 0, s180_1: m.reportData.s180_1 || 0,
                     hf2: m.reportData.hf2 || 0, s80_2: m.reportData.s80_2 || 0, s100_2: m.reportData.s100_2 || 0, s140_2: m.reportData.s140_2 || 0, s180_2: m.reportData.s180_2 || 0,
                     date: new Date().toLocaleString('pl-PL')
                 });
                 await remove(dbRef(db, 'upcomingMatches/' + matchId));
-                alert("Wynik został zatwierdzenie i trafia do tabeli ligowej!");
+                alert(`Wynik został zatwierdzony! Przyznano Dart Kasę: ${m.p1Name} (+${p1Delta} DK), ${m.p2Name} (+${p2Delta} DK).`);
             } catch(err) { alert(err.message); }
         };
 
@@ -2086,23 +2167,22 @@ Akademicka Liga Darta © 2026`;
                 }
             });
 
-            const last5 = playerMatches.slice(-5).reverse();
-
+            const last5 = playerMatches.slice(-5);
             if (last5.length === 0) {
-                formContainer.innerHTML = '<span style="color: var(--text-muted); font-size: 0.85rem;">Brak rozegranych spotkań</span>';
+                formContainer.innerHTML = '<span style="font-size:0.85rem; color:var(--text-muted)">Brak meczów</span>';
                 recentListContainer.innerHTML = '<li style="color: var(--text-muted); justify-content: center;">Brak rozegranych meczów</li>';
             } else {
                 last5.forEach(match => {
                     const badge = document.createElement('div');
-                    badge.className = `badge-result ${match.result === 'Z' ? 'win' : (match.result === 'R' ? 'draw' : 'loss')}`;
+                    badge.className = `badge-result ${match.result === 'Z' ? 'win' : (match.result === 'P' ? 'loss' : 'draw')}`;
                     badge.innerText = match.result;
+                    badge.title = `vs ${match.opponent} (${match.score})`;
                     formContainer.appendChild(badge);
+                });
 
+                playerMatches.slice(-10).reverse().forEach(match => {
                     const li = document.createElement('li');
-                    li.innerHTML = `
-                        <span>vs <b>${match.opponent}</b></span>
-                        <span><b>${match.score}</b> <span style="color: ${match.result === 'Z' ? '#10b981' : (match.result === 'R' ? '#f59e0b' : '#ef4444')}; font-weight:bold; margin-left:6px;">[${match.result}]</span></span>
-                    `;
+                    li.innerHTML = `<span>vs ${match.opponent} (${match.date})</span> <b>${match.score}</b>`;
                     recentListContainer.appendChild(li);
                 });
             }
@@ -2112,196 +2192,180 @@ Akademicka Liga Darta © 2026`;
 
         document.getElementById('btn-close-view-player').onclick = () => document.getElementById('modal-view-player').classList.add('hidden');
 
-        function computeTableStats() {
-            let stats = {};
-            let playerAveragesMap = {}; 
-            globalCalculatedStats = {};
-            globalPlayerDetailsStats = {};
+        function renderTableAndMatches() {
+            const tableBody = document.getElementById('league-table-body');
+            const historyContainer = document.getElementById('matches-history-list');
+            tableBody.innerHTML = '';
+            historyContainer.innerHTML = '';
 
+            let stats = {};
             Object.keys(globalUsersData).forEach(uid => {
                 const u = globalUsersData[uid];
-                if (u.signedUpForSeason1 && u.statusSeason1 === "approved" || true) {
+                if if (u.signedUpForSeason1 && u.statusSeason1 === "approved" || true) {
                     stats[uid] = {
-                        uid, name: `${u.firstName || ''} ${u.lastName || ''}`, photo: u.photoUrl || PRESET_AVATARS[0],
-                        matches: 0, wins: 0, draws: 0, losses: 0, legsWon: 0, legsLost: 0, points: 0, playerAvg: 0
+                        uid: uid, name: `${u.firstName || ''} ${u.lastName || ''}`, photo: u.photoUrl || PRESET_AVATARS[0],
+                        played: 0, wins: 0, draws: 0, losses: 0, legsFor: 0, legsAgainst: 0, points: 0, totalAvg: 0, avgCount: 0
                     };
-                    playerAveragesMap[uid] = [];
-                    globalCalculatedStats[uid] = { hf: 0, s80: 0, s100: 0, s140: 0, s180: 0 };
-                    globalPlayerDetailsStats[uid] = { matches: 0, s80: 0, s100: 0, s140: 0, s180: 0, finishes: {} };
                 }
             });
 
             Object.values(globalMatchesMap).forEach(m => {
-                const s1 = parseInt(m.s1), s2 = parseInt(m.s2);
-
                 if (stats[m.p1Uid]) {
-                    stats[m.p1Uid].matches++; stats[m.p1Uid].legsWon += s1; stats[m.p1Uid].legsLost += s2;
-                    if (s1 > s2) { stats[m.p1Uid].wins++; stats[m.p1Uid].points += 3; }
-                    else if (s2 > s1) stats[m.p1Uid].losses++;
-                    else { stats[m.p1Uid].draws++; stats[m.p1Uid].points += 1; }
-                    if (m.avg1) playerAveragesMap[m.p1Uid].push(parseFloat(m.avg1));
-
-                    const p1St = globalCalculatedStats[m.p1Uid];
-                    const p1Details = globalPlayerDetailsStats[m.p1Uid];
-                    if (p1Details) {
-                        p1Details.matches++;
-                        p1Details.s80 += (m.s80_1 || 0);
-                        p1Details.s100 += (m.s100_1 || 0);
-                        p1Details.s140 += (m.s140_1 || 0);
-                        p1Details.s180 += (m.s180_1 || 0);
-                        if (m.hf1 > 0) p1Details.finishes[m.hf1] = (p1Details.finishes[m.hf1] || 0) + 1;
-                    }
-                    if (p1St) {
-                        if ((m.hf1 || 0) > p1St.hf) p1St.hf = m.hf1;
-                        p1St.s80 += (m.s80_1 || 0);
-                        p1St.s100 += (m.s100_1 || 0);
-                        p1St.s140 += (m.s140_1 || 0);
-                        p1St.s180 += (m.s180_1 || 0);
-                    }
+                    stats[m.p1Uid].played++;
+                    stats[m.p1Uid].legsFor += parseInt(m.s1);
+                    stats[m.p1Uid].legsAgainst += parseInt(m.s2);
+                    stats[m.p1Uid].totalAvg += parseFloat(m.avg1 || 0);
+                    stats[m.p1Uid].avgCount++;
+                    if (parseInt(m.s1) > parseInt(m.s2)) { stats[m.p1Uid].wins++; stats[m.p1Uid].points += 3; }
+                    else if (parseInt(m.s1) === parseInt(m.s2)) { stats[m.p1Uid].draws++; stats[m.p1Uid].points += 1; }
+                    else { stats[m.p1Uid].losses++; }
                 }
-
                 if (stats[m.p2Uid]) {
-                    stats[m.p2Uid].matches++; stats[m.p2Uid].legsLost += s1; stats[m.p2Uid].legsWon += s2;
-                    if (s2 > s1) { stats[m.p2Uid].wins++; stats[m.p2Uid].points += 3; }
-                    else if (s1 > s2) stats[m.p2Uid].losses++;
-                    else { stats[m.p2Uid].draws++; stats[m.p2Uid].points += 1; }
-                    if (m.avg2) playerAveragesMap[m.p2Uid].push(parseFloat(m.avg2));
-
-                    const p2St = globalCalculatedStats[m.p2Uid];
-                    const p2Details = globalPlayerDetailsStats[m.p2Uid];
-                    if (p2Details) {
-                        p2Details.matches++;
-                        p2Details.s80 += (m.s80_2 || 0);
-                        p2Details.s100 += (m.s100_2 || 0);
-                        p2Details.s140 += (m.s140_2 || 0);
-                        p2Details.s180 += (m.s180_2 || 0);
-                        if (m.hf2 > 0) p2Details.finishes[m.hf2] = (p2Details.finishes[m.hf2] || 0) + 1;
-                    }
-                    if (p2St) {
-                        if ((m.hf2 || 0) > p2St.hf) p2St.hf = m.hf2;
-                        p2St.s80 += (m.s80_2 || 0);
-                        p2St.s100 += (m.s100_2 || 0);
-                        p2St.s140 += (m.s140_2 || 0);
-                        p2St.s180 += (m.s180_2 || 0);
-                    }
+                    stats[m.p2Uid].played++;
+                    stats[m.p2Uid].legsFor += parseInt(m.s2);
+                    stats[m.p2Uid].legsAgainst += parseInt(m.s1);
+                    stats[m.p2Uid].totalAvg += parseFloat(m.avg2 || 0);
+                    stats[m.p2Uid].avgCount++;
+                    if (parseInt(m.s2) > parseInt(m.s1)) { stats[m.p2Uid].wins++; stats[m.p2Uid].points += 3; }
+                    else if (parseInt(m.s2) === parseInt(m.s1)) { stats[m.p2Uid].draws++; stats[m.p2Uid].points += 1; }
+                    else { stats[m.p2Uid].losses++; }
                 }
             });
 
             globalCalculatedAverages = {};
-            Object.keys(playerAveragesMap).forEach(uid => {
-                const avgs = playerAveragesMap[uid];
-                const mean = avgs.length > 0 ? avgs.reduce((a, b) => a + b, 0) / avgs.length : 0;
-                globalCalculatedAverages[uid] = mean;
-                if (stats[uid]) stats[uid].playerAvg = mean;
+            Object.keys(stats).forEach(uid => {
+                const st = stats[uid];
+                globalCalculatedAverages[uid] = st.avgCount > 0 ? (st.totalAvg / st.avgCount) : 0;
             });
 
-            return Object.values(stats).sort((a, b) => b.points - a.points || (b.legsWon - b.legsLost) - (a.legsWon - a.legsLost));
-        }
-
-        function renderTableAndMatches() {
-            const tableBody = document.getElementById('league-table-body');
-            const historyList = document.getElementById('matches-history-list');
-
-            const sortedStats = computeTableStats();
-
-            tableBody.innerHTML = "";
-            sortedStats.forEach((s, idx) => {
-                if (s.matches > 0 || globalUsersData[s.uid]?.statusSeason1 === 'approved') {
-                    const diff = s.legsWon - s.legsLost;
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td><b>${idx + 1}</b></td>
-                        <td class="player-cell"><img src="${s.photo}" class="table-avatar"> ${s.name}</td>
-                        <td>${s.matches}</td><td>${s.wins}</td><td>${s.draws}</td><td>${s.losses}</td>
-                        <td>${s.legsWon}:${s.legsLost}</td>
-                        <td style="color:${diff > 0 ? '#34d399' : (diff < 0 ? '#f87171' : 'var(--text-muted)')}">${diff > 0 ? '+' + diff : diff}</td>
-                        <td><b>${s.playerAvg.toFixed(2)}</b></td>
-                        <td style="color:var(--accent-blue); font-weight:700;">${s.points}</td>
-                    `;
-                    tableBody.appendChild(tr);
-                }
+            let tableArray = Object.values(stats).map(st => {
+                return {
+                    ...st,
+                    diff: st.legsFor - st.legsAgainst,
+                    avg: st.avgCount > 0 ? (st.totalAvg / st.avgCount).toFixed(2) : "0.00"
+                };
             });
 
-            historyList.innerHTML = "";
-            Object.keys(globalMatchesMap).reverse().forEach(matchId => {
-                const m = globalMatchesMap[matchId];
-                const item = document.createElement('div');
-                item.className = 'match-card';
-                item.innerHTML = `
-                    <div class="match-vs">${m.p1Name} <b style="color:var(--accent-blue); margin: 0 8px;">${m.s1}:${m.s2}</b> ${m.p2Name}</div>
-                    <div class="match-date">${m.date || ''}</div>
+            tableArray.sort((a, b) => b.points - a.points || b.diff - a.diff || b.wins - a.wins || a.name.localeCompare(b.name));
+
+            tableArray.forEach((row, index) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><b>${index + 1}</b></td>
+                    <td><div class="player-cell"><img class="table-avatar" src="${row.photo}"><span>${row.name}</span></div></td>
+                    <td>${row.played}</td><td>${row.wins}</td><td>${row.draws}</td><td>${row.losses}</td>
+                    <td>${row.legsFor}:${row.legsAgainst}</td>
+                    <td style="color:${row.diff > 0 ? '#34d399' : (row.diff < 0 ? '#f87171' : 'inherit')}">${row.diff > 0 ? '+' + row.diff : row.diff}</td>
+                    <td>${row.avg}</td>
+                    <td><b style="color:var(--accent-blue);">${row.points}</b></td>
                 `;
-                historyList.appendChild(item);
+                tableBody.appendChild(tr);
             });
+
+            if (tableArray.length === 0) tableBody.innerHTML = `<tr><td colspan="10" style="text-align:center; color:var(--text-muted)">Brak graczy w tabeli.</td></tr>`;
+
+            const matchesList = Object.values(globalMatchesMap).reverse();
+            if (matchesList.length === 0) {
+                historyContainer.innerHTML = '<p style="color: var(--text-muted); font-size: 0.9rem;">Brak rozegranych meczów.</p>';
+            } else {
+                matchesList.forEach(m => {
+                    const item = document.createElement('div');
+                    item.className = 'match-card';
+                    item.innerHTML = `
+                        <div class="match-vs">${m.p1Name} <b style="color:var(--accent-blue); font-size:1.2rem; margin:0 8px;">${m.s1}:${m.s2}</b> ${m.p2Name}</div>
+                        <div class="match-date">${m.date || ''}</div>
+                    `;
+                    historyContainer.appendChild(item);
+                });
+            }
         }
 
         function renderArchiveTable() {
-            const archiveBody = document.getElementById('archive-table-body');
-            archiveBody.innerHTML = "";
-            const sortedStats = computeTableStats();
-
-            sortedStats.forEach((s, idx) => {
-                const diff = s.legsWon - s.legsLost;
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td><b>${idx + 1}</b></td>
-                    <td class="player-cell"><img src="${s.photo}" class="table-avatar"> ${s.name}</td>
-                    <td>${s.matches}</td><td>${s.wins}</td><td>${s.draws}</td><td>${s.losses}</td>
-                    <td>${s.legsWon}:${s.legsLost}</td>
-                    <td style="color:${diff > 0 ? '#34d399' : (diff < 0 ? '#f87171' : 'var(--text-muted)')}">${diff > 0 ? '+' + diff : diff}</td>
-                    <td><b>${s.playerAvg.toFixed(2)}</b></td>
-                    <td style="color:var(--accent-blue); font-weight:700;">${s.points}</td>
-                `;
-                archiveBody.appendChild(tr);
-            });
+            const tableBody = document.getElementById('archive-table-body');
+            tableBody.innerHTML = `<tr><td colspan="10" style="text-align:center; color:var(--text-muted)">Brak zarchiwizowanych danych z poprzednich sezonów.</td></tr>`;
         }
 
-        // NASŁUCHIWANIE FIREBASE REALTIME
+        // Firebase Listeners
         onValue(dbRef(db, 'users'), (snapshot) => {
             globalUsersData = snapshot.val() || {};
             if (auth.currentUser && globalUsersData[auth.currentUser.uid]) {
                 updateProfileUI(globalUsersData[auth.currentUser.uid]);
             }
-            if (!tabs.players.page.classList.contains('hidden')) renderApprovedPlayers();
-            if (!tabs.info.page.classList.contains('hidden')) renderTableAndMatches();
-            if (!tabs.admin.page.classList.contains('hidden')) renderAdminPanelData();
+            if (!document.getElementById('page-players').classList.contains('hidden')) {
+                renderApprovedPlayers();
+            }
+            if (!document.getElementById('page-admin').classList.contains('hidden')) {
+                renderAdminPanelData();
+            }
         });
 
         onValue(dbRef(db, 'matches'), (snapshot) => {
             globalMatchesMap = snapshot.val() || {};
-            computeTableStats();
-            if (!tabs.info.page.classList.contains('hidden')) renderTableAndMatches();
-            if (!tabs.archive.page.classList.contains('hidden')) renderArchiveTable();
+            // Przeliczanie statystyk szczegółowych
+            globalPlayerDetailsStats = {};
+            globalCalculatedStats = {};
+
+            Object.values(globalMatchesMap).forEach(m => {
+                [m.p1Uid, m.p2Uid].forEach((uid, idx) => {
+                    if (!uid) return;
+                    if (!globalPlayerDetailsStats[uid]) {
+                        globalPlayerDetailsStats[uid] = { matches: 0, s80: 0, s100: 0, s140: 0, s180: 0, finishes: {} };
+                        globalCalculatedStats[uid] = { hf: 0, s80: 0, s100: 0, s140: 0, s180: 0 };
+                    }
+                    const details = globalPlayerDetailsStats[uid];
+                    const st = globalCalculatedStats[uid];
+                    details.matches++;
+
+                    const prefix = (idx === 0) ? '1' : '2';
+                    const s80 = parseInt(m[`s80_${prefix}`]) || 0;
+                    const s100 = parseInt(m[`s100_${prefix}`]) || 0;
+                    const s140 = parseInt(m[`s140_${prefix}`]) || 0;
+                    const s180 = parseInt(m[`s180_${prefix}`]) || 0;
+                    const hf = parseInt(m[`hf${prefix}`]) || 0;
+
+                    details.s80 += s80; details.s100 += s100; details.s140 += s140; details.s180 += s180;
+                    st.s80 = details.s80; st.s100 = details.s100; st.s140 = details.s140; st.s180 = details.s180;
+
+                    if (hf > 0) {
+                        details.finishes[hf] = (details.finishes[hf] || 0) + 1;
+                        if (hf > st.hf) st.hf = hf;
+                    }
+                });
+            });
+
+            if (!document.getElementById('page-info').classList.contains('hidden')) {
+                renderTableAndMatches();
+            }
+            if (auth.currentUser && globalUsersData[auth.currentUser.uid]) {
+                updateProfileUI(globalUsersData[auth.currentUser.uid]);
+            }
         });
 
         onValue(dbRef(db, 'upcomingMatches'), (snapshot) => {
             globalUpcomingMatchesMap = snapshot.val() || {};
-            if (auth.currentUser && globalUsersData[auth.currentUser.uid]) {
+            if (!document.getElementById('page-home').classList.contains('hidden')) {
+                renderHomePageUpcoming();
+            }
+            if (auth.currentUser) {
                 renderUserUpcomingMatches(auth.currentUser.uid);
             }
-            if (!tabs.home.page.classList.contains('hidden')) renderHomePageUpcoming();
-            if (!tabs.admin.page.classList.contains('hidden')) renderAdminPanelData();
-        });
-
-        onValue(dbRef(db, 'siteContent'), (snapshot) => {
-            const data = snapshot.val();
-            if (data && data.homeText) {
-                document.getElementById('home-text-display').innerText = data.homeText;
-                document.getElementById('admin-home-text-input').value = data.homeText;
+            if (!document.getElementById('page-admin').classList.contains('hidden')) {
+                renderAdminPanelData();
             }
         });
 
         onValue(dbRef(db, 'seasonState'), (snapshot) => {
             seasonStateData = snapshot.val() || { finished: false };
-            const archiveTabBtn = document.getElementById('tab-archive');
-            if (seasonStateData.finished) {
-                archiveTabBtn.classList.remove('hidden');
-            } else {
-                archiveTabBtn.classList.add('hidden');
-                if (!tabs.archive.page.classList.contains('hidden')) switchTab('info');
-            }
             if (auth.currentUser && globalUsersData[auth.currentUser.uid]) {
                 updateProfileUI(globalUsersData[auth.currentUser.uid]);
+            }
+        });
+
+        onValue(dbRef(db, 'siteContent/homeText'), (snapshot) => {
+            const txt = snapshot.val();
+            if (txt) {
+                document.getElementById('home-text-display').innerText = txt;
+                document.getElementById('admin-home-text-input').value = txt;
             }
         });
     </script>
