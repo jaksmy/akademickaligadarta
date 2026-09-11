@@ -1747,71 +1747,87 @@
         };
 
         document.getElementById('btn-admin-finish-season').onclick = async () => {
-            if (!confirm("Czy na pewno chcesz zakończyć sezon? Zwycięzca tabeli otrzyma 300 Dart Kasa, wszyscy gracze zostaną wypisani z zapisów, a tabela trafi do archiwum.")) return;
-            try {
-                // Wyznaczenie triumfatora ligi na podstawie aktualnej tabeli w locie
-                // Obliczamy statystyki graczy z globalMatchesMap
-                let statsMap = {};
-                Object.values(globalUsersData).forEach((u, uid) => {
-                    // Jeśli potrzebne, ale pobierzemy po kluczach uid z users zatwierdzonych
-                });
-
-                // Prosta kalkulacja punktów z globalMatchesMap do wyłonienia zwycięzcy
-                let scores = {};
-                Object.keys(globalUsersData).forEach(uid => {
-                    if (globalUsersData[uid].signedUpForSeason1 && globalUsersData[uid].statusSeason1 === "approved") {
-                        scores[uid] = { points: 0, diff: 0, wins: 0, uid };
-                    }
-                });
-
-                Object.values(globalMatchesMap).forEach(m => {
-                    if (scores[m.p1Uid]) {
-                        scores[m.p1Uid].diff += (parseInt(m.s1) - parseInt(m.s2));
-                        if (parseInt(m.s1) > parseInt(m.s2)) { scores[m.p1Uid].points += 3; scores[m.p1Uid].wins++; }
-                        else if (parseInt(m.s1) === parseInt(m.s2)) { scores[m.p1Uid].points += 1; }
-                    }
-                    if (scores[m.p2Uid]) {
-                        scores[m.p2Uid].diff += (parseInt(m.s2) - parseInt(m.s1));
-                        if (parseInt(m.s2) > parseInt(m.s1)) { scores[m.p2Uid].points += 3; scores[m.p2Uid].wins++; }
-                        else if (parseInt(m.s2) === parseInt(m.s1)) { scores[m.p2Uid].points += 1; }
-                    }
-                });
-
-                let sortedLeaderboard = Object.values(scores).sort((a, b) => b.points - a.points || b.diff - a.diff || b.wins - a.wins);
-                
-                const updates = {};
-                if (sortedLeaderboard.length > 0) {
-                    const winnerUid = sortedLeaderboard[0].uid;
-                    const winnerCurrentKasa = globalUsersData[winnerUid].dartKasa !== undefined ? globalUsersData[winnerUid].dartKasa : 0;
-                    updates[`users/${winnerUid}/dartKasa`] = winnerCurrentKasa + 300; // 300 za triumf w lidze
-                }
-
-                Object.keys(globalUsersData).forEach(uid => {
-                    updates[`users/${uid}/signedUpForSeason1`] = false;
-                    updates[`users/${uid}/statusSeason1`] = "none";
-                });
-                updates['seasonState/finished'] = true;
-
-                await update(dbRef(db), updates);
-                document.getElementById('admin-season-msg').className = "msg success";
-                document.getElementById('admin-season-msg').innerText = "Sezon został zakończony! Przyznano 300 Dart Kasa triumfatorowi ligi, a tabela trafiła do archiwum.";
-            } catch(err) {
-                document.getElementById('admin-season-msg').className = "msg error";
-                document.getElementById('admin-season-msg').innerText = err.message;
+    if (!confirm("Czy na pewno chcesz zakończyć obecny sezon? Tabela trafi do archiwum, a licznik sezonów wzrośnie.")) return;
+    try {
+        let scores = {};
+        Object.keys(globalUsersData).forEach(uid => {
+            if (globalUsersData[uid].signedUpForSeason1 && globalUsersData[uid].statusSeason1 === "approved") {
+                scores[uid] = { points: 0, diff: 0, wins: 0, uid };
             }
+        });
+
+        Object.values(globalMatchesMap).forEach(m => {
+            const s1 = parseInt(m.s1) || 0;
+            const s2 = parseInt(m.s2) || 0;
+            if (scores[m.p1Uid]) {
+                scores[m.p1Uid].diff += (s1 - s2);
+                if (s1 > s2) { scores[m.p1Uid].points += 3; scores[m.p1Uid].wins++; }
+                else if (s1 === s2) { scores[m.p1Uid].points += 1; }
+            }
+            if (scores[m.p2Uid]) {
+                scores[m.p2Uid].diff += (s2 - s1);
+                if (s2 > s1) { scores[m.p2Uid].points += 3; scores[m.p2Uid].wins++; }
+                else if (s1 === s2) { scores[m.p2Uid].points += 1; }
+            }
+        });
+
+        let sortedLeaderboard = Object.values(scores).sort((a, b) => b.points - a.points || b.diff - a.diff || b.wins - a.wins);
+        
+        const updates = {};
+        let winnerUid = null;
+        if (sortedLeaderboard.length > 0) {
+            winnerUid = sortedLeaderboard[0].uid;
+            const winnerCurrentKasa = globalUsersData[winnerUid].dartKasa !== undefined ? globalUsersData[winnerUid].dartKasa : 0;
+            updates[`users/${winnerUid}/dartKasa`] = winnerCurrentKasa + 300;
+        }
+
+        const currentSeasonNum = seasonStateData.seasonNumber || 1;
+        const currentHistory = seasonStateData.archiveHistory || {};
+        currentHistory[`season_${currentSeasonNum}`] = {
+            matches: globalMatchesMap,
+            leaderboard: sortedLeaderboard
         };
+
+        updates['seasonState/finished'] = true;
+        updates['seasonState/seasonNumber'] = currentSeasonNum + 1;
+        updates['seasonState/lastWinnerUid'] = winnerUid;
+        updates['seasonState/archiveHistory'] = currentHistory;
+
+        Object.keys(globalUsersData).forEach(uid => {
+            updates[`users/${uid}/signedUpForSeason1`] = false;
+            updates[`users/${uid}/statusSeason1`] = "none";
+        });
+        updates['matches'] = null; // Reset historii meczów dla nowego sezonu
+
+        await update(dbRef(db), updates);
+        document.getElementById('admin-season-msg').className = "msg success";
+        document.getElementById('admin-season-msg').innerText = `Zakończono Sezon ${currentSeasonNum}! Rozpoczęto zapisy do nowego sezonu.`;
+    } catch(err) {
+        document.getElementById('admin-season-msg').className = "msg error";
+        document.getElementById('admin-season-msg').innerText = err.message;
+    }
+};
 
         document.getElementById('btn-admin-restore-season').onclick = async () => {
-            if (!confirm("Czy na pewno chcesz przywrócić zakończony sezon?")) return;
-            try {
-                await set(dbRef(db, 'seasonState'), { finished: false });
-                document.getElementById('admin-season-msg').className = "msg success";
-                document.getElementById('admin-season-msg').innerText = "Sezon został przywrócony!";
-            } catch(err) {
-                document.getElementById('admin-season-msg').className = "msg error";
-                document.getElementById('admin-season-msg').innerText = err.message;
-            }
-        };
+    if (!confirm("Czy na pewno chcesz przywrócić poprzedni sezon? Bonus 300 DK zostanie odjęty od zwycięzcy.")) return;
+    try {
+        const updates = {};
+        const lastWinner = seasonStateData.lastWinnerUid;
+        if (lastWinner && globalUsersData[lastWinner]) {
+            const currentKasa = globalUsersData[lastWinner].dartKasa || 0;
+            updates[`users/${lastWinner}/dartKasa`] = Math.max(0, currentKasa - 300);
+        }
+        updates['seasonState/finished'] = false;
+        updates['seasonState/lastWinnerUid'] = null;
+
+        await update(dbRef(db), updates);
+        document.getElementById('admin-season-msg').className = "msg success";
+        document.getElementById('admin-season-msg').innerText = "Sezon został przywrócony, a bonusy wyrównane.";
+    } catch(err) {
+        document.getElementById('admin-season-msg').className = "msg error";
+        document.getElementById('admin-season-msg').innerText = err.message;
+    }
+};
 
         document.getElementById('btn-admin-save-hometext').onclick = async () => {
             const newText = document.getElementById('admin-home-text-input').value.trim();
@@ -2282,8 +2298,41 @@
         }
 
         function renderArchiveTable() {
-            const tableBody = document.getElementById('archive-table-body');
-            tableBody.innerHTML = `<tr><td colspan="10" style="text-align:center; color:var(--text-muted)">Brak zarchiwizowanych danych z poprzednich sezonów.</td></tr>`;
+    const archiveBody = document.getElementById('archive-table-body');
+    archiveBody.innerHTML = "";
+    
+    const history = seasonStateData.archiveHistory || {};
+    const keys = Object.keys(history);
+    
+    if (keys.length === 0) {
+        archiveBody.innerHTML = `<tr><td colspan="10" style="text-align:center; color:var(--text-muted)">Brak zarchiwizowanych sezonów.</td></tr>`;
+        return;
+    }
+
+    keys.forEach(seasonKey => {
+        const seasonData = history[seasonKey];
+        const headerTr = document.createElement('tr');
+        headerTr.innerHTML = `<td colspan="10" style="background:#0d1322; color:var(--accent-blue); font-weight:bold; text-align:center;">--- ${seasonKey.toUpperCase()} ---</td>`;
+        archiveBody.appendChild(headerTr);
+
+        // Wyświetlenie tabeli z tamtego sezonu
+        if (seasonData.leaderboard) {
+            seasonData.leaderboard.forEach((row, idx) => {
+                const u = globalUsersData[row.uid] || { firstName: 'Nieznany', lastName: 'Gracz', photoUrl: PRESET_AVATARS[0] };
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><b>${idx + 1}</b></td>
+                    <td class="player-cell"><img src="${u.photoUrl || PRESET_AVATARS[0]}" class="table-avatar"> ${u.firstName} ${u.lastName}</td>
+                    <td>-</td><td>${row.wins}</td><td>-</td><td>-</td>
+                    <td>-</td>
+                    <td>${row.diff > 0 ? '+' + row.diff : row.diff}</td>
+                    <td>-</td>
+                    <td><b style="color:var(--accent-blue);">${row.points}</b></td>
+                `;
+                archiveBody.appendChild(tr);
+            });
+        }
+    });
         }
 
         // Firebase Listeners
