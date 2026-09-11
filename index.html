@@ -2205,7 +2205,7 @@
             let stats = {};
             Object.keys(globalUsersData).forEach(uid => {
                 const u = globalUsersData[uid];
-                if if (u.signedUpForSeason1 && u.statusSeason1 === "approved" || true) {
+                if (u.signedUpForSeason1 && u.statusSeason1 === "approved" || true) {
                     stats[uid] = {
                         uid: uid, name: `${u.firstName || ''} ${u.lastName || ''}`, photo: u.photoUrl || PRESET_AVATARS[0],
                         played: 0, wins: 0, draws: 0, losses: 0, legsFor: 0, legsAgainst: 0, points: 0, totalAvg: 0, avgCount: 0
