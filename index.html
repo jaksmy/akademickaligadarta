@@ -2674,7 +2674,6 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
             let stats = {};
             Object.keys(globalUsersData).forEach(uid => {
                  const u = globalUsersData[uid];
-                const u = globalUsersData[uid];
                 if (u.signedUpForSeason1 && u.statusSeason1 === "approved") {
                     stats[uid] = {
                         uid: uid, name: `${u.firstName || ''} ${u.lastName || ''}`, photo: u.photoUrl || PRESET_AVATARS[0],
