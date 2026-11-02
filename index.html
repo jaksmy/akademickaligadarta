@@ -88,6 +88,7 @@
             gap: 6px;
             box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1);
             user-select: none;
+            transition: opacity 0.3s;
         }
 
         nav {
@@ -429,7 +430,7 @@
         .modal {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(11, 15, 25, 0.8);
+            background: rgba(11, 15, 25, 0.85);
             backdrop-filter: blur(8px);
             display: flex;
             justify-content: center;
@@ -448,7 +449,23 @@
             max-height: 90vh;
             overflow-y: auto;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            position: relative;
         }
+
+        /* X button for Auth Modals */
+        .btn-close-modal {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.5rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .btn-close-modal:hover { color: #fff; transform: scale(1.1); }
 
         .avatar-selection {
             display: grid;
@@ -635,9 +652,10 @@
 </head>
 <body>
 
-    <!-- AUTHENTICATION VIEWS -->
-    <div id="view-login" class="modal">
+    <!-- AUTHENTICATION VIEWS (Modals nałożone na aplikację) -->
+    <div id="view-login" class="modal hidden">
         <div class="modal-content">
+            <button class="btn-close-modal" id="btn-close-login-modal" title="Zamknij">✕</button>
             <h2>Logowanie</h2>
             <div class="form-group">
                 <label>E-mail</label>
@@ -658,6 +676,7 @@
 
     <div id="view-register" class="modal hidden">
         <div class="modal-content">
+            <button class="btn-close-modal" id="btn-close-register-modal" title="Zamknij">✕</button>
             <h2>Rejestracja</h2>
             <div class="form-group"><label>Imię</label><input type="text" id="reg-firstname"></div>
             <div class="form-group"><label>Nazwisko</label><input type="text" id="reg-lastname"></div>
@@ -677,6 +696,7 @@
 
     <div id="view-reset" class="modal hidden">
         <div class="modal-content">
+            <button class="btn-close-modal" id="btn-close-reset-modal" title="Zamknij">✕</button>
             <h2>Resetowanie hasła</h2>
             <div class="form-group"><label>E-mail</label><input type="email" id="reset-email"></div>
             <button class="btn-primary" id="btn-reset" style="width: 100%; margin-top: 6px;">Wyślij link</button>
@@ -687,12 +707,12 @@
         </div>
     </div>
 
-    <!-- MAIN APP STRUCTURE -->
-    <div id="view-app" class="hidden">
+    <!-- MAIN APP STRUCTURE (DOMYŚLNIE ODKRYTE) -->
+    <div id="view-app">
         <header>
             <div class="logo">🎯 AKADEMICKA LIGA <span>DARTA</span></div>
             <div class="header-right">
-                <div class="wallet-widget" title="Twoje saldo Dart Kasa">
+                <div class="wallet-widget hidden" id="wallet-widget-container" title="Twoje saldo Dart Kasa">
                     🪙 <span id="wallet-balance-display">0</span> DK
                 </div>
                 <nav>
@@ -702,7 +722,7 @@
                     <button class="nav-btn" id="tab-players">Gracze</button>
                     <button class="nav-btn" id="tab-shop">🛍️ Sklep</button>
                     <button class="nav-btn" id="tab-live">Na Żywo</button>
-                    <button class="nav-btn" id="tab-account">Konto</button>
+                    <button class="nav-btn" id="tab-account" style="color: var(--warning-color);">🔒 Zaloguj się</button>
                     <button class="nav-btn hidden" id="tab-admin" style="background: rgba(239, 68, 68, 0.15); color: #f87171;">Admin</button>
                 </nav>
             </div>
@@ -1108,8 +1128,23 @@
             appId: "1:832284758287:web:1a156fb2cf197634aa6e7a",
             measurementId: "G-LN9B7YDB6K"
         };
+        
+        let isGuest = true; // Zmienna sterująca widokiem gościa
+
+        // Zamykanie okienek Auth
+        document.getElementById('btn-close-login-modal').onclick = () => document.getElementById('view-login').classList.add('hidden');
+        document.getElementById('btn-close-register-modal').onclick = () => document.getElementById('view-register').classList.add('hidden');
+        document.getElementById('btn-close-reset-modal').onclick = () => document.getElementById('view-reset').classList.add('hidden');
+
+
         // --- OBSŁUGA MODALA I ZAPISU ZAKŁADÓW ---
 window.openBetModal = (matchId, playerUid, playerName, odds) => {
+    // Jeżeli gość próbuje obstawić
+    if (isGuest) {
+        document.getElementById('view-login').classList.remove('hidden');
+        return;
+    }
+
     document.getElementById('bet-match-id').value = matchId;
     document.getElementById('bet-selected-player').value = playerUid;
     document.getElementById('bet-selected-odds').value = odds;
@@ -1219,16 +1254,6 @@ document.getElementById('btn-confirm-bet').onclick = async () => {
         const ADMIN_EMAIL = "smyczkuba@wp.pl"; 
 
         const PRESET_AVATARS = [
-            "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=150&auto=format&fit=crop&q=80",
-            "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=150&auto=format&fit=crop&q=80",
-            "https://images.unsplash.com/photo-1534361960057-19889db9621e?w=150&auto=format&fit=crop&q=80",
-            "https://images.unsplash.com/photo-1573865526739-10659fec78a5?w=150&auto=format&fit=crop&q=80",
-            "https://images.unsplash.com/photo-1548767797-d8c844163c4c?w=150&auto=format&fit=crop&q=80",
-            "https://images.unsplash.com/photo-1564349683136-77e08dba1ef7?w=150&auto=format&fit=crop&q=80",
-            "https://images.unsplash.com/photo-1456926631375-92c8ce872def?w=150&auto=format&fit=crop&q=80",
-            "https://images.unsplash.com/photo-1557050543-4d5f4e07ef46?w=150&auto=format&fit=crop&q=80",
-            "https://images.unsplash.com/photo-1535268647677-300dbf3d78d1?w=150&auto=format&fit=crop&q=80",
-            "https://images.unsplash.com/photo-1574158622682-e40e69881006?w=150&auto=format&fit=crop&q=80",
             "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=150&auto=format&fit=crop&q=80",
             "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=150&auto=format&fit=crop&q=80",
             "https://images.unsplash.com/photo-1534361960057-19889db9621e?w=150&auto=format&fit=crop&q=80",
@@ -1364,45 +1389,32 @@ function calculateMatchOdds(p1Uid, p2Uid) {
 ==================================================
 
 Postanowienia Ogólne
-Niniejszy regulamin określa zasady organizacji, przeprowadzania oraz uczestnictwa w rozgrywkach Akademickiej Ligi Darta. Celem ligi jest popularyzacja darta (steeldart) w środowisku akademickim, integracja studentów i pracowników uczelni wyższych oraz wyłonienie najlepszych zawodników i drużyn. Organizatorem rozgrywek jest Komitet Organizacyjny Akademickiej Ligi Darta. Wszyscy uczestnicy rozgrywek zobowiązani są do przestrzegania zasad fair play, niniejszego regulaminu oraz ogólnych przepisów sportowych.
 
+1. POSTANOWIENIA OGÓLNE
+
+Niniejszy regulamin określa zasady organizacji, przeprowadzania oraz uczestnictwa w rozgrywkach Akademickiej Ligi Darta. Celem ligi jest popularyzacja darta (steeldart) w środowisku akademickim, integracja studentów i pracowników uczelni wyższych oraz wyłonienie najlepszych zawodników i drużyn. Organizatorem rozgrywek jest Komitet Organizacyjny Akademickiej Ligi Darta. Wszyscy uczestnicy rozgrywek zobowiązani są do przestrzegania zasad fair play, niniejszego regulaminu oraz ogólnych przepisów sportowych.
 Warunki Uczestnictwa i Zgłoszenia
 W rozgrywkach mogą brać udział studenci, doktoranci, absolwenci oraz pracownicy uczelni wyższych. Warunkiem dopuszczenia do ligi jest terminowe przesłanie formularza zgłoszeniowego oraz uiszczenie opłaty wpisowej w wyznaczonym przez organizatora terminie. Każdy zawodnik ma obowiązek posiadać ważną legitymację studencką lub pracowniczą oraz dokument tożsamości podczas turniejów i spotkań ligowych. Zawodnicy niepełnoletni zobowiązani są do dostarczenia pisemnej zgody rodziców lub opiekunów prawnych na udział w rozgrywkach.
-
 System Rozgrywek
 Rozgrywki prowadzone są w formule ligowej (podział na dywizje, np. I liga i II liga) oraz w trybie turniejów otwartych lub mistrzostw uczelnianych. Mecze ligowe rozgrywane są systemem "każdy z każdym" z rundą rewanżową lub w formie turniejów zjazdowych. Standardowy format pojedynku to Best of 3 Legs (501 Double Out) do 2 wygranych legów. Każdy leg rozpoczyna się od stanu 301 punktów i musi zostać zakończony rzutem w pole podwójne (Double Out). Faza PlayOff w systemie BO5 501 i oraz finał BO7 501.
-
 Zasady Rozgrywania Meczu i Sędziowanie
 Mecz rozpoczyna się od rzutu do środka tarczy (Bulls-eye). Zawodnik, którego lotka ląduje bliżej środka, rozpoczyna pierwszego lega oraz wszystkie kolejne legi nieparzyste. W przypadku trafienia przez obu zawodników w ten sam pierścień, rzuty są powtarzane przy zmienionej kolejności. Każda kolejka składa się maksymalnie z 3 lotek. Punkty zaliczane są wyłącznie wtedy, gdy grot lotki pozostaje w tarczy do momentu podsumowania. Lotki, które odbiją się od tarczy lub wypadną przed zaliczeniem punktów, nie podlegają ponownemu rzutowi. Wszelkie protesty dotyczące liczenia punktów muszą być zgłoszone przed rozpoczęciem kolejnej kolejki rzutów.
-
 Punktacja i Tabela Wyników
 Za rozegrane spotkania przyznawane są punkty do ogólnej tabeli ligowej:
-
 Zwycięstwo w meczu: 3 punkty
-
 Remis w meczu: 1 punkt
-
 Porażka w meczu: 0 punktów
-
 Kryteria ustalania kolejności w tabeli:
-
 Liczba zdobytych punktów
-
 Bilans legów
-
 Bezpośredni pojedynek ("mała tabela")
-
 Liczba najwyższych zamknięć
-
 Awans i Spadek (System Ligowy)
 Po zakończeniu sezonu następują awanse i spadki między dywizjami. Zwycięzca I ligi otrzymuje tytuł Mistrza Akademickiej Ligi Darta. Zawodnicy z ostatnich miejsc w I lidze spadają do II ligi lub rozgrywają mecze barażowe.
-
 Dyscyplina, Ubiór i Zasady Zachowania
 Obowiązuje całkowity zakaz spożywania alkoholu oraz używania środków odurzających podczas spotkań. Obowiązuje zakaz palenia wyrobów tytoniowych oraz e-papierosów w strefie stanowisk rzutowych. Od uczestników wymagany jest schludny ubiór sportowo-elegancki lub klubowy. Trzykrotne niestawienie się na wyznaczone mecze bez usprawiedliwienia skutkuje skreśleniem z listy uczestników (walkowery).
-
 Postanowienia Końcowe
 Wszelkie kwestie sporne i sytuacje nieobjęte regulaminem rozstrzyga Komitet Organizacyjny. Oficjalne komunikaty i tabele wynikowe publikowane są na bieżąco na stronie internetowej ligi.
-
 Akademicka Liga Darta © 2026`;
 
         function generateRulesFile() {
@@ -1420,6 +1432,8 @@ Akademicka Liga Darta © 2026`;
         let globalCalculatedStats = {};
         let globalPlayerDetailsStats = {}; 
         let seasonStateData = { finished: false };
+        
+        let currentTabKey = 'home';
 
         const tabs = {
             home: { btn: document.getElementById('tab-home'), page: document.getElementById('page-home') },
@@ -1433,17 +1447,25 @@ Akademicka Liga Darta © 2026`;
         };
 
         function getCombinedCareerMatches() {
-    let allMatches = { ...(globalMatchesMap || {}) };
-    const history = seasonStateData.archiveHistory || {};
-    Object.values(history).forEach(season => {
-        if (season.matches) {
-            Object.assign(allMatches, season.matches);
+            let allMatches = { ...(globalMatchesMap || {}) };
+            const history = seasonStateData.archiveHistory || {};
+            Object.values(history).forEach(season => {
+                if (season.matches) {
+                    Object.assign(allMatches, season.matches);
+                }
+            });
+            return allMatches;
         }
-    });
-    return allMatches;
-}
 
         function switchTab(activeKey) {
+            // Zablokuj zakładki prywatne dla gości
+            if (isGuest && ['account', 'shop', 'admin'].includes(activeKey)) {
+                document.getElementById('view-login').classList.remove('hidden');
+                return;
+            }
+            
+            currentTabKey = activeKey;
+
             Object.keys(tabs).forEach(key => {
                 tabs[key].btn.classList.remove('active');
                 tabs[key].page.classList.add('hidden');
@@ -1528,18 +1550,39 @@ Akademicka Liga Darta © 2026`;
 
         onAuthStateChanged(auth, async (user) => {
             if (user && user.emailVerified) {
+                isGuest = false;
                 document.getElementById('view-login').classList.add('hidden');
                 document.getElementById('view-register').classList.add('hidden');
                 document.getElementById('view-reset').classList.add('hidden');
-                document.getElementById('view-app').classList.remove('hidden');
+                
+                // Pokaż portfel i zakładki zależne
+                document.getElementById('wallet-widget-container').classList.remove('hidden');
+                const accountTabBtn = document.getElementById('tab-account');
+                accountTabBtn.innerText = "Konto";
+                accountTabBtn.style.color = "var(--text-muted)";
 
                 if (user.email === ADMIN_EMAIL) tabs.admin.btn.classList.remove('hidden');
                 else tabs.admin.btn.classList.add('hidden');
+                
+                // Załaduj odświeżenie danych jeśli już były
+                if (globalUsersData[user.uid]) {
+                    updateProfileUI(globalUsersData[user.uid]);
+                }
             } else {
+                isGuest = true;
                 currentUserProfileData = null;
-                document.getElementById('view-app').classList.add('hidden');
+                
+                document.getElementById('wallet-widget-container').classList.add('hidden');
+                const accountTabBtn = document.getElementById('tab-account');
+                accountTabBtn.innerText = "🔒 Zaloguj się";
+                accountTabBtn.style.color = "var(--warning-color)";
+                
                 tabs.admin.btn.classList.add('hidden');
-                document.getElementById('view-login').classList.remove('hidden');
+                
+                // Jeśli niezalogowany użytkownik był na ukrytej karcie, cofnij go do strony głównej
+                if (['account', 'shop', 'admin'].includes(currentTabKey)) {
+                    switchTab('home');
+                }
             }
         });
 
@@ -2630,6 +2673,7 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
 
             let stats = {};
             Object.keys(globalUsersData).forEach(uid => {
+                 const u = globalUsersData[uid];
                 const u = globalUsersData[uid];
                 if (u.signedUpForSeason1 && u.statusSeason1 === "approved") {
                     stats[uid] = {
@@ -2713,10 +2757,10 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
         function renderArchiveTable() {
     const archiveBody = document.getElementById('archive-table-body');
     archiveBody.innerHTML = "";
-    
+
     const history = seasonStateData.archiveHistory || {};
     const keys = Object.keys(history);
-    
+
     if (keys.length === 0) {
         archiveBody.innerHTML = `<tr><td colspan="10" style="text-align:center; color:var(--text-muted)">Brak zarchiwizowanych sezonów.</td></tr>`;
         return;
