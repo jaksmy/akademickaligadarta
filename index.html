@@ -823,6 +823,12 @@
             #toast-stack { top: 92px; }
         }
         @media (max-width: 400px) { .logo { font-size: 0.8rem; } }
+        /* ===== DYNAMICZNE KURSY ===== */
+        .trend { font-size: 0.7rem; margin-left: 3px; font-weight: 800; }
+        .trend.down { color: #ef4444; }
+        .trend.up { color: #10b981; }
+        .bet-pick .odd.moved-down { background: rgba(239,68,68,.18); color: #fca5a5; }
+        .bet-pick .odd.moved-up { background: rgba(16,185,129,.18); color: #6ee7b7; }
     </style>
 </head>
 <body>
@@ -1385,7 +1391,7 @@
             sendEmailVerification, sendPasswordResetEmail, onAuthStateChanged, signOut 
         } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { 
-            getDatabase, ref as dbRef, set, get, update, push, remove, onValue 
+            getDatabase, ref as dbRef, set, get, update, push, remove, onValue, increment 
         } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         const firebaseConfig = {
@@ -1420,7 +1426,7 @@ window.openBetModal = (matchId, playerUid, playerName, odds) => {
     document.getElementById('bet-selected-player').value = playerUid;
     document.getElementById('bet-selected-odds').value = odds;
     document.getElementById('bet-modal-match-title').innerText = "Wybór bukmachera";
-    document.getElementById('bet-modal-selection-info').innerText = `Typujesz na: ${playerName} (Kurs: ${odds})`;
+    document.getElementById('bet-modal-selection-info').innerText = `Typujesz na: ${playerName} (Kurs: ${odds}). Kursy zmieniają się wraz ze stawkami innych graczy.`;
     document.getElementById('bet-amount-input').value = 10;
     document.getElementById('bet-modal-msg').innerText = "";
     
@@ -1481,6 +1487,12 @@ document.getElementById('btn-confirm-bet').onclick = async () => {
         }
     }
 
+    if (!betMatch) {
+        msgEl.className = "msg error";
+        msgEl.innerText = "Ten mecz nie jest już dostępny do obstawiania.";
+        return;
+    }
+
     if (isNaN(amount) || amount <= 0) {
         msgEl.className = "msg error";
         msgEl.innerText = "Podaj poprawną kwotę!";
@@ -1494,6 +1506,20 @@ document.getElementById('btn-confirm-bet').onclick = async () => {
     }
 
     try {
+        // Kurs mógł się zmienić od otwarcia okna (ktoś inny obstawił) - pobieramy aktualny
+        const poolSnap = await get(dbRef(db, `matchPools/${matchId}`));
+        const pool = poolSnap.exists() ? poolSnap.val() : {};
+        const live = computeLiveOdds(betMatch.p1Uid, betMatch.p2Uid, Number(pool[betMatch.p1Uid]) || 0, Number(pool[betMatch.p2Uid]) || 0);
+        const freshOdds = chosenPlayerUid === betMatch.p1Uid ? live.odds1 : live.odds2;
+        if (Math.abs(freshOdds - odds) > 0.009) {
+            document.getElementById('bet-selected-odds').value = freshOdds;
+            const pName = chosenPlayerUid === betMatch.p1Uid ? betMatch.p1Name : betMatch.p2Name;
+            document.getElementById('bet-modal-selection-info').innerText = `Typujesz na: ${pName} (Kurs: ${freshOdds}). Kursy zmieniają się wraz ze stawkami innych graczy.`;
+            msgEl.className = "msg error";
+            msgEl.innerText = `Kurs się zmienił: ${odds} → ${freshOdds}. Sprawdź i potwierdź zakład ponownie.`;
+            return;
+        }
+
         const betsRef = dbRef(db, `bets/${matchId}/${user.uid}`);
         const snap = await get(betsRef);
         if (snap.exists()) {
@@ -1514,6 +1540,7 @@ document.getElementById('btn-confirm-bet').onclick = async () => {
         }
 
         const updates = {};
+        updates[`matchPools/${matchId}/${chosenPlayerUid}`] = increment(amount); // atomowo zwiększa pulę stawek na zawodnika
         updates[`bets/${matchId}/${user.uid}`] = {
             playerUid: chosenPlayerUid,
             amount: amount,
@@ -1616,6 +1643,38 @@ function calculatePlayerPower(uid) {
     // Wzór na Power Ranking: (Średnia * 3) + (Punkty z formy * 2) + (Liczba rozegranych meczów * 0.5)
     let power = (avg * 3) + (formPoints * 2) + (details.matches * 0.5);
     return Math.max(10, Math.round(power * 10) / 10);
+}
+
+// ===== DYNAMICZNE KURSY =====
+// Kurs startowy wynika z power rankingu (calculateMatchOdds). Gdy gracze obstawiają, kurs na zawodnika,
+// na którego idzie więcej pieniędzy, spada, a na przeciwnika rośnie. Zakład zapisuje kurs z chwili obstawienia.
+const ODDS_LIQUIDITY = 100;  // im wyższa wartość, tym wolniej kursy reagują na stawki (w DK)
+const ODDS_MAX_SHIFT = 0.5;  // maksymalny udział rynku (stawek) w wyliczeniu prawdopodobieństwa
+const ODDS_MAX = 20;
+let globalMatchPools = {};
+
+function computeLiveOdds(p1Uid, p2Uid, stake1, stake2) {
+    const base = calculateMatchOdds(p1Uid, p2Uid);
+    const q1 = 1 / base.odds1, q2 = 1 / base.odds2;
+    const margin = q1 + q2;          // narzut bukmachera zawarty w kursach bazowych
+    const baseP1 = q1 / margin;      // prawdopodobieństwo zwycięstwa p1 wg power rankingu
+    const total = stake1 + stake2;
+    let p = baseP1;
+    if (total > 0) {
+        const w = (total / (total + ODDS_LIQUIDITY)) * ODDS_MAX_SHIFT;
+        p = (1 - w) * baseP1 + w * (stake1 / total);
+    }
+    const clamp = (o) => Math.min(ODDS_MAX, Math.max(1.01, Number(o.toFixed(2))));
+    return {
+        odds1: clamp(1 / (p * margin)), odds2: clamp(1 / ((1 - p) * margin)),
+        baseOdds1: base.odds1, baseOdds2: base.odds2, p1Power: base.p1Power, p2Power: base.p2Power,
+        stake1, stake2
+    };
+}
+
+function getLiveOdds(matchId, m) {
+    const pool = (globalMatchPools && globalMatchPools[matchId]) || {};
+    return computeLiveOdds(m.p1Uid, m.p2Uid, Number(pool[m.p1Uid]) || 0, Number(pool[m.p2Uid]) || 0);
 }
 
 function calculateMatchOdds(p1Uid, p2Uid) {
@@ -2540,12 +2599,14 @@ Akademicka Liga Darta © 2026`;
                     card.style.alignItems = 'stretch';
 
                     // Obliczanie kursów i Power Rankingu dla admina
-                    const oddsData = calculateMatchOdds(m.p1Uid, m.p2Uid);
+                    const oddsData = getLiveOdds(matchId, m);
+                    const trend = (live, base) => live < base - 0.004 ? '<span class="trend down">▼</span>' : (live > base + 0.004 ? '<span class="trend up">▲</span>' : '');
+                    const t1 = trend(oddsData.odds1, oddsData.baseOdds1), t2 = trend(oddsData.odds2, oddsData.baseOdds2);
                     const isAdmin = auth.currentUser && auth.currentUser.email === ADMIN_EMAIL;
 
                     let adminPowerInfo = "";
                     if (isAdmin) {
-                        adminPowerInfo = `<div style="font-size: 11px; color: var(--warning-color); margin-top: 4px; text-align: center;">[Admin Power] ${m.p1Name}: ${oddsData.p1Power} | ${m.p2Name}: ${oddsData.p2Power}</div>`;
+                        adminPowerInfo = `<div style="font-size: 11px; color: var(--warning-color); margin-top: 4px; text-align: center;">[Admin Power] ${m.p1Name}: ${oddsData.p1Power} | ${m.p2Name}: ${oddsData.p2Power}<br>Kursy bazowe: ${oddsData.baseOdds1} / ${oddsData.baseOdds2} · Pula stawek: ${oddsData.stake1} DK / ${oddsData.stake2} DK</div>`;
                     }
 
                     // Sprawdzenie czy użytkownik gra w tym meczu
@@ -2576,16 +2637,16 @@ Akademicka Liga Darta © 2026`;
                             const bonusTxt = myBet.bonus === 'boost_25' ? ' · ⚡ Booster +25%' : (myBet.bonus === 'insurance' ? ' · 🛡️ Ubezpieczenie' : '');
                             bettingHtml = `
                                 <div class="bet-row" onclick="event.stopPropagation()">
-                                    <button class="bet-pick ${picked1 ? 'picked' : 'locked'}" disabled><span>${picked1 ? '✓ ' : ''}${m.p1Name}</span><span class="odd">${picked1 ? myBet.odds : oddsData.odds1}</span></button>
-                                    <button class="bet-pick ${picked1 ? 'locked' : 'picked'}" disabled><span>${picked1 ? '' : '✓ '}${m.p2Name}</span><span class="odd">${picked1 ? oddsData.odds2 : myBet.odds}</span></button>
+                                    <button class="bet-pick ${picked1 ? 'picked' : 'locked'}" disabled><span>${picked1 ? '✓ ' : ''}${m.p1Name}</span><span class="odd">${picked1 ? myBet.odds : oddsData.odds1}${picked1 ? '' : t1}</span></button>
+                                    <button class="bet-pick ${picked1 ? 'locked' : 'picked'}" disabled><span>${picked1 ? '' : '✓ '}${m.p2Name}</span><span class="odd">${picked1 ? oddsData.odds2 : myBet.odds}${picked1 ? t2 : ''}</span></button>
                                 </div>
                                 <div class="bet-slip">🎫 Obstawiono: ${myBet.amount} DK · możliwa wygrana ${win} DK${bonusTxt}</div>
                                 ${adminPowerInfo}`;
                         } else {
                             bettingHtml = `
                                 <div class="bet-row" onclick="event.stopPropagation()">
-                                    <button class="bet-pick" onclick="openBetModal('${matchId}', '${m.p1Uid}', '${m.p1Name}', ${oddsData.odds1})"><span>${m.p1Name}</span><span class="odd">${oddsData.odds1}</span></button>
-                                    <button class="bet-pick" onclick="openBetModal('${matchId}', '${m.p2Uid}', '${m.p2Name}', ${oddsData.odds2})"><span>${m.p2Name}</span><span class="odd">${oddsData.odds2}</span></button>
+                                    <button class="bet-pick" onclick="openBetModal('${matchId}', '${m.p1Uid}', '${m.p1Name}', ${oddsData.odds1})"><span>${m.p1Name}</span><span class="odd">${oddsData.odds1}${t1}</span></button>
+                                    <button class="bet-pick" onclick="openBetModal('${matchId}', '${m.p2Uid}', '${m.p2Name}', ${oddsData.odds2})"><span>${m.p2Name}</span><span class="odd">${oddsData.odds2}${t2}</span></button>
                                 </div>
                                 ${adminPowerInfo}`;
                         }
@@ -2761,7 +2822,7 @@ Akademicka Liga Darta © 2026`;
             const p = [nwPick(['Kalendarz ligowy nie zwalnia tempa – przed nami kolejne pojedynki w Akademickiej Lidze Darta.', 'Czas na zapowiedź nadchodzących spotkań. Oto, co czeka nas w najbliższym czasie.'])];
             show.forEach(m => {
                 const f1 = nwForm(m.p1Uid, ctx.matches), f2 = nwForm(m.p2Uid, ctx.matches);
-                const o = calculateMatchOdds(m.p1Uid, m.p2Uid);
+                const o = getLiveOdds(m.id, m);
                 let txt = `${m.p1Name} – ${m.p2Name}, ${fmt(m.scheduledDate)}. `;
                 txt += `Ostatnie wyniki – ${m.p1Name}: ${f1.length ? f1.join('-') : 'brak meczów'}; ${m.p2Name}: ${f2.length ? f2.join('-') : 'brak meczów'}. `;
                 if (Math.abs(o.odds1 - o.odds2) < 0.1) txt += `Kursy niemal identyczne (${o.odds1} i ${o.odds2}) – zapowiada się wyrównany pojedynek.`;
@@ -3101,6 +3162,11 @@ ${board}</svg>`;
                 if (currentTabKey === 'admin') renderNewsAdminList();
             }, (err) => console.warn('Brak dostępu do szkiców aktualności:', err.message));
         }
+
+        onValue(dbRef(db, 'matchPools'), (snap) => {
+            globalMatchPools = snap.val() || {};
+            if (typeof renderHomePageUpcoming === 'function') renderHomePageUpcoming();
+        }, (err) => console.warn('Brak dostępu do puli zakładów:', err.message));
 
         onValue(dbRef(db, 'news'), (snap) => {
             globalNews = snap.val() || {};
@@ -3772,11 +3838,12 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
         // --------------------------------------------------------
 
         await remove(dbRef(db, 'upcomingMatches/' + matchId));
+        try { await remove(dbRef(db, 'matchPools/' + matchId)); } catch (e) { console.warn(e.message); }
         alert(`Wynik został zatwierdzony! Przyznano Dart Kasę: ${m.p1Name} (+${p1Delta} DK), ${m.p2Name} (+${p2Delta} DK). Zakłady zostały rozliczone.`);
     } catch(err) { alert(err.message); }
 };
         window.deleteUpcomingMatch = async (id) => {
-            if (confirm("Usunąć ten mecz z terminarza?")) await remove(dbRef(db, 'upcomingMatches/' + id));
+            if (confirm("Usunąć ten mecz z terminarza?")) { await remove(dbRef(db, 'upcomingMatches/' + id)); try { await remove(dbRef(db, 'matchPools/' + id)); } catch (e) {} }
         };
 
         window.deleteMatch = async (id) => {
