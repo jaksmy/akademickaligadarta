@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Akademicka Liga Darta</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0b0f19">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="ALD">
+    <link rel="apple-touch-icon" href="icon-192.png">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -778,6 +784,45 @@
         .notif-toast .nt-title { font-weight: 800; color: #fff; margin-bottom: 4px; }
         .notif-toast .nt-body { font-size: 0.88rem; color: #cbd5e1; line-height: 1.4; }
         @keyframes toastin { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: none; } }
+        /* ===== KUPONY / PRZYCISKI ZAKŁADÓW ===== */
+        .bet-row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 10px; }
+        .bet-pick { flex: 1; min-width: 140px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--card-border); background: #0d1322; color: #fff;
+            font-weight: 700; font-size: 0.88rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 10px; transition: var(--transition); }
+        .bet-pick:hover:not(:disabled) { border-color: var(--accent-blue); }
+        .bet-pick .odd { background: rgba(59,130,246,.2); color: #93c5fd; padding: 2px 8px; border-radius: 6px; font-size: 0.85rem; white-space: nowrap; }
+        .bet-pick.picked { background: rgba(16,185,129,.18); border-color: #10b981; cursor: default; }
+        .bet-pick.picked .odd { background: #10b981; color: #052e22; }
+        .bet-pick.locked { opacity: .35; cursor: not-allowed; }
+        .bet-slip { margin-top: 8px; text-align: center; font-size: 0.82rem; color: #34d399; font-weight: 600; }
+        .coupon { border: 1px solid var(--card-border); border-left: 5px solid var(--warning-color); background: #0d1322; border-radius: 12px; padding: 14px 16px; margin-bottom: 12px; }
+        .coupon.won { border-left-color: #10b981; }
+        .coupon.lost { border-left-color: #ef4444; }
+        .coupon-match { font-weight: 800; font-size: 1rem; margin-bottom: 6px; }
+        .coupon-line { font-size: 0.88rem; color: #cbd5e1; margin: 3px 0; }
+        .coupon-status { display: inline-block; margin-top: 8px; padding: 4px 12px; border-radius: 999px; font-size: 0.8rem; font-weight: 800; }
+        .coupon-status.pending { background: rgba(245,158,11,.15); color: #fbbf24; }
+        .coupon-status.won { background: rgba(16,185,129,.18); color: #34d399; }
+        .coupon-status.lost { background: rgba(239,68,68,.18); color: #f87171; }
+        .coupon-stats { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+        .coupon-stats div { background: #0d1322; border: 1px solid var(--card-border); border-radius: 10px; padding: 8px 14px; font-size: 0.82rem; color: var(--text-muted); }
+        .coupon-stats b { color: #fff; font-size: 1rem; margin-left: 4px; }
+
+        /* ===== KOMPAKTOWY PASEK GÓRNY NA TELEFONIE ===== */
+        header { transition: transform .25s ease; }
+        @media (max-width: 768px) {
+            header { display: flex; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 4px 8px; padding: 6px 10px; }
+            header.header-hidden { transform: translateY(-100%); }
+            .header-right { display: contents; }
+            .logo { order: 1; flex: 1; min-width: 0; font-size: 0.9rem; gap: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+            .wallet-widget { order: 2; padding: 3px 10px; font-size: 0.78rem; box-shadow: none; }
+            #btn-notif-bell { order: 3; padding: 4px 8px; font-size: 1rem; margin: 0; }
+            nav { order: 4; flex: 0 0 100%; width: 100%; flex-wrap: nowrap; overflow-x: auto; gap: 2px; padding: 0; scrollbar-width: none; }
+            nav::-webkit-scrollbar { display: none; }
+            .nav-btn { padding: 6px 10px; font-size: 0.72rem; margin: 0; white-space: nowrap; flex: none; }
+            #notif-panel { top: 84px; }
+            #toast-stack { top: 92px; }
+        }
+        @media (max-width: 400px) { .logo { font-size: 0.8rem; } }
     </style>
 </head>
 <body>
@@ -960,6 +1005,7 @@
                 <div class="sub-tabs" style="margin-bottom: 0;">
                     <button class="sub-tab active" id="acc-sub-profile" onclick="switchAccountView('profile')">👤 Profil</button>
                     <button class="sub-tab" id="acc-sub-inventory" onclick="switchAccountView('inventory')">🎒 Ekwipunek</button>
+                    <button class="sub-tab" id="acc-sub-coupons" onclick="switchAccountView('coupons')">🎫 Kupony</button>
                 </div>
                 <div id="account-profile-view" class="page">
                 <div class="card" style="display: flex; gap: 24px; align-items: center; flex-wrap: wrap;">
@@ -1025,6 +1071,14 @@
                         <p style="color: var(--text-muted); margin-bottom: 16px;">Tu znajdziesz wszystko, co kupiłeś w sklepie. Przedmioty kosmetyczne możesz zakładać i zdejmować, a bonusy bukmacherskie są jednorazowe — znikają po wykorzystaniu.</p>
                         <div id="inv-cat-tabs" class="sub-tabs"></div>
                         <div id="inventory-grid" class="grid-container"></div>
+                    </div>
+                </div>
+
+                <div id="account-coupons-view" class="page hidden">
+                    <div class="card">
+                        <h2>🎫 Moje kupony</h2>
+                        <div id="coupons-summary"></div>
+                        <div id="coupons-list"></div>
                     </div>
                 </div>
             </div>
@@ -1415,9 +1469,11 @@ document.getElementById('btn-confirm-bet').onclick = async () => {
     const msgEl = document.getElementById('bet-modal-msg');
 
     // Sprawdzanie czy użytkownik nie próbuje obstawić własnego meczu
+    let betMatch = null;
     const matchSnap = await get(dbRef(db, `upcomingMatches/${matchId}`));
     if (matchSnap.exists()) {
         const matchData = matchSnap.val();
+        betMatch = matchData;
         if (matchData.p1Uid === user.uid || matchData.p2Uid === user.uid) {
             msgEl.className = "msg error";
             msgEl.innerText = "Nie możesz obstawiać meczu, w którym sam grasz!";
@@ -1466,6 +1522,15 @@ document.getElementById('btn-confirm-bet').onclick = async () => {
         };
         updates[`users/${user.uid}/dartKasa`] = userBalance - amount;
         updates[`users/${user.uid}/inventory`] = inventory;
+        // Kupon w profilu gracza (zostaje także po zakończeniu meczu)
+        updates[`users/${user.uid}/coupons/${matchId}`] = {
+            matchId,
+            p1Uid: betMatch ? betMatch.p1Uid : '', p2Uid: betMatch ? betMatch.p2Uid : '',
+            p1Name: betMatch ? betMatch.p1Name : '', p2Name: betMatch ? betMatch.p2Name : '',
+            playerUid: chosenPlayerUid,
+            playerName: betMatch ? (chosenPlayerUid === betMatch.p1Uid ? betMatch.p1Name : betMatch.p2Name) : 'Zawodnik',
+            amount, odds, bonus: selectedBonus, placedAt: Date.now(), status: 'pending'
+        };
 
         await update(dbRef(db), updates);
         document.getElementById('modal-place-bet').classList.add('hidden');
@@ -1907,9 +1972,12 @@ Akademicka Liga Darta © 2026`;
         window.switchAccountView = (view) => {
             document.getElementById('account-profile-view').classList.toggle('hidden', view !== 'profile');
             document.getElementById('account-inventory-view').classList.toggle('hidden', view !== 'inventory');
+            document.getElementById('account-coupons-view').classList.toggle('hidden', view !== 'coupons');
             document.getElementById('acc-sub-profile').classList.toggle('active', view === 'profile');
             document.getElementById('acc-sub-inventory').classList.toggle('active', view === 'inventory');
+            document.getElementById('acc-sub-coupons').classList.toggle('active', view === 'coupons');
             if (view === 'inventory') renderInventory();
+            if (view === 'coupons') renderCoupons();
         };
 
         window.setInvCat = (cat) => { currentInvCat = cat; renderInventory(); };
@@ -2062,7 +2130,7 @@ Akademicka Liga Darta © 2026`;
         document.getElementById('btn-go-reset').onclick = () => { document.getElementById('view-login').classList.add('hidden'); document.getElementById('view-reset').classList.remove('hidden'); };
         document.getElementById('btn-go-login-from-reg').onclick = () => { document.getElementById('view-register').classList.add('hidden'); document.getElementById('view-login').classList.remove('hidden'); };
         document.getElementById('btn-go-login-from-reset').onclick = () => { document.getElementById('view-reset').classList.add('hidden'); document.getElementById('view-login').classList.remove('hidden'); };
-        document.getElementById('btn-logout').onclick = () => signOut(auth);
+        document.getElementById('btn-logout').onclick = async () => { await removePhoneToken(); signOut(auth); };
 
               document.getElementById('btn-login').onclick = async () => {
     try {
@@ -2246,6 +2314,8 @@ Akademicka Liga Darta © 2026`;
 
             renderUserUpcomingMatches(uid);
             renderInventory();
+            renderCoupons();
+            if (typeof renderHomePageUpcoming === 'function') renderHomePageUpcoming();
             if (currentTabKey === 'shop') renderShop();
         }
 
@@ -2450,6 +2520,9 @@ Akademicka Liga Darta © 2026`;
             } catch(err) { alert(err.message); }
         };
 
+        const legacyBets = {};
+        const legacyFetching = new Set();
+
         function renderHomePageUpcoming() {
             const container = document.getElementById('home-upcoming-matches');
             container.innerHTML = "";
@@ -2482,13 +2555,40 @@ Akademicka Liga Darta © 2026`;
                     if (isPlayerInMatch) {
                         bettingHtml = `<div style="font-size: 12px; color: var(--text-muted); margin-top: 10px; text-align: center; font-style: italic;">Nie możesz obstawiać meczu, w którym sam bierzesz udział.</div>`;
                     } else {
-                        bettingHtml = `
-                            <div style="margin-top: 10px; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;" onclick="event.stopPropagation()">
-                                <button class="btn-sm btn-primary" onclick="openBetModal('${matchId}', '${m.p1Uid}', '${m.p1Name}', ${oddsData.odds1})">Obstaw ${m.p1Name} (${oddsData.odds1})</button>
-                                <button class="btn-sm btn-primary" onclick="openBetModal('${matchId}', '${m.p2Uid}', '${m.p2Name}', ${oddsData.odds2})">Obstaw ${m.p2Name} (${oddsData.odds2})</button>
-                            </div>
-                            ${adminPowerInfo}
-                        `;
+                        // Czy zalogowany gracz już obstawił ten mecz? (kupon w profilu lub starszy zakład z bazy)
+                        let myBet = currentUid ? ((currentUserProfileData && currentUserProfileData.coupons && currentUserProfileData.coupons[matchId]) || null) : null;
+                        if (!myBet && currentUid) {
+                            const ck = `${currentUid}:${matchId}`;
+                            if (legacyBets[ck]) myBet = legacyBets[ck];
+                            else if (legacyBets[ck] === undefined && !legacyFetching.has(ck)) {
+                                legacyFetching.add(ck);
+                                get(dbRef(db, `bets/${matchId}/${currentUid}`)).then(sn => {
+                                    legacyBets[ck] = sn.exists() ? sn.val() : false;
+                                    if (sn.exists()) renderHomePageUpcoming();
+                                }).catch(() => { legacyBets[ck] = false; });
+                            }
+                        }
+
+                        if (myBet) {
+                            const picked1 = myBet.playerUid === m.p1Uid;
+                            let win = Math.round(myBet.amount * myBet.odds);
+                            if (myBet.bonus === 'boost_25') win = Math.round(win * 1.25);
+                            const bonusTxt = myBet.bonus === 'boost_25' ? ' · ⚡ Booster +25%' : (myBet.bonus === 'insurance' ? ' · 🛡️ Ubezpieczenie' : '');
+                            bettingHtml = `
+                                <div class="bet-row" onclick="event.stopPropagation()">
+                                    <button class="bet-pick ${picked1 ? 'picked' : 'locked'}" disabled><span>${picked1 ? '✓ ' : ''}${m.p1Name}</span><span class="odd">${picked1 ? myBet.odds : oddsData.odds1}</span></button>
+                                    <button class="bet-pick ${picked1 ? 'locked' : 'picked'}" disabled><span>${picked1 ? '' : '✓ '}${m.p2Name}</span><span class="odd">${picked1 ? oddsData.odds2 : myBet.odds}</span></button>
+                                </div>
+                                <div class="bet-slip">🎫 Obstawiono: ${myBet.amount} DK · możliwa wygrana ${win} DK${bonusTxt}</div>
+                                ${adminPowerInfo}`;
+                        } else {
+                            bettingHtml = `
+                                <div class="bet-row" onclick="event.stopPropagation()">
+                                    <button class="bet-pick" onclick="openBetModal('${matchId}', '${m.p1Uid}', '${m.p1Name}', ${oddsData.odds1})"><span>${m.p1Name}</span><span class="odd">${oddsData.odds1}</span></button>
+                                    <button class="bet-pick" onclick="openBetModal('${matchId}', '${m.p2Uid}', '${m.p2Name}', ${oddsData.odds2})"><span>${m.p2Name}</span><span class="odd">${oddsData.odds2}</span></button>
+                                </div>
+                                ${adminPowerInfo}`;
+                        }
                     }
 
                     card.innerHTML = `
@@ -3033,6 +3133,8 @@ ${board}</svg>`;
             detachNotifications();
             notifUid = uid; notifLoaded = false;
             nwEl('btn-notif-bell').classList.remove('hidden');
+            try { fcmActive = !!(('Notification' in window) && Notification.permission === 'granted' && localStorage.getItem('adlPush_' + uid)); } catch (e) { fcmActive = false; }
+            if (fcmActive) enablePhonePush(true);
             notifUnsub = onValue(dbRef(db, `notifications/${uid}`), (snap) => {
                 const first = !notifLoaded;
                 globalNotifications = snap.val() || {};
@@ -3062,6 +3164,59 @@ ${board}</svg>`;
             const panel = nwEl('notif-panel'); if (panel) panel.classList.add('hidden');
             const stack = nwEl('toast-stack'); if (stack) stack.innerHTML = '';
             document.title = BASE_TITLE;
+            fcmActive = false;
+        }
+
+        // ---------- Push na telefon / pulpit (Firebase Cloud Messaging) ----------
+        // Klucz VAPID: Firebase Console -> Ustawienia projektu -> Cloud Messaging -> Web Push certificates -> Generate key pair
+        const VAPID_KEY = 'WKLEJ_TU_KLUCZ_VAPID';
+        const FCM_SDK_URL = 'https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging.js';
+        let fcmActive = false;
+
+        window.enablePhonePush = async (silent) => {
+            const user = auth.currentUser;
+            if (!user) return;
+            const say = (t) => { if (!silent) alert(t); };
+            try {
+                if (!('Notification' in window) || !('serviceWorker' in navigator)) {
+                    say('Ta przeglądarka nie obsługuje powiadomień push.\n\nNa iPhonie: otwórz stronę w Safari → Udostępnij → „Do ekranu początkowego”, a następnie uruchom aplikację z ikony i włącz powiadomienia tutaj.');
+                    return;
+                }
+                if (VAPID_KEY.startsWith('WKLEJ')) {
+                    say('Push nie jest jeszcze skonfigurowany (brak klucza VAPID w kodzie strony). Zobacz instrukcję w pliku README paczki push.');
+                    return;
+                }
+                const perm = Notification.permission === 'granted' ? 'granted' : await Notification.requestPermission();
+                if (perm !== 'granted') { say('Powiadomienia są zablokowane. Zezwól na nie w ustawieniach przeglądarki dla tej strony i spróbuj ponownie.'); return; }
+
+                const { getMessaging, getToken, isSupported } = await import(FCM_SDK_URL);
+                if (!(await isSupported())) { say('Ta przeglądarka nie obsługuje Firebase Cloud Messaging.'); return; }
+                const reg = await navigator.serviceWorker.register('firebase-messaging-sw.js');
+                const token = await getToken(getMessaging(app), { vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
+                if (!token) throw new Error('Nie udało się pobrać tokenu urządzenia.');
+
+                const key = token.slice(-24).replace(/[^A-Za-z0-9_-]/g, '_');
+                await update(dbRef(db), { [`fcmTokens/${user.uid}/${key}`]: token });
+                try { localStorage.setItem('adlPush_' + user.uid, '1'); localStorage.setItem('adlPushKey', key); } catch (e) {}
+                fcmActive = true;
+                if (nwEl('notif-panel') && !nwEl('notif-panel').classList.contains('hidden')) renderNotifPanel();
+                say('Gotowe! Powiadomienia będą przychodzić na to urządzenie, nawet gdy strona jest zamknięta.');
+            } catch (err) {
+                console.warn('Push:', err);
+                say('Nie udało się włączyć powiadomień: ' + (err && err.message ? err.message : err));
+            }
+        };
+
+        // Przy wylogowaniu usuwamy token tego urządzenia, żeby kolejna osoba nie dostawała cudzych powiadomień
+        async function removePhoneToken() {
+            const user = auth.currentUser;
+            try {
+                const key = localStorage.getItem('adlPushKey');
+                if (user && key) await update(dbRef(db), { [`fcmTokens/${user.uid}/${key}`]: null });
+                if (user) localStorage.removeItem('adlPush_' + user.uid);
+                localStorage.removeItem('adlPushKey');
+            } catch (e) { console.warn(e.message); }
+            fcmActive = false;
         }
 
         // Przypomnienie o protokole: tworzone dla zawodnika, gdy minął termin meczu, a protokół nie został wysłany
@@ -3094,7 +3249,7 @@ ${board}</svg>`;
 
         function nativeNotify(id, n) {
             try {
-                if ('Notification' in window && Notification.permission === 'granted') {
+                if (!fcmActive && 'Notification' in window && Notification.permission === 'granted') {
                     new Notification(n.title, { body: n.body, tag: id });
                 }
             } catch (e) { /* część przeglądarek mobilnych nie obsługuje tej metody */ }
@@ -3112,15 +3267,14 @@ ${board}</svg>`;
         function renderNotifPanel() {
             const panel = nwEl('notif-panel');
             const items = Object.entries(globalNotifications).sort((a, b) => (b[1].createdAt || 0) - (a[1].createdAt || 0)).slice(0, 30);
-            const canAsk = ('Notification' in window) && Notification.permission === 'default';
             let html = `<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 8px; flex-wrap: wrap;">
                 <b style="font-size: 1rem;">🔔 Powiadomienia</b>
                 <span style="display: flex; gap: 6px;">
                     <button class="btn-primary btn-sm" onclick="markAllNotifRead()">Przeczytane</button>
                     <button class="btn-danger btn-sm" onclick="clearAllNotif()">Wyczyść</button>
                 </span></div>`;
-            if (canAsk) html += `<button class="btn-success btn-sm" style="width: 100%; margin-bottom: 10px;" onclick="askNotifPermission()">Włącz powiadomienia systemowe</button>`;
-            html += `<div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 10px;">Powiadomienia docierają, gdy strona jest otwarta (także w tle).</div>`;
+            if (!fcmActive) html += `<button class="btn-success btn-sm" style="width: 100%; margin-bottom: 8px;" onclick="enablePhonePush()">📱 Włącz powiadomienia na tym urządzeniu</button>`;
+            html += `<div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 10px;">${fcmActive ? '✅ Powiadomienia push są włączone na tym urządzeniu (docierają także przy zamkniętej stronie).' : 'Bez włączenia powiadomień zobaczysz je tylko przy otwartej stronie.'}</div>`;
             if (!items.length) html += `<p style="color: var(--text-muted); text-align: center; padding: 14px 0;">Brak powiadomień.</p>`;
             html += items.map(([id, n]) => `<div class="notif-item ${n.read ? '' : 'unread'}" onclick="openNotification('${id}')">
                 <div class="nt-title">${nwEsc(n.title)}</div><div class="nt-body">${nwEsc(n.body)}</div>
@@ -3164,7 +3318,7 @@ ${board}</svg>`;
             markNotifRead(id);
             nwEl('notif-panel').classList.add('hidden');
             switchTab('account');
-            switchAccountView('profile');
+            switchAccountView(n.type === 'bet_result' ? 'coupons' : 'profile');
             const m = n.matchId ? globalUpcomingMatchesMap[n.matchId] : null;
             if (m && auth.currentUser && (m.p1Uid === auth.currentUser.uid || m.p2Uid === auth.currentUser.uid)) {
                 const ready = m.status === 'approved' && m.scheduledDate && new Date() >= new Date(m.scheduledDate);
@@ -3221,6 +3375,57 @@ ${board}</svg>`;
                 nwEl('modal-admin-edit-report').classList.add('hidden');
             } catch (err) { msg.className = 'msg error'; msg.innerText = err.message; }
         };
+
+        // ---------- Kupony w profilu ----------
+        function renderCoupons() {
+            const list = document.getElementById('coupons-list');
+            const sum = document.getElementById('coupons-summary');
+            if (!list || !sum) return;
+            const d = currentUserProfileData;
+            const items = Object.values((d && d.coupons) || {}).sort((a, b) => (b.placedAt || b.settledAt || 0) - (a.placedAt || a.settledAt || 0));
+            if (!items.length) {
+                sum.innerHTML = '';
+                list.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 24px 0;">Nie masz jeszcze żadnych kuponów. Obstaw mecz na stronie głównej!</p>';
+                return;
+            }
+            const pending = items.filter(c => c.status === 'pending').length;
+            const won = items.filter(c => c.status === 'won').length;
+            const lost = items.filter(c => c.status === 'lost').length;
+            sum.innerHTML = `<div class="coupon-stats"><div>Wszystkie<b>${items.length}</b></div><div>Oczekujące<b>${pending}</b></div><div>Wygrane<b>${won}</b></div><div>Przegrane<b>${lost}</b></div></div>`;
+            const bonusName = { boost_25: '⚡ Booster +25%', insurance: '🛡️ Ubezpieczenie' };
+            list.innerHTML = items.map(c => {
+                const st = c.status || 'pending';
+                let potential = Math.round((c.amount || 0) * (c.odds || 0));
+                if (c.bonus === 'boost_25') potential = Math.round(potential * 1.25);
+                let badge;
+                if (st === 'won') badge = `✅ Wygrany · wypłata ${c.payout} DK`;
+                else if (st === 'lost') badge = `❌ Przegrany${c.payout > 0 ? ` · zwrot z ubezpieczenia ${c.payout} DK` : ''}`;
+                else badge = '⏳ Oczekuje na wynik';
+                const when = c.placedAt ? new Date(c.placedAt).toLocaleString('pl-PL', { dateStyle: 'short', timeStyle: 'short' }) : '';
+                return `<div class="coupon ${st}">
+                    <div class="coupon-match">${nwEsc(c.p1Name)} vs ${nwEsc(c.p2Name)}</div>
+                    <div class="coupon-line">Twój typ: <b>${nwEsc(c.playerName)}</b> · kurs <b>${c.odds}</b></div>
+                    <div class="coupon-line">Stawka: <b>${c.amount} DK</b>${st === 'pending' ? ` · możliwa wygrana: <b>${potential} DK</b>` : ''}</div>
+                    ${c.bonus && c.bonus !== 'none' ? `<div class="coupon-line">Bonus: ${bonusName[c.bonus] || nwEsc(c.bonus)}</div>` : ''}
+                    ${c.result ? `<div class="coupon-line">Wynik meczu: <b>${nwEsc(c.result)}</b></div>` : ''}
+                    ${when ? `<div class="coupon-line" style="color: var(--text-muted); font-size: 0.78rem;">Postawiono: ${when}</div>` : ''}
+                    <span class="coupon-status ${st}">${badge}</span>
+                </div>`;
+            }).join('');
+        }
+
+        // Pasek górny na telefonie chowa się przy przewijaniu w dół i wraca przy przewijaniu w górę
+        (function () {
+            const h = document.querySelector('header');
+            let last = window.scrollY;
+            window.addEventListener('scroll', () => {
+                if (window.innerWidth > 768) { h.classList.remove('header-hidden'); return; }
+                const y = window.scrollY;
+                if (y > last + 8 && y > 80) h.classList.add('header-hidden');
+                else if (y < last - 8 || y <= 80) h.classList.remove('header-hidden');
+                last = y;
+            }, { passive: true });
+        })();
 
         // --- PANEL ADMINA ---
         function renderAdminPanelData() {
@@ -3529,26 +3734,38 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
 
             for (const [bettorUid, betInfo] of Object.entries(betsData)) {
                 const bettorUserSnap = await get(dbRef(db, `users/${bettorUid}`));
-                if (bettorUserSnap.exists()) {
-                    const bettorData = bettorUserSnap.val();
-                    let currentBalance = bettorData.dartKasa || 0;
+                if (!bettorUserSnap.exists()) continue;
+                const bettorData = bettorUserSnap.val();
+                let currentBalance = bettorData.dartKasa || 0;
 
-                    if (matchWinnerUid && betInfo.playerUid === matchWinnerUid) {
-                        let winnings = Math.round(betInfo.amount * betInfo.odds);
-                        if (betInfo.bonus === 'boost_25') {
-                            winnings = Math.round(winnings * 1.25);
-                        }
-                        currentBalance += winnings;
-                    } else {
-                        if (betInfo.bonus === 'insurance') {
-                            const refund = Math.round(betInfo.amount * 0.5);
-                            currentBalance += refund;
-                        }
-                    }
+                const won = !!(matchWinnerUid && betInfo.playerUid === matchWinnerUid);
+                let payout = 0;
+                if (won) {
+                    payout = Math.round(betInfo.amount * betInfo.odds);
+                    if (betInfo.bonus === 'boost_25') payout = Math.round(payout * 1.25);
+                } else if (betInfo.bonus === 'insurance') {
+                    payout = Math.round(betInfo.amount * 0.5);
+                }
+                currentBalance += payout;
 
-                    await update(dbRef(db, `users/${bettorUid}`), {
-                        dartKasa: currentBalance
-                    });
+                const pickedName = betInfo.playerUid === m.p1Uid ? m.p1Name : m.p2Name;
+                const prevCoupon = (bettorData.coupons && bettorData.coupons[matchId]) || {};
+                const coupon = {
+                    ...prevCoupon, matchId, p1Uid: m.p1Uid, p2Uid: m.p2Uid, p1Name: m.p1Name, p2Name: m.p2Name,
+                    playerUid: betInfo.playerUid, playerName: pickedName, amount: betInfo.amount, odds: betInfo.odds,
+                    bonus: betInfo.bonus || 'none', status: won ? 'won' : 'lost', payout, result: `${s1}:${s2}`, settledAt: Date.now()
+                };
+                await update(dbRef(db), {
+                    [`users/${bettorUid}/dartKasa`]: currentBalance,
+                    [`users/${bettorUid}/coupons/${matchId}`]: coupon
+                });
+
+                // Powiadomienie wyłącznie dla gracza, który obstawił ten mecz
+                const scoreTxt = `${m.p1Name} ${s1}:${s2} ${m.p2Name}${s1 === s2 ? ' (remis)' : ''}`;
+                if (won) {
+                    await notifyUser(bettorUid, 'bet_result', '🎉 Kupon wygrany!', `${scoreTxt}. Twój typ: ${pickedName}. Wypłata: ${payout} DK.`, matchId);
+                } else {
+                    await notifyUser(bettorUid, 'bet_result', 'Kupon przegrany', `${scoreTxt}. Twój typ: ${pickedName}. Stawka ${betInfo.amount} DK przepadła.${payout > 0 ? ` Ubezpieczenie zwróciło ${payout} DK.` : ''}`, matchId);
                 }
             }
         }
