@@ -829,6 +829,18 @@
         .trend.up { color: #10b981; }
         .bet-pick .odd.moved-down { background: rgba(239,68,68,.18); color: #fca5a5; }
         .bet-pick .odd.moved-up { background: rgba(16,185,129,.18); color: #6ee7b7; }
+        /* ===== LISTA AKTUALNOŚCI + PEŁNY ARTYKUŁ ===== */
+        #news-list.news-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        .news-card { padding: 0; overflow: hidden; cursor: pointer; display: flex; flex-direction: column; transition: var(--transition); }
+        .news-card:hover { transform: translateY(-3px); border-color: var(--accent-blue); }
+        .news-card .news-cover { width: 100%; margin: 0; aspect-ratio: 16 / 9; max-height: none; }
+        .news-card-body { padding: 16px 18px 18px; min-width: 0; }
+        .news-card .news-title { font-size: 1.15rem; margin-bottom: 8px; }
+        .news-excerpt { color: #94a3b8; font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .news-back { align-self: flex-start; background: #0d1322; border: 1px solid var(--card-border); color: #fff; padding: 9px 16px; border-radius: 999px; cursor: pointer; font-weight: 700; font-size: 0.88rem; }
+        .news-back:hover { border-color: var(--accent-blue); }
+        #news-detail .news-title { font-size: 1.8rem; }
+        @media (max-width: 768px) { #news-detail .news-title { font-size: 1.4rem; } }
     </style>
 </head>
 <body>
@@ -978,7 +990,8 @@
             <!-- TAB: NEWS -->
             <div id="page-news" class="page hidden">
                 <h2 style="margin-bottom: 0;">📰 Aktualności</h2>
-                <div id="news-list" class="page"></div>
+                <div id="news-list" class="news-grid"></div>
+                <div id="news-detail" class="page hidden"></div>
             </div>
 
             <!-- TAB: SHOP -->
@@ -1833,7 +1846,7 @@ Akademicka Liga Darta © 2026`;
             if (activeKey === 'archive') renderArchiveTable();
             if (activeKey === 'shop') renderShop();
             if (activeKey === 'admin') { renderAdminPanelData(); renderNewsAdminList(); }
-            if (activeKey === 'news') renderNews();
+            if (activeKey === 'news') { currentNewsId = null; renderNews(); }
             if (activeKey === 'home') renderHomePageUpcoming();
         }
 
@@ -3136,22 +3149,64 @@ ${board}</svg>`;
         }
 
         // ---------- Publiczna zakładka Aktualności ----------
+        let currentNewsId = null;
+
+        // Jedna linijka zajawki: pierwszy niepusty akapit artykułu
+        function nwExcerpt(body) {
+            const first = String(body || '').split(/\n\s*\n/).map(t => t.replace(/\s+/g, ' ').trim()).find(t => t) || '';
+            return first.length > 160 ? first.slice(0, 157).trimEnd() + '…' : first;
+        }
+
+        window.openNewsPost = (id) => {
+            if (!globalNews[id]) return;
+            currentNewsId = id;
+            renderNews();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+        window.closeNewsPost = () => {
+            currentNewsId = null;
+            renderNews();
+            window.scrollTo({ top: 0 });
+        };
+
         function renderNews() {
-            const box = nwEl('news-list');
-            if (!box) return;
-            const items = Object.entries(globalNews || {}).map(([id, d]) => ({ id, ...d })).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-            if (!items.length) { box.innerHTML = '<div class="card" style="text-align: center; color: var(--text-muted);">Na razie brak aktualności. Zajrzyj tu wkrótce!</div>'; return; }
+            const list = nwEl('news-list'), detail = nwEl('news-detail');
+            if (!list || !detail) return;
             const admin = isAdminUser();
-            box.innerHTML = items.map(p => {
+
+            // Widok pojedynczego artykułu
+            if (currentNewsId && globalNews[currentNewsId]) {
+                const p = { id: currentNewsId, ...globalNews[currentNewsId] };
                 const paras = String(p.body || '').split(/\n\s*\n/).map(t => `<p>${nwEsc(t.trim()).replace(/\n/g, '<br>')}</p>`).join('');
-                return `<article class="card news-post">
+                list.classList.add('hidden');
+                detail.classList.remove('hidden');
+                detail.innerHTML = `<button class="news-back" onclick="closeNewsPost()">← Wróć do aktualności</button>
+                    <article class="card news-post">
+                        ${p.image ? `<img class="news-cover" src="${nwEsc(p.image)}" alt="">` : ''}
+                        <div class="news-meta">🕒 ${nwFmtDate(p.createdAt || 0)}${p.editedAt ? ' · edytowano' : ''}</div>
+                        <h3 class="news-title">${nwEsc(p.title)}</h3>
+                        <div class="news-body">${paras}</div>
+                        ${admin ? `<div class="news-admin"><button class="btn-primary btn-sm" onclick="nwEdit('${p.id}', 'news')">✏️ Edytuj</button><button class="btn-danger btn-sm" onclick="nwDelete('${p.id}', 'news')">🗑️ Usuń</button></div>` : ''}
+                    </article>`;
+                return;
+            }
+
+            // Lista: tytuł, zdjęcie i jedna linijka tekstu
+            currentNewsId = null;
+            detail.classList.add('hidden');
+            detail.innerHTML = '';
+            list.classList.remove('hidden');
+            const items = Object.entries(globalNews || {}).map(([id, d]) => ({ id, ...d })).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+            if (!items.length) { list.innerHTML = '<div class="card" style="text-align: center; color: var(--text-muted); grid-column: 1 / -1;">Na razie brak aktualności. Zajrzyj tu wkrótce!</div>'; return; }
+            list.innerHTML = items.map(p => `
+                <article class="card news-card" onclick="openNewsPost('${p.id}')">
                     ${p.image ? `<img class="news-cover" src="${nwEsc(p.image)}" alt="">` : ''}
-                    <div class="news-meta">🕒 ${nwFmtDate(p.createdAt || 0)}${p.editedAt ? ' · edytowano' : ''}</div>
-                    <h3 class="news-title">${nwEsc(p.title)}</h3>
-                    <div class="news-body">${paras}</div>
-                    ${admin ? `<div class="news-admin"><button class="btn-primary btn-sm" onclick="nwEdit('${p.id}', 'news')">✏️ Edytuj</button><button class="btn-danger btn-sm" onclick="nwDelete('${p.id}', 'news')">🗑️ Usuń</button></div>` : ''}
-                </article>`;
-            }).join('');
+                    <div class="news-card-body">
+                        <div class="news-meta">🕒 ${nwFmtDate(p.createdAt || 0)}</div>
+                        <h3 class="news-title">${nwEsc(p.title)}</h3>
+                        <div class="news-excerpt">${nwEsc(nwExcerpt(p.body))}</div>
+                    </div>
+                </article>`).join('');
         }
 
         function attachNewsDraftsListener() {
