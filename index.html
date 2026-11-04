@@ -836,11 +836,31 @@
         .news-card .news-cover { width: 100%; margin: 0; aspect-ratio: 16 / 9; max-height: none; }
         .news-card-body { padding: 16px 18px 18px; min-width: 0; }
         .news-card .news-title { font-size: 1.15rem; margin-bottom: 8px; }
-        .news-excerpt { color: #94a3b8; font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .news-back { align-self: flex-start; background: #0d1322; border: 1px solid var(--card-border); color: #fff; padding: 9px 16px; border-radius: 999px; cursor: pointer; font-weight: 700; font-size: 0.88rem; }
         .news-back:hover { border-color: var(--accent-blue); }
         #news-detail .news-title { font-size: 1.8rem; }
         @media (max-width: 768px) { #news-detail .news-title { font-size: 1.4rem; } }
+
+        /* ===== NAJNOWSZY ARTYKUŁ NA STRONIE GŁÓWNEJ ===== */
+        .news-teaser { display: flex; cursor: pointer; border-radius: 12px; overflow: hidden; background: #0d1322; border: 1px solid var(--card-border); transition: var(--transition); }
+        .news-teaser:hover { border-color: var(--accent-blue); transform: translateY(-2px); }
+        .news-teaser img { width: 44%; max-width: 380px; aspect-ratio: 16 / 9; object-fit: cover; flex: none; display: block; }
+        .news-teaser-body { padding: 16px 20px; display: flex; flex-direction: column; justify-content: center; min-width: 0; flex: 1; }
+        .news-teaser .news-title { font-size: 1.25rem; margin-bottom: 8px; }
+        .news-excerpt { color: #94a3b8; font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .news-more { margin-top: 10px; color: var(--accent-blue); font-size: 0.85rem; font-weight: 700; }
+        @media (max-width: 768px) { .news-teaser { flex-direction: column; } .news-teaser img { width: 100%; max-width: none; } .news-teaser-body { padding: 14px 16px; } }
+        /* ===== REAKCJE POD ARTYKUŁAMI, REMIS ===== */
+        .reactions { display: flex; gap: 8px; flex-wrap: wrap; margin: 16px 0 4px; }
+        .react-btn { background: #0d1322; border: 1px solid var(--card-border); color: #fff; border-radius: 999px; padding: 6px 12px; font-size: 1rem; cursor: pointer; display: flex; gap: 6px; align-items: center; transition: var(--transition); }
+        .react-btn span { font-size: 0.8rem; color: var(--text-muted); font-weight: 700; }
+        .react-btn:hover { border-color: var(--accent-blue); }
+        .react-btn.mine { background: rgba(59,130,246,.2); border-color: var(--accent-blue); }
+        .react-btn.mine span { color: #93c5fd; }
+        .news-react-summary { margin-top: 8px; font-size: 0.82rem; color: var(--text-muted); }
+        .bet-pick > span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .bet-row.three .bet-pick { min-width: 120px; }
+        @media (max-width: 768px) { .bet-row.three .bet-draw { order: 3; flex-basis: 100%; } }
     </style>
 </head>
 <body>
@@ -928,7 +948,7 @@
             <div id="page-home" class="page">
                 <div class="card">
                     <h2>Aktualności</h2>
-                    <p id="home-text-display" style="line-height: 1.6; color: var(--text-muted);">Witamy w Akademickiej Lidze Darta!</p>
+                    <div id="home-news-latest"><p style="line-height: 1.6; color: var(--text-muted);">Witamy w Akademickiej Lidze Darta!</p></div>
                 </div>
                 <div class="card">
                     <h2>Najbliższe Nadchodzące Mecze</h2>
@@ -1114,16 +1134,6 @@
                 </div>
 
                 <div class="card">
-                    <h2>Edycja Tekstu na Stronie Głównej</h2>
-                    <div class="form-group">
-                        <label>Treść komunikatu / aktualności</label>
-                        <textarea id="admin-home-text-input" rows="4" placeholder="Wpisz treść wiadomości na stronę główną..."></textarea>
-                    </div>
-                    <button class="btn-primary" id="btn-admin-save-hometext">Zapisz tekst na stronie głównej</button>
-                    <div id="admin-hometext-msg" class="msg"></div>
-                </div>
-
-                <div class="card">
                     <h2>📰 Generator aktualności</h2>
                     <p style="color: var(--text-muted); margin-bottom: 16px;">Algorytm analizuje rozegrane i nadchodzące mecze, tabelę oraz formę zawodników, a następnie pisze tekst w formie dziennikarskiej. Przed publikacją możesz go dowolnie edytować.</p>
                     <div class="form-group">
@@ -1181,6 +1191,10 @@
                     <div class="form-group">
                         <label>Gracz 2</label>
                         <select id="admin-create-p2"></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Termin meczu (opcjonalnie - jeśli podasz, zawodnicy nie muszą go ustalać)</label>
+                        <input type="datetime-local" id="admin-create-date">
                     </div>
                     <button class="btn-primary" id="btn-admin-create-upcoming">Dodaj Mecz do Terminarza</button>
                     <div id="admin-create-upcoming-msg" class="msg"></div>
@@ -1522,11 +1536,11 @@ document.getElementById('btn-confirm-bet').onclick = async () => {
         // Kurs mógł się zmienić od otwarcia okna (ktoś inny obstawił) - pobieramy aktualny
         const poolSnap = await get(dbRef(db, `matchPools/${matchId}`));
         const pool = poolSnap.exists() ? poolSnap.val() : {};
-        const live = computeLiveOdds(betMatch.p1Uid, betMatch.p2Uid, Number(pool[betMatch.p1Uid]) || 0, Number(pool[betMatch.p2Uid]) || 0);
-        const freshOdds = chosenPlayerUid === betMatch.p1Uid ? live.odds1 : live.odds2;
+        const live = computeLiveOdds(betMatch.p1Uid, betMatch.p2Uid, Number(pool[betMatch.p1Uid]) || 0, Number(pool[betMatch.p2Uid]) || 0, Number(pool.draw) || 0);
+        const freshOdds = chosenPlayerUid === betMatch.p1Uid ? live.odds1 : (chosenPlayerUid === 'draw' ? live.oddsDraw : live.odds2);
         if (Math.abs(freshOdds - odds) > 0.009) {
             document.getElementById('bet-selected-odds').value = freshOdds;
-            const pName = chosenPlayerUid === betMatch.p1Uid ? betMatch.p1Name : betMatch.p2Name;
+            const pName = chosenPlayerUid === 'draw' ? 'Remis' : (chosenPlayerUid === betMatch.p1Uid ? betMatch.p1Name : betMatch.p2Name);
             document.getElementById('bet-modal-selection-info').innerText = `Typujesz na: ${pName} (Kurs: ${freshOdds}). Kursy zmieniają się wraz ze stawkami innych graczy.`;
             msgEl.className = "msg error";
             msgEl.innerText = `Kurs się zmienił: ${odds} → ${freshOdds}. Sprawdź i potwierdź zakład ponownie.`;
@@ -1568,7 +1582,7 @@ document.getElementById('btn-confirm-bet').onclick = async () => {
             p1Uid: betMatch ? betMatch.p1Uid : '', p2Uid: betMatch ? betMatch.p2Uid : '',
             p1Name: betMatch ? betMatch.p1Name : '', p2Name: betMatch ? betMatch.p2Name : '',
             playerUid: chosenPlayerUid,
-            playerName: betMatch ? (chosenPlayerUid === betMatch.p1Uid ? betMatch.p1Name : betMatch.p2Name) : 'Zawodnik',
+            playerName: chosenPlayerUid === 'draw' ? 'Remis' : (betMatch ? (chosenPlayerUid === betMatch.p1Uid ? betMatch.p1Name : betMatch.p2Name) : 'Zawodnik'),
             amount, odds, bonus: selectedBonus, placedAt: Date.now(), status: 'pending'
         };
 
@@ -1666,28 +1680,30 @@ const ODDS_MAX_SHIFT = 0.5;  // maksymalny udział rynku (stawek) w wyliczeniu p
 const ODDS_MAX = 20;
 let globalMatchPools = {};
 
-function computeLiveOdds(p1Uid, p2Uid, stake1, stake2) {
+function computeLiveOdds(p1Uid, p2Uid, stake1, stake2, stakeDraw) {
     const base = calculateMatchOdds(p1Uid, p2Uid);
-    const q1 = 1 / base.odds1, q2 = 1 / base.odds2;
-    const margin = q1 + q2;          // narzut bukmachera zawarty w kursach bazowych
-    const baseP1 = q1 / margin;      // prawdopodobieństwo zwycięstwa p1 wg power rankingu
-    const total = stake1 + stake2;
-    let p = baseP1;
+    const q = [1 / base.odds1, 1 / base.odds2, 1 / base.oddsDraw];
+    const margin = q[0] + q[1] + q[2];            // narzut bukmachera zawarty w kursach bazowych
+    const P = q.map(x => x / margin);             // prawdopodobieństwa: p1, p2, remis
+    const S = [stake1 || 0, stake2 || 0, stakeDraw || 0];
+    const total = S[0] + S[1] + S[2];
+    let P2 = P;
     if (total > 0) {
         const w = (total / (total + ODDS_LIQUIDITY)) * ODDS_MAX_SHIFT;
-        p = (1 - w) * baseP1 + w * (stake1 / total);
+        P2 = P.map((p, i) => (1 - w) * p + w * (S[i] / total));
     }
     const clamp = (o) => Math.min(ODDS_MAX, Math.max(1.01, Number(o.toFixed(2))));
     return {
-        odds1: clamp(1 / (p * margin)), odds2: clamp(1 / ((1 - p) * margin)),
-        baseOdds1: base.odds1, baseOdds2: base.odds2, p1Power: base.p1Power, p2Power: base.p2Power,
-        stake1, stake2
+        odds1: clamp(1 / (P2[0] * margin)), odds2: clamp(1 / (P2[1] * margin)), oddsDraw: clamp(1 / (P2[2] * margin)),
+        baseOdds1: base.odds1, baseOdds2: base.odds2, baseOddsDraw: base.oddsDraw,
+        p1Power: base.p1Power, p2Power: base.p2Power,
+        stake1: S[0], stake2: S[1], stakeDraw: S[2]
     };
 }
 
 function getLiveOdds(matchId, m) {
     const pool = (globalMatchPools && globalMatchPools[matchId]) || {};
-    return computeLiveOdds(m.p1Uid, m.p2Uid, Number(pool[m.p1Uid]) || 0, Number(pool[m.p2Uid]) || 0);
+    return computeLiveOdds(m.p1Uid, m.p2Uid, Number(pool[m.p1Uid]) || 0, Number(pool[m.p2Uid]) || 0, Number(pool.draw) || 0);
 }
 
 function calculateMatchOdds(p1Uid, p2Uid) {
@@ -1705,7 +1721,13 @@ function calculateMatchOdds(p1Uid, p2Uid) {
     odds1 = Math.max(1.01, Number((odds1 * 0.95).toFixed(2)));
     odds2 = Math.max(1.01, Number((odds2 * 0.95).toFixed(2)));
 
-    return { odds1, odds2, p1Power, p2Power };
+    // Kurs na remis: im bardziej wyrównani zawodnicy, tym większe prawdopodobieństwo remisu
+    const share1 = p1Power / (totalPower || 1);
+    const closeness = 1 - Math.abs(2 * share1 - 1);
+    const pDraw = 0.10 + 0.12 * closeness;
+    const oddsDraw = Math.max(1.5, Number((0.95 / pDraw).toFixed(2)));
+
+    return { odds1, odds2, oddsDraw, p1Power, p2Power };
 }
         
         function getAllBadgesDefinitions() {
@@ -1796,6 +1818,21 @@ Akademicka Liga Darta © 2026`;
         let globalMatchesMap = {}; 
         let globalUpcomingMatchesMap = {};
         let globalCalculatedAverages = {}; 
+        // Średnie zawodników z rozegranych meczów - liczone przy każdej zmianie meczów (profil, lista graczy, kursy)
+        function recalcAverages() {
+            const acc = {};
+            Object.values(globalMatchesMap || {}).forEach(m => {
+                [[m.p1Uid, m.avg1], [m.p2Uid, m.avg2]].forEach(([uid, a]) => {
+                    if (!uid) return;
+                    const x = acc[uid] || (acc[uid] = { t: 0, n: 0 });
+                    x.t += parseFloat(a) || 0; x.n++;
+                });
+            });
+            const out = {};
+            Object.keys(acc).forEach(uid => { out[uid] = acc[uid].t / acc[uid].n; });
+            globalCalculatedAverages = out;
+        }
+
         let globalCalculatedStats = {};
         let globalPlayerDetailsStats = {}; 
         let seasonStateData = { finished: false };
@@ -2614,12 +2651,12 @@ Akademicka Liga Darta © 2026`;
                     // Obliczanie kursów i Power Rankingu dla admina
                     const oddsData = getLiveOdds(matchId, m);
                     const trend = (live, base) => live < base - 0.004 ? '<span class="trend down">▼</span>' : (live > base + 0.004 ? '<span class="trend up">▲</span>' : '');
-                    const t1 = trend(oddsData.odds1, oddsData.baseOdds1), t2 = trend(oddsData.odds2, oddsData.baseOdds2);
+                    const t1 = trend(oddsData.odds1, oddsData.baseOdds1), t2 = trend(oddsData.odds2, oddsData.baseOdds2), tD = trend(oddsData.oddsDraw, oddsData.baseOddsDraw);
                     const isAdmin = auth.currentUser && auth.currentUser.email === ADMIN_EMAIL;
 
                     let adminPowerInfo = "";
                     if (isAdmin) {
-                        adminPowerInfo = `<div style="font-size: 11px; color: var(--warning-color); margin-top: 4px; text-align: center;">[Admin Power] ${m.p1Name}: ${oddsData.p1Power} | ${m.p2Name}: ${oddsData.p2Power}<br>Kursy bazowe: ${oddsData.baseOdds1} / ${oddsData.baseOdds2} · Pula stawek: ${oddsData.stake1} DK / ${oddsData.stake2} DK</div>`;
+                        adminPowerInfo = `<div style="font-size: 11px; color: var(--warning-color); margin-top: 4px; text-align: center;">[Admin Power] ${m.p1Name}: ${oddsData.p1Power} | ${m.p2Name}: ${oddsData.p2Power}<br>Kursy bazowe: ${oddsData.baseOdds1} / ${oddsData.baseOddsDraw} / ${oddsData.baseOdds2} · Pula stawek: ${oddsData.stake1} / ${oddsData.stakeDraw} / ${oddsData.stake2} DK</div>`;
                     }
 
                     // Sprawdzenie czy użytkownik gra w tym meczu
@@ -2644,21 +2681,22 @@ Akademicka Liga Darta © 2026`;
                         }
 
                         if (myBet) {
-                            const picked1 = myBet.playerUid === m.p1Uid;
+                            const sel = myBet.playerUid === m.p1Uid ? 'p1' : (myBet.playerUid === 'draw' ? 'draw' : 'p2');
                             let win = Math.round(myBet.amount * myBet.odds);
                             if (myBet.bonus === 'boost_25') win = Math.round(win * 1.25);
                             const bonusTxt = myBet.bonus === 'boost_25' ? ' · ⚡ Booster +25%' : (myBet.bonus === 'insurance' ? ' · 🛡️ Ubezpieczenie' : '');
+                            const btn = (key, label, odd, tr, extra) => `<button class="bet-pick ${extra || ''} ${sel === key ? 'picked' : 'locked'}" disabled><span>${sel === key ? '✓ ' : ''}${label}</span><span class="odd">${sel === key ? myBet.odds : odd}${sel === key ? '' : tr}</span></button>`;
                             bettingHtml = `
-                                <div class="bet-row" onclick="event.stopPropagation()">
-                                    <button class="bet-pick ${picked1 ? 'picked' : 'locked'}" disabled><span>${picked1 ? '✓ ' : ''}${m.p1Name}</span><span class="odd">${picked1 ? myBet.odds : oddsData.odds1}${picked1 ? '' : t1}</span></button>
-                                    <button class="bet-pick ${picked1 ? 'locked' : 'picked'}" disabled><span>${picked1 ? '' : '✓ '}${m.p2Name}</span><span class="odd">${picked1 ? oddsData.odds2 : myBet.odds}${picked1 ? t2 : ''}</span></button>
+                                <div class="bet-row three" onclick="event.stopPropagation()">
+                                    ${btn('p1', m.p1Name, oddsData.odds1, t1)}${btn('draw', 'Remis', oddsData.oddsDraw, tD, 'bet-draw')}${btn('p2', m.p2Name, oddsData.odds2, t2)}
                                 </div>
                                 <div class="bet-slip">🎫 Obstawiono: ${myBet.amount} DK · możliwa wygrana ${win} DK${bonusTxt}</div>
                                 ${adminPowerInfo}`;
                         } else {
                             bettingHtml = `
-                                <div class="bet-row" onclick="event.stopPropagation()">
+                                <div class="bet-row three" onclick="event.stopPropagation()">
                                     <button class="bet-pick" onclick="openBetModal('${matchId}', '${m.p1Uid}', '${m.p1Name}', ${oddsData.odds1})"><span>${m.p1Name}</span><span class="odd">${oddsData.odds1}${t1}</span></button>
+                                    <button class="bet-pick bet-draw" onclick="openBetModal('${matchId}', 'draw', 'Remis', ${oddsData.oddsDraw})"><span>Remis</span><span class="odd">${oddsData.oddsDraw}${tD}</span></button>
                                     <button class="bet-pick" onclick="openBetModal('${matchId}', '${m.p2Uid}', '${m.p2Name}', ${oddsData.odds2})"><span>${m.p2Name}</span><span class="odd">${oddsData.odds2}${t2}</span></button>
                                 </div>
                                 ${adminPowerInfo}`;
@@ -3149,13 +3187,15 @@ ${board}</svg>`;
         }
 
         // ---------- Publiczna zakładka Aktualności ----------
-        let currentNewsId = null;
-
         // Jedna linijka zajawki: pierwszy niepusty akapit artykułu
         function nwExcerpt(body) {
             const first = String(body || '').split(/\n\s*\n/).map(t => t.replace(/\s+/g, ' ').trim()).find(t => t) || '';
             return first.length > 160 ? first.slice(0, 157).trimEnd() + '…' : first;
         }
+
+        const nwParagraphs = (body) => String(body || '').split(/\n\s*\n/).map(t => `<p>${nwEsc(t.trim()).replace(/\n/g, '<br>')}</p>`).join('');
+
+        let currentNewsId = null;
 
         window.openNewsPost = (id) => {
             if (!globalNews[id]) return;
@@ -3169,15 +3209,41 @@ ${board}</svg>`;
             window.scrollTo({ top: 0 });
         };
 
+        let globalReactions = {};
+        const NEWS_REACTIONS = [['like', '👍'], ['heart', '❤️'], ['laugh', '😂'], ['fire', '🔥'], ['wow', '😮'], ['clap', '👏']];
+
+        // Pasek reakcji emotkami pod artykułem (jedna reakcja każdego rodzaju na osobę, kliknięcie przełącza)
+        function nwReactionsHtml(postId) {
+            const r = globalReactions[postId] || {};
+            const uid = auth.currentUser ? auth.currentUser.uid : null;
+            return NEWS_REACTIONS.map(([key, emoji]) => {
+                const users = r[key] ? Object.keys(r[key]) : [];
+                const mine = uid && users.includes(uid);
+                return `<button class="react-btn ${mine ? 'mine' : ''}" onclick="event.stopPropagation(); toggleReaction('${postId}', '${key}')">${emoji}<span>${users.length || ''}</span></button>`;
+            }).join('');
+        }
+        function nwReactionSummary(postId) {
+            const r = globalReactions[postId] || {};
+            const parts = NEWS_REACTIONS.map(([k, e]) => { const n = r[k] ? Object.keys(r[k]).length : 0; return n ? `${e} ${n}` : ''; }).filter(Boolean);
+            return parts.length ? `<div class="news-react-summary">${parts.join(' · ')}</div>` : '';
+        }
+        window.toggleReaction = async (postId, key) => {
+            const user = auth.currentUser;
+            if (!user || isGuest) { alert('Zaloguj się, aby reagować na artykuły.'); return; }
+            if (!globalNews[postId]) return;
+            const mine = !!(globalReactions[postId] && globalReactions[postId][key] && globalReactions[postId][key][user.uid]);
+            try { await update(dbRef(db), { [`newsReactions/${postId}/${key}/${user.uid}`]: mine ? null : true }); }
+            catch (err) { console.warn('Reakcja:', err.message); }
+        };
+
+        // Zakładka Aktualności: kafelki (zdjęcie, tytuł, jedna linijka) i po kliknięciu pełny artykuł
         function renderNews() {
             const list = nwEl('news-list'), detail = nwEl('news-detail');
             if (!list || !detail) return;
             const admin = isAdminUser();
 
-            // Widok pojedynczego artykułu
             if (currentNewsId && globalNews[currentNewsId]) {
                 const p = { id: currentNewsId, ...globalNews[currentNewsId] };
-                const paras = String(p.body || '').split(/\n\s*\n/).map(t => `<p>${nwEsc(t.trim()).replace(/\n/g, '<br>')}</p>`).join('');
                 list.classList.add('hidden');
                 detail.classList.remove('hidden');
                 detail.innerHTML = `<button class="news-back" onclick="closeNewsPost()">← Wróć do aktualności</button>
@@ -3185,13 +3251,13 @@ ${board}</svg>`;
                         ${p.image ? `<img class="news-cover" src="${nwEsc(p.image)}" alt="">` : ''}
                         <div class="news-meta">🕒 ${nwFmtDate(p.createdAt || 0)}${p.editedAt ? ' · edytowano' : ''}</div>
                         <h3 class="news-title">${nwEsc(p.title)}</h3>
-                        <div class="news-body">${paras}</div>
+                        <div class="news-body">${nwParagraphs(p.body)}</div>
+                        <div class="reactions">${nwReactionsHtml(p.id)}</div>
                         ${admin ? `<div class="news-admin"><button class="btn-primary btn-sm" onclick="nwEdit('${p.id}', 'news')">✏️ Edytuj</button><button class="btn-danger btn-sm" onclick="nwDelete('${p.id}', 'news')">🗑️ Usuń</button></div>` : ''}
                     </article>`;
                 return;
             }
 
-            // Lista: tytuł, zdjęcie i jedna linijka tekstu
             currentNewsId = null;
             detail.classList.add('hidden');
             detail.innerHTML = '';
@@ -3205,9 +3271,33 @@ ${board}</svg>`;
                         <div class="news-meta">🕒 ${nwFmtDate(p.createdAt || 0)}</div>
                         <h3 class="news-title">${nwEsc(p.title)}</h3>
                         <div class="news-excerpt">${nwEsc(nwExcerpt(p.body))}</div>
+                        ${nwReactionSummary(p.id)}
                     </div>
                 </article>`).join('');
         }
+
+        // Strona główna: najnowszy opublikowany artykuł (zdjęcie, tytuł, jedna linijka tekstu)
+        function renderHomeNews() {
+            const box = nwEl('home-news-latest');
+            if (!box) return;
+            const latest = Object.entries(globalNews || {}).map(([id, d]) => ({ id, ...d })).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))[0];
+            if (!latest) { box.innerHTML = '<p style="line-height: 1.6; color: var(--text-muted);">Witamy w Akademickiej Lidze Darta!</p>'; return; }
+            box.innerHTML = `<div class="news-teaser" onclick="openHomeNews('${latest.id}')">
+                ${latest.image ? `<img src="${nwEsc(latest.image)}" alt="">` : ''}
+                <div class="news-teaser-body">
+                    <div class="news-meta">🕒 ${nwFmtDate(latest.createdAt || 0)}</div>
+                    <h3 class="news-title">${nwEsc(latest.title)}</h3>
+                    <div class="news-excerpt">${nwEsc(nwExcerpt(latest.body))}</div>
+                    <div class="news-more">Czytaj całość →</div>
+                </div></div>`;
+        }
+
+        // Kliknięcie kafelka na stronie głównej otwiera pełny artykuł (zakładka Aktualności)
+        window.openHomeNews = (id) => {
+            if (!globalNews[id]) return;
+            switchTab('news');
+            openNewsPost(id);
+        };
 
         function attachNewsDraftsListener() {
             if (newsDraftsAttached) return;
@@ -3223,8 +3313,14 @@ ${board}</svg>`;
             if (typeof renderHomePageUpcoming === 'function') renderHomePageUpcoming();
         }, (err) => console.warn('Brak dostępu do puli zakładów:', err.message));
 
+        onValue(dbRef(db, 'newsReactions'), (snap) => {
+            globalReactions = snap.val() || {};
+            if (currentTabKey === 'news') renderNews();
+        }, (err) => console.warn('Brak dostępu do reakcji:', err.message));
+
         onValue(dbRef(db, 'news'), (snap) => {
             globalNews = snap.val() || {};
+            renderHomeNews();
             if (currentTabKey === 'news') renderNews();
             if (currentTabKey === 'admin') renderNewsAdminList();
         });
@@ -3453,18 +3549,33 @@ ${board}</svg>`;
             [`s80_${p}`, '+80', 'int'], [`s100_${p}`, '+100', 'int'], [`s140_${p}`, '+140', 'int'], [`s180_${p}`, '180-tki', 'int']
         ];
 
+        window.adminSetMatchDate = async (matchId) => {
+            if (!isAdminUser()) return;
+            const m = globalUpcomingMatchesMap[matchId];
+            const el = document.getElementById('adm-date-' + matchId);
+            const val = el ? el.value : '';
+            if (!m || !val) { alert('Wybierz datę i godzinę meczu.'); return; }
+            try {
+                await update(dbRef(db, 'upcomingMatches/' + matchId), { scheduledDate: val, status: 'approved', proposedDate: null, proposedBy: null });
+                const when = new Date(val).toLocaleString('pl-PL', { dateStyle: 'short', timeStyle: 'short' });
+                notifyUser(m.p1Uid, 'date_set', 'Administrator ustalił termin meczu', `${m.p1Name} vs ${m.p2Name}: ${when}.`, matchId);
+                notifyUser(m.p2Uid, 'date_set', 'Administrator ustalił termin meczu', `${m.p2Name} vs ${m.p1Name}: ${when}.`, matchId);
+            } catch (err) { alert(err.message); }
+        };
+
         window.openAdminEditReport = (matchId) => {
             if (!isAdminUser()) return;
             const m = globalUpcomingMatchesMap[matchId];
-            if (!m || !m.reportData) return;
+            if (!m) return;
+            const rd = m.reportData || {};
             nwEl('aer-match-id').value = matchId;
-            nwEl('aer-title').innerText = `Edycja protokołu: ${m.p1Name} vs ${m.p2Name}`;
+            nwEl('aer-title').innerText = `${m.reportData ? 'Edycja' : 'Wypełnienie'} protokołu: ${m.p1Name} vs ${m.p2Name}`;
             nwEl('aer-msg').innerText = '';
             let html = '';
             [[1, m.p1Name], [2, m.p2Name]].forEach(([p, name]) => {
                 html += `<h3 style="color: var(--accent-blue); font-size: 0.95rem; margin: ${p === 1 ? 0 : 16}px 0 8px;">${nwEsc(name)}</h3><div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">`;
                 AER_KEYS(p).forEach(([key, label, type]) => {
-                    const v = m.reportData[key] !== undefined ? m.reportData[key] : 0;
+                    const v = rd[key] !== undefined ? rd[key] : 0;
                     html += `<div class="form-group"><label style="font-size: 0.75rem;">${label}</label><input type="number" id="aer-${key}" min="0" ${type === 'float' ? 'step="0.01"' : ''} value="${nwEsc(v)}"></div>`;
                 });
                 html += `</div>`;
@@ -3479,7 +3590,8 @@ ${board}</svg>`;
             const matchId = nwEl('aer-match-id').value;
             const m = globalUpcomingMatchesMap[matchId];
             const msg = nwEl('aer-msg');
-            if (!m || !m.reportData) { msg.className = 'msg error'; msg.innerText = 'Protokół nie istnieje (mógł zostać już zatwierdzony).'; return; }
+            if (!m) { msg.className = 'msg error'; msg.innerText = 'Mecz nie istnieje (mógł zostać już zatwierdzony).'; return; }
+            const wasEmpty = !m.reportData;
             const data = {};
             for (const p of [1, 2]) {
                 for (const [key, , type] of AER_KEYS(p)) {
@@ -3489,10 +3601,16 @@ ${board}</svg>`;
                 }
             }
             try {
-                await update(dbRef(db), {
+                const upd = {
                     [`upcomingMatches/${matchId}/reportData`]: data,
                     [`upcomingMatches/${matchId}/reportEditedByAdmin`]: true
-                });
+                };
+                if (wasEmpty) upd[`upcomingMatches/${matchId}/reported`] = true; // protokół wypełniony przez admina trafia do zatwierdzenia
+                await update(dbRef(db), upd);
+                if (wasEmpty) {
+                    notifyUser(m.p1Uid, 'report_filled', 'Protokół uzupełniony przez administratora', `Administrator wypełnił protokół meczu ${m.p1Name} vs ${m.p2Name}.`, matchId);
+                    notifyUser(m.p2Uid, 'report_filled', 'Protokół uzupełniony przez administratora', `Administrator wypełnił protokół meczu ${m.p2Name} vs ${m.p1Name}.`, matchId);
+                }
                 nwEl('modal-admin-edit-report').classList.add('hidden');
             } catch (err) { msg.className = 'msg error'; msg.innerText = err.message; }
         };
@@ -3625,8 +3743,13 @@ ${board}</svg>`;
                 item.className = 'admin-match-item';
                 const dateStr = m.scheduledDate ? new Date(m.scheduledDate).toLocaleString('pl-PL') : 'Brak zatw. daty';
                 item.innerHTML = `
-                    <div><b>${m.p1Name} vs ${m.p2Name}</b> - <span style="color:#fbbf24;">${dateStr}</span></div>
-                    <div><button class="btn-sm btn-danger" onclick="deleteUpcomingMatch('${matchId}')">Usuń</button></div>
+                    <div><b>${m.p1Name} vs ${m.p2Name}</b> - <span style="color:#fbbf24;">${dateStr}</span>${m.reportData ? ' <span style="color:#34d399; font-size: 0.78rem;">· protokół wysłany</span>' : ''}</div>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                        <input type="datetime-local" id="adm-date-${matchId}" value="${m.scheduledDate || ''}" style="width: auto; padding: 6px 8px; font-size: 0.8rem;">
+                        <button class="btn-sm btn-primary" onclick="adminSetMatchDate('${matchId}')">📅 Ustaw termin</button>
+                        ${m.reportData ? '' : `<button class="btn-sm btn-success" onclick="openAdminEditReport('${matchId}')">📝 Wypełnij protokół</button>`}
+                        <button class="btn-sm btn-danger" onclick="deleteUpcomingMatch('${matchId}')">Usuń</button>
+                    </div>
                 `;
                 upcomingListContainer.appendChild(item);
             });
@@ -3757,23 +3880,11 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
     }
 };
 
-        document.getElementById('btn-admin-save-hometext').onclick = async () => {
-            const newText = document.getElementById('admin-home-text-input').value.trim();
-            const msg = document.getElementById('admin-hometext-msg');
-            try {
-                await update(dbRef(db, 'siteContent'), { homeText: newText });
-                msg.className = "msg success";
-                msg.innerText = "Tekst na stronie głównej został zaktualizowany!";
-            } catch(err) {
-                msg.className = "msg error";
-                msg.innerText = err.message;
-            }
-        };
-
         document.getElementById('btn-admin-create-upcoming').onclick = async () => {
             const p1Uid = document.getElementById('admin-create-p1').value;
             const p2Uid = document.getElementById('admin-create-p2').value;
             const msg = document.getElementById('admin-create-upcoming-msg');
+            const dateVal = document.getElementById('admin-create-date').value;
 
             if (!p1Uid || !p2Uid || p1Uid === p2Uid) {
                 msg.className = "msg error"; msg.innerText = "Wybierz dwóch różnych graczy!"; return;
@@ -3785,14 +3896,16 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
                 const newMatchRef = await push(dbRef(db, 'upcomingMatches'), {
                     p1Uid, p1Name: `${u1.firstName} ${u1.lastName}`,
                     p2Uid, p2Name: `${u2.firstName} ${u2.lastName}`,
-                    scheduledDate: null, 
+                    scheduledDate: dateVal || null,
                     reported: false,
-                    status: 'none'
+                    status: dateVal ? 'approved' : 'none'
                 });
                 const newMatchId = newMatchRef && newMatchRef.key ? newMatchRef.key : null;
                 const n1 = `${u1.firstName} ${u1.lastName}`, n2 = `${u2.firstName} ${u2.lastName}`;
-                notifyUser(p1Uid, 'new_match', 'Masz nowy mecz!', `${n1} vs ${n2}. Zaproponuj termin spotkania.`, newMatchId);
-                notifyUser(p2Uid, 'new_match', 'Masz nowy mecz!', `${n2} vs ${n1}. Zaproponuj termin spotkania.`, newMatchId);
+                const tail = dateVal ? `Termin: ${new Date(dateVal).toLocaleString('pl-PL', { dateStyle: 'short', timeStyle: 'short' })}.` : 'Zaproponuj termin spotkania.';
+                notifyUser(p1Uid, 'new_match', 'Masz nowy mecz!', `${n1} vs ${n2}. ${tail}`, newMatchId);
+                notifyUser(p2Uid, 'new_match', 'Masz nowy mecz!', `${n2} vs ${n1}. ${tail}`, newMatchId);
+                document.getElementById('admin-create-date').value = '';
                 msg.className = "msg success"; msg.innerText = "Mecz dodany do terminarza! Zawodnicy otrzymali powiadomienie.";
             } catch(err) { msg.className = "msg error"; msg.innerText = err.message; }
         };
@@ -3851,7 +3964,7 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
         const betsSnap = await get(dbRef(db, `bets/${matchId}`));
         if (betsSnap.exists()) {
             const betsData = betsSnap.val();
-            const matchWinnerUid = (s1 > s2) ? m.p1Uid : ((s2 > s1) ? m.p2Uid : null);
+            const matchWinnerUid = (s1 > s2) ? m.p1Uid : ((s2 > s1) ? m.p2Uid : 'draw');
 
             for (const [bettorUid, betInfo] of Object.entries(betsData)) {
                 const bettorUserSnap = await get(dbRef(db, `users/${bettorUid}`));
@@ -3869,7 +3982,7 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
                 }
                 currentBalance += payout;
 
-                const pickedName = betInfo.playerUid === m.p1Uid ? m.p1Name : m.p2Name;
+                const pickedName = betInfo.playerUid === 'draw' ? 'Remis' : (betInfo.playerUid === m.p1Uid ? m.p1Name : m.p2Name);
                 const prevCoupon = (bettorData.coupons && bettorData.coupons[matchId]) || {};
                 const coupon = {
                     ...prevCoupon, matchId, p1Uid: m.p1Uid, p2Uid: m.p2Uid, p1Name: m.p1Name, p2Name: m.p2Name,
@@ -4266,11 +4379,7 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
                 }
             });
 
-            globalCalculatedAverages = {};
-            Object.keys(stats).forEach(uid => {
-                const st = stats[uid];
-                globalCalculatedAverages[uid] = st.avgCount > 0 ? (st.totalAvg / st.avgCount) : 0;
-            });
+            recalcAverages();
 
             let tableArray = Object.values(stats).map(st => {
                 return {
@@ -4367,6 +4476,7 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
 
         onValue(dbRef(db, 'matches'), (snapshot) => {
             globalMatchesMap = snapshot.val() || {};
+            recalcAverages();
             // Przeliczanie statystyk szczegółowych
             globalPlayerDetailsStats = {};
             globalCalculatedStats = {};
@@ -4407,6 +4517,7 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
             if (auth.currentUser && globalUsersData[auth.currentUser.uid]) {
                 updateProfileUI(globalUsersData[auth.currentUser.uid]);
             }
+            if (typeof renderApprovedPlayers === 'function') renderApprovedPlayers();
         });
 
         onValue(dbRef(db, 'upcomingMatches'), (snapshot) => {
@@ -4437,13 +4548,6 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
             }
         });
 
-        onValue(dbRef(db, 'siteContent/homeText'), (snapshot) => {
-            const txt = snapshot.val();
-            if (txt) {
-                document.getElementById('home-text-display').innerText = txt;
-                document.getElementById('admin-home-text-input').value = txt;
-            }
-        });
     </script>
 </body>
 </html>
