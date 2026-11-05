@@ -951,6 +951,12 @@
         .slip-leg button { background: none; border: none; color: #f87171; cursor: pointer; font-size: 1rem; }
         .slip-summary { background: rgba(16,185,129,.08); border: 1px solid rgba(16,185,129,.3); border-radius: 10px; padding: 10px 14px; font-size: 0.88rem; line-height: 1.6; margin-top: 6px; }
         .leg-line { font-size: 0.84rem; color: #cbd5e1; margin: 4px 0; }
+        /* ===== KAFELKI JAK NA BETCLICU ===== */
+        .bet-pick.sel { background: rgba(59,130,246,.25); border-color: var(--accent-blue); box-shadow: 0 0 0 1px var(--accent-blue) inset; }
+        .bet-pick.sel .odd { background: var(--accent-blue); color: #fff; }
+        #slip-bar { left: 0; right: 0; transform: none; margin: 0 auto; width: min(560px, 94vw); cursor: pointer; justify-content: space-between; background: linear-gradient(135deg, var(--card-bg), #12202e); }
+        @media (max-width: 768px) { .bet-row.three .bet-pick > span:first-child { white-space: normal; overflow: visible; text-overflow: clip; word-break: break-word; line-height: 1.15; font-size: 0.8rem; } }
+        #slip-bar .slip-go { font-weight: 800; color: #fff; background: var(--accent-blue); padding: 7px 16px; border-radius: 999px; white-space: nowrap; }
     </style>
 </head>
 <body>
@@ -1427,7 +1433,7 @@
     <div id="modal-markets" class="modal hidden">
         <div class="modal-content" style="max-width: 580px;">
             <h2 id="markets-title">Typy na mecz</h2>
-            <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 14px;">Kliknij kurs, aby dodać typ do kuponu (kliknij ponownie, aby usunąć). Z jednego meczu możesz wybrać jeden typ. Typy z różnych meczów łączą się w kupon łączony.</p>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 14px;">Kliknij kurs, aby dodać typ do kuponu (kliknij ponownie, aby usunąć). Z jednego meczu możesz wybrać jeden typ, a typy z różnych meczów łączą się w jeden kupon łączony. Jeśli którykolwiek typ nie wejdzie, cała stawka przepada (chyba że masz odpowiedni bonus).</p>
             <div id="markets-body"></div>
             <button class="btn-primary btn-sm" id="btn-markets-close" style="width: 100%; margin-top: 14px;">Gotowe</button>
         </div>
@@ -1631,9 +1637,9 @@ document.getElementById('btn-confirm-bet').onclick = async () => {
         }
     }
 
-    if (!betMatch) {
+    if (!betMatch || matchStarted(betMatch)) {
         msgEl.className = "msg error";
-        msgEl.innerText = "Ten mecz nie jest już dostępny do obstawiania.";
+        msgEl.innerText = "Zakłady na ten mecz są zamknięte (mecz się rozpoczął lub został usunięty).";
         return;
     }
 
@@ -2334,7 +2340,7 @@ Akademicka Liga Darta © 2026`;
             const old = document.getElementById('bonus-banner'); if (old) old.remove();
             const banner = document.createElement('div');
             banner.id = 'bonus-banner';
-            banner.innerHTML = `<span>${item.icon} Wybrano: <b>${item.name}</b>. ${(BONUS_DEFS[itemId] && BONUS_DEFS[itemId].minLegs > 1) ? 'Zbuduj kupon łączony przyciskiem „➕ Więcej typów i kupon łączony” – bonus zadziała na ten kupon.' : 'Kliknij „Obstaw” przy wybranym meczu — bonus zadziała na ten jeden zakład.'}</span>
+            banner.innerHTML = `<span>${item.icon} Wybrano: <b>${item.name}</b>. Kliknij kursy przy meczach, a potem otwórz pasek kuponu na dole – bonus zaznaczy się automatycznie.</span>
                                 <button class="btn-danger btn-sm" onclick="hideBonusBanner()">Anuluj</button>`;
             document.body.appendChild(banner);
             switchTab('home');
@@ -2825,12 +2831,14 @@ Akademicka Liga Darta © 2026`;
                     if (isPlayerInMatch) {
                         bettingHtml = `<div style="font-size: 12px; color: var(--text-muted); margin-top: 10px; text-align: center; font-style: italic;">Nie możesz obstawiać meczu, w którym sam bierzesz udział.</div>`;
                     } else {
-                        // Czy zalogowany gracz już obstawił ten mecz? (kupon w profilu lub starszy zakład z bazy)
-                        let myBet = currentUid ? ((currentUserProfileData && currentUserProfileData.coupons && currentUserProfileData.coupons[matchId]) || null) : null;
-                        if (!myBet && currentUid) {
+                        // Stan zakładu tego gracza na ten mecz (kupon pojedynczy/łączony lub starszy zakład z bazy)
+                        let bet = currentUid ? myPendingBetForMatch(matchId) : null;
+                        if (!bet && currentUid) {
                             const ck = `${currentUid}:${matchId}`;
-                            if (legacyBets[ck]) myBet = legacyBets[ck];
-                            else if (legacyBets[ck] === undefined && !legacyFetching.has(ck)) {
+                            if (legacyBets[ck]) {
+                                const lb = legacyBets[ck];
+                                bet = { label: lb.playerUid === 'draw' ? 'Remis' : (lb.playerUid === m.p1Uid ? m.p1Name : m.p2Name), odds: lb.odds, pick: lb.playerUid, stake: lb.amount, combo: false, legsCount: 1, potential: calcPayout(lb.amount, lb.odds, lb.bonus, true) };
+                            } else if (legacyBets[ck] === undefined && !legacyFetching.has(ck)) {
                                 legacyFetching.add(ck);
                                 get(dbRef(db, `bets/${matchId}/${currentUid}`)).then(sn => {
                                     legacyBets[ck] = sn.exists() ? sn.val() : false;
@@ -2839,28 +2847,26 @@ Akademicka Liga Darta © 2026`;
                             }
                         }
 
-                        if (myBet) {
-                            const sel = myBet.playerUid === m.p1Uid ? 'p1' : (myBet.playerUid === 'draw' ? 'draw' : 'p2');
-                            const win = calcPayout(myBet.amount, myBet.odds, myBet.bonus, true);
-                            const bonusTxt = BONUS_DEFS[myBet.bonus] ? ` · ${bonusLabel(myBet.bonus)}` : '';
-                            const btn = (key, label, odd, tr, extra) => `<button class="bet-pick ${extra || ''} ${sel === key ? 'picked' : 'locked'}" disabled><span>${sel === key ? '✓ ' : ''}${label}</span><span class="odd">${sel === key ? myBet.odds : odd}${sel === key ? '' : tr}</span></button>`;
-                            bettingHtml = `
-                                <div class="bet-row three" onclick="event.stopPropagation()">
-                                    ${btn('p1', m.p1Name, oddsData.odds1, t1)}${btn('draw', 'Remis', oddsData.oddsDraw, tD, 'bet-draw')}${btn('p2', m.p2Name, oddsData.odds2, t2)}
-                                </div>
-                                <div class="bet-slip">🎫 Obstawiono: ${myBet.amount} DK · możliwa wygrana ${win} DK${bonusTxt}</div>
-                                <div style="text-align: center; margin-top: 8px;"><button class="btn-sm btn-primary" onclick="event.stopPropagation(); openMarkets('${matchId}')">➕ Więcej typów i kupon łączony</button></div>
-                                ${adminPowerInfo}`;
-                        } else {
-                            bettingHtml = `
-                                <div class="bet-row three" onclick="event.stopPropagation()">
-                                    <button class="bet-pick" onclick="openBetModal('${matchId}', '${m.p1Uid}', '${m.p1Name}', ${oddsData.odds1})"><span>${m.p1Name}</span><span class="odd">${oddsData.odds1}${t1}</span></button>
-                                    <button class="bet-pick bet-draw" onclick="openBetModal('${matchId}', 'draw', 'Remis', ${oddsData.oddsDraw})"><span>Remis</span><span class="odd">${oddsData.oddsDraw}${tD}</span></button>
-                                    <button class="bet-pick" onclick="openBetModal('${matchId}', '${m.p2Uid}', '${m.p2Name}', ${oddsData.odds2})"><span>${m.p2Name}</span><span class="odd">${oddsData.odds2}${t2}</span></button>
-                                </div>
-                                <div style="text-align: center; margin-top: 8px;"><button class="btn-sm btn-primary" onclick="event.stopPropagation(); openMarkets('${matchId}')">➕ Więcej typów i kupon łączony</button></div>
-                                ${adminPowerInfo}`;
-                        }
+                        const started = matchStarted(m);
+                        const inSlip = betSlip.find(x => x.matchId === matchId);
+                        // Kafelek kursu: klik zaznacza typ w kuponie, ponowny klik odznacza
+                        const tile = (pick, label, odd, tr, extra) => {
+                            const isBetPick = bet && bet.pick === pick;
+                            const isSel = !bet && !started && inSlip && inSlip.kind === '1x2' && inSlip.pick === pick;
+                            const cls = `bet-pick ${extra || ''} ${isBetPick ? 'picked' : ((bet || started) ? 'locked' : (isSel ? 'sel' : ''))}`;
+                            const attrs = (bet || started) ? 'disabled' : `onclick="toggleSelection('${matchId}', '1x2', '${pick}', '')"`;
+                            return `<button class="${cls}" ${attrs}><span>${(isBetPick || isSel) ? '✓ ' : ''}${nwEsc(label)}</span><span class="odd">${isBetPick ? bet.odds : odd}${(bet || started) ? '' : tr}</span></button>`;
+                        };
+                        let note = '';
+                        if (bet) note = `<div class="bet-slip">🎫 Obstawiono: ${nwEsc(bet.label)} · kurs ${bet.odds}${bet.combo ? ` · kupon łączony (${bet.legsCount} ${nwPlural(bet.legsCount, 'typ', 'typy', 'typów')})` : ''} · stawka ${bet.stake} DK · możliwa wygrana ${bet.potential} DK</div>`;
+                        else if (started) note = `<div class="bet-slip" style="color: var(--text-muted);">🔒 Zakłady zamknięte – mecz się rozpoczął</div>`;
+                        else if (inSlip && inSlip.kind !== '1x2') note = `<div class="bet-slip" style="color: #93c5fd;">✓ W kuponie: ${nwEsc(inSlip.label)} (kurs ${inSlip.odds})</div>`;
+                        const more = (!bet && !started) ? `<div style="text-align: center; margin-top: 8px;"><button class="btn-sm btn-primary" onclick="event.stopPropagation(); openMarkets('${matchId}')">➕ Więcej typów (legi, średnia)</button></div>` : '';
+                        bettingHtml = `
+                            <div class="bet-row three" onclick="event.stopPropagation()">
+                                ${tile(m.p1Uid, m.p1Name, oddsData.odds1, t1)}${tile('draw', 'Remis', oddsData.oddsDraw, tD, 'bet-draw')}${tile(m.p2Uid, m.p2Name, oddsData.odds2, t2)}
+                            </div>
+                            ${note}${more}${adminPowerInfo}`;
                     }
 
                     card.innerHTML = `
@@ -3919,9 +3925,45 @@ ${board}</svg>`;
 
         const slipOdds = () => Number(betSlip.reduce((p, s) => p * s.odds, 1).toFixed(2));
 
+        // Zakłady są zamknięte od momentu rozpoczęcia meczu (termin z terminarza)
+        function matchStarted(m) { return !!(m && m.scheduledDate && new Date() >= new Date(m.scheduledDate)); }
+
+        // Czy zalogowany gracz ma już nierozliczony zakład na ten mecz (kupon pojedynczy lub łączony)
+        function myPendingBetForMatch(matchId) {
+            const cps = (currentUserProfileData && currentUserProfileData.coupons) || {};
+            for (const c of Object.values(cps)) {
+                if (c.status !== 'pending') continue;
+                if (c.type === 'slip') {
+                    const legs = Array.isArray(c.legs) ? c.legs : Object.values(c.legs || {});
+                    const leg = legs.find(l => l.matchId === matchId && l.status === 'pending');
+                    if (leg) return { label: leg.label, odds: leg.odds, pick: leg.kind === '1x2' ? leg.pick : null, stake: c.amount, combo: legs.length > 1, legsCount: legs.length, potential: calcPayout(c.amount, c.totalOdds, c.bonus, true) };
+                } else if (c.matchId === matchId) {
+                    return { label: c.playerName, odds: c.odds, pick: c.playerUid, stake: c.amount, combo: false, legsCount: 1, potential: calcPayout(c.amount, c.odds, c.bonus, true) };
+                }
+            }
+            return null;
+        }
+
+        // Co 20 s: usuń z kuponu typy z meczów, które już się rozpoczęły, i odśwież kafelki
+        function pruneSlip() {
+            const before = betSlip.length;
+            betSlip = betSlip.filter(sel => { const m = globalUpcomingMatchesMap[sel.matchId]; return m && !matchStarted(m); });
+            if (betSlip.length !== before) {
+                renderSlipBar();
+                if (!nwEl('modal-slip').classList.contains('hidden')) renderSlip();
+                showNotifToast('slip-prune', { title: 'Kupon zaktualizowany', body: 'Usunięto typy z meczów, które już się rozpoczęły.' });
+            }
+        }
+        setInterval(() => {
+            pruneSlip();
+            if (typeof renderHomePageUpcoming === 'function') renderHomePageUpcoming();
+            if (!nwEl('modal-markets').classList.contains('hidden') && window.__openMarketsId) renderMarkets(window.__openMarketsId);
+        }, 20000);
+
         // ---------- Okno typów na mecz ----------
         window.openMarkets = (matchId) => {
             if (isGuest) { document.getElementById('view-login').classList.remove('hidden'); return; }
+            window.__openMarketsId = matchId;
             renderMarkets(matchId);
             nwEl('modal-markets').classList.remove('hidden');
         };
@@ -3930,6 +3972,7 @@ ${board}</svg>`;
             const m = globalUpcomingMatchesMap[matchId];
             if (!m) { nwEl('markets-body').innerHTML = '<p>Ten mecz nie jest już dostępny.</p>'; return; }
             nwEl('markets-title').innerText = `${m.p1Name} vs ${m.p2Name}`;
+            if (matchStarted(m)) { nwEl('markets-body').innerHTML = '<p style="color: var(--text-muted);">🔒 Zakłady zamknięte – mecz się rozpoczął.</p>'; return; }
             const cur = betSlip.find(s => s.matchId === matchId);
             const isOn = (kind, pick, uid) => cur && cur.kind === kind && cur.pick === pick && (cur.uid || '') === (uid || '');
             const o = getLiveOdds(matchId, m);
@@ -3955,8 +3998,11 @@ ${board}</svg>`;
         window.toggleSelection = (matchId, kind, pick, uid) => {
             const m = globalUpcomingMatchesMap[matchId];
             const me = auth.currentUser ? auth.currentUser.uid : null;
-            if (!m || !me) return;
+            if (isGuest || !me) { document.getElementById('view-login').classList.remove('hidden'); return; }
+            if (!m) return;
             if (m.p1Uid === me || m.p2Uid === me) { alert('Nie możesz obstawiać meczu, w którym sam grasz.'); return; }
+            if (matchStarted(m)) { alert('Zakłady na ten mecz są już zamknięte – mecz się rozpoczął.'); return; }
+            if (myPendingBetForMatch(matchId)) { alert('Ten mecz jest już obstawiony.'); return; }
             const idx = betSlip.findIndex(s => s.matchId === matchId);
             const same = idx >= 0 && betSlip[idx].kind === kind && betSlip[idx].pick === pick && (betSlip[idx].uid || '') === (uid || '');
             if (same) betSlip.splice(idx, 1);
@@ -3966,17 +4012,20 @@ ${board}</svg>`;
                 if (!sel) return;
                 if (idx >= 0) betSlip[idx] = sel; else betSlip.push(sel);
             }
-            renderMarkets(matchId);
+            if (!nwEl('modal-markets').classList.contains('hidden')) renderMarkets(matchId);
             renderSlipBar();
+            renderHomePageUpcoming();
         };
-        nwEl('btn-markets-close').onclick = () => nwEl('modal-markets').classList.add('hidden');
+        nwEl('btn-markets-close').onclick = () => { nwEl('modal-markets').classList.add('hidden'); window.__openMarketsId = null; };
 
         // ---------- Pasek i okno kuponu ----------
         function renderSlipBar() {
             const bar = nwEl('slip-bar');
-            if (!betSlip.length) { bar.classList.add('hidden'); bar.innerHTML = ''; return; }
+            if (!betSlip.length) { bar.classList.add('hidden'); bar.innerHTML = ''; bar.onclick = null; return; }
             bar.classList.remove('hidden');
-            bar.innerHTML = `<span>🎫 Kupon: <b>${betSlip.length}</b> ${nwPlural(betSlip.length, 'typ', 'typy', 'typów')} · kurs łączny <b>${slipOdds()}</b></span><button class="btn-success btn-sm" onclick="openSlip()">Otwórz</button>`;
+            const n = betSlip.length;
+            bar.innerHTML = `<span>🎫 ${n > 1 ? 'Kupon łączony' : 'Kupon'} · <b>${n}</b> ${nwPlural(n, 'typ', 'typy', 'typów')} · kurs łączny <b>${slipOdds()}</b></span><span class="slip-go">Obstaw ▸</span>`;
+            bar.onclick = openSlip;
         }
 
         window.openSlip = () => {
@@ -4021,8 +4070,8 @@ ${board}</svg>`;
         }
         nwEl('slip-amount').oninput = updateSlipSummary;
         nwEl('slip-bonus').onchange = updateSlipSummary;
-        window.removeSelection = (i) => { betSlip.splice(i, 1); renderSlip(); };
-        nwEl('btn-slip-clear').onclick = () => { betSlip = []; renderSlip(); nwEl('modal-slip').classList.add('hidden'); };
+        window.removeSelection = (i) => { betSlip.splice(i, 1); renderSlip(); renderHomePageUpcoming(); };
+        nwEl('btn-slip-clear').onclick = () => { betSlip = []; renderSlip(); nwEl('modal-slip').classList.add('hidden'); renderHomePageUpcoming(); };
         nwEl('btn-slip-close').onclick = () => nwEl('modal-slip').classList.add('hidden');
 
         nwEl('btn-slip-place').onclick = async () => {
@@ -4047,6 +4096,8 @@ ${board}</svg>`;
                     if (!snap.exists() || snap.val().reported) { return fail(`Mecz ${s.p1Name} vs ${s.p2Name} nie jest już dostępny – usuń ten typ.`); }
                     const mv = snap.val();
                     if (mv.p1Uid === user.uid || mv.p2Uid === user.uid) { return fail('Nie możesz obstawiać własnego meczu.'); }
+                    if (matchStarted(mv)) { return fail(`Mecz ${s.p1Name} vs ${s.p2Name} już się rozpoczął – zakłady zamknięte. Usuń ten typ z kuponu.`); }
+                    if (myPendingBetForMatch(s.matchId)) { return fail(`Mecz ${s.p1Name} vs ${s.p2Name} jest już przez Ciebie obstawiony. Usuń ten typ.`); }
                     const fresh = nwSel(s.matchId, s.kind, s.pick, s.uid);
                     if (!fresh) { return fail(`Typ „${s.label}” nie jest już dostępny.`); }
                     if (fresh.odds !== s.odds || fresh.line !== s.line) { betSlip[i] = fresh; changed = true; }
@@ -4067,11 +4118,14 @@ ${board}</svg>`;
                 updates[`users/${user.uid}/inventory`] = inventory;
                 updates[`users/${user.uid}/coupons/${slipId}`] = { type: 'slip', id: slipId, legs: betSlip.map(s => ({ ...s })), totalOdds: total, amount, bonus, placedAt: Date.now(), status: 'pending' };
                 betSlip.forEach(s => { updates[`slipIndex/${s.matchId}/${slipId}`] = user.uid; });
-                if (betSlip.length === 1 && betSlip[0].kind === '1x2') updates[`matchPools/${betSlip[0].matchId}/${betSlip[0].pick}`] = increment(amount);
+                // Stawka (po równo na każdy typ) wpływa na dynamiczne kursy 1X2
+                const share = Math.round(amount / betSlip.length * 100) / 100;
+                betSlip.forEach(sel => { if (sel.kind === '1x2') updates[`matchPools/${sel.matchId}/${sel.pick}`] = increment(share); });
 
                 await update(dbRef(db), updates);
                 betSlip = [];
                 renderSlipBar();
+                renderHomePageUpcoming();
                 nwEl('modal-slip').classList.add('hidden');
                 nwEl('modal-markets').classList.add('hidden');
                 window.hideBonusBanner();
