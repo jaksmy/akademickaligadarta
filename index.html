@@ -957,7 +957,16 @@
         #slip-bar { left: 0; right: 0; transform: none; margin: 0 auto; width: min(560px, 94vw); cursor: pointer; justify-content: space-between; background: linear-gradient(135deg, var(--card-bg), #12202e); }
         @media (max-width: 768px) { .bet-row.three .bet-pick > span:first-child { white-space: normal; overflow: visible; text-overflow: clip; word-break: break-word; line-height: 1.15; font-size: 0.8rem; } }
         #slip-bar .slip-go { font-weight: 800; color: #fff; background: var(--accent-blue); padding: 7px 16px; border-radius: 999px; white-space: nowrap; }
-    </style>
+    .round-badge{display:block;width:fit-content;font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.4px;color:#93c5fd;background:rgba(59,130,246,.18);padding:2px 8px;border-radius:6px;margin-bottom:4px}
+.trend{font-size:.85rem!important}
+.po-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;align-items:center}
+.po-grid h4{font-size:.75rem;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;text-align:center}
+.po-m{background:#0d1322;border:1px solid var(--card-border);border-radius:10px;padding:6px;margin-bottom:10px}
+.po-r{display:flex;justify-content:space-between;gap:8px;padding:4px 8px;font-size:.9rem}
+.po-r.w{color:#34d399;font-weight:700}.po-d{font-size:.72rem;color:var(--text-muted);padding:2px 8px}
+.po-champ{text-align:center;font-weight:800;color:var(--warning-color);margin-top:6px}
+@media(max-width:768px){.po-grid{grid-template-columns:1fr}}
+</style>
 </head>
 <body>
 
@@ -1046,6 +1055,7 @@
                     <h2>Aktualności</h2>
                     <div id="home-news-latest"><p style="line-height: 1.6; color: var(--text-muted);">Witamy w Akademickiej Lidze Darta!</p></div>
                 </div>
+                <div class="card hidden" id="home-playoff-card"><h2>🏆 Playoff</h2><div id="home-playoff"></div></div>
                 <div class="card">
                     <h2>Najbliższe Nadchodzące Mecze</h2>
                     <div id="home-upcoming-matches">
@@ -1079,7 +1089,7 @@
             <!-- TAB: ARCHIVE -->
             <div id="page-archive" class="page hidden">
                 <div class="card">
-                    <h2>Archiwum - Tabela Wyników po 1. Sezonie</h2>
+                    <h2>Archiwum sezonów</h2>
                     <div style="overflow-x: auto;">
                         <table>
                             <thead>
@@ -1091,6 +1101,7 @@
                             <tbody id="archive-table-body"></tbody>
                         </table>
                     </div>
+                    <div id="archive-playoffs"></div>
                 </div>
             </div>
 
@@ -1170,7 +1181,7 @@
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
                         <p style="background: #0d1322; padding: 12px 16px; border-radius: var(--radius); border: 1px solid var(--card-border);"><b>Wiek:</b> <span id="prof-age" style="color: #fff;">-</span></p>
                         <p style="background: #0d1322; padding: 12px 16px; border-radius: var(--radius); border: 1px solid var(--card-border);"><b>Miejscowość:</b> <a id="prof-city-link" href="#" target="_blank" style="color: var(--accent-blue); text-decoration: none; font-weight: 600;">-</a></p>
-                        <p style="background: #0d1322; padding: 12px 16px; border-radius: var(--radius); border: 1px solid var(--card-border);"><b>Średnia z meczów:</b> <span id="prof-avg-display" style="color: var(--accent-blue); font-weight: 700;">0.00</span></p>
+                        <p style="background: #0d1322; padding: 12px 16px; border-radius: var(--radius); border: 1px solid var(--card-border);"><b>Średnia wszechczasów:</b> <span id="prof-avg-display" style="color: var(--accent-blue); font-weight: 700;">0.00</span></p>
                     </div>
 
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 20px;">
@@ -1227,6 +1238,14 @@
                         <button class="btn-success" id="btn-admin-restore-season">🔄 Przywróć Sezon</button>
                     </div>
                     <div id="admin-season-msg" class="msg"></div>
+                </div>
+
+                <div class="card">
+                    <h2>🏆 Playoff</h2>
+                    <p style="color: var(--text-muted); margin-bottom: 12px;">Miejsca 1-2 trafiają od razu do półfinałów (po przeciwnych stronach drabinki), miejsca 3-6 grają ćwierćfinały (3 vs 6, 4 vs 5). Domyślnie wybrani są zawodnicy z tabeli - możesz zmienić rozstawienie.</p>
+                    <div id="admin-playoff-seeds"></div>
+                    <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn-primary" id="btn-admin-gen-playoff">🏆 Generuj drabinkę playoff</button><button class="btn-danger btn-sm" id="btn-admin-del-playoff">Usuń drabinkę</button></div>
+                    <div id="admin-playoff-msg" class="msg"></div>
                 </div>
 
                 <div class="card">
@@ -1292,6 +1311,7 @@
                         <label>Termin meczu (opcjonalnie - jeśli podasz, zawodnicy nie muszą go ustalać)</label>
                         <input type="datetime-local" id="admin-create-date">
                     </div>
+                    <div class="form-group"><label>Kolejka / faza</label><select id="admin-create-round"></select></div>
                     <button class="btn-primary" id="btn-admin-create-upcoming">Dodaj Mecz do Terminarza</button>
                     <div id="admin-create-upcoming-msg" class="msg"></div>
                 </div>
@@ -1374,7 +1394,7 @@
             <div id="view-player-showcase" class="showcase-container" style="max-width: 200px; margin: 6px auto 14px auto;"></div>
 
             <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 6px;">Wiek: <span id="view-player-age" style="color:#fff;">-</span> lat</p>
-            <p style="font-size: 0.9rem; margin-bottom: 16px;">Średnia ligowa: <b id="view-player-avg" style="color: var(--accent-blue);">0.00</b></p>
+            <p style="font-size: 0.9rem; margin-bottom: 16px;">Średnia wszechczasów: <b id="view-player-avg" style="color: var(--accent-blue);">0.00</b></p>
             
             <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 16px;">
                 <div style="background: #0d1322; padding: 8px 4px; border-radius: var(--radius); border: 1px solid var(--card-border);"><span style="font-size:0.65rem; text-transform:uppercase; color:var(--text-muted); display:block;">Finish</span><span id="view-stat-hf" style="font-weight:700; font-size:0.95rem;">0</span></div>
@@ -1949,7 +1969,7 @@ Akademicka Liga Darta © 2026`;
         // Średnie zawodników z rozegranych meczów - liczone przy każdej zmianie meczów (profil, lista graczy, kursy)
         function recalcAverages() {
             const acc = {};
-            Object.values(globalMatchesMap || {}).forEach(m => {
+            Object.values(getCombinedCareerMatches()).forEach(m => {
                 [[m.p1Uid, m.avg1], [m.p2Uid, m.avg2]].forEach(([uid, a]) => {
                     if (!uid) return;
                     const x = acc[uid] || (acc[uid] = { t: 0, n: 0 });
@@ -1980,14 +2000,9 @@ Akademicka Liga Darta © 2026`;
         };
 
         function getCombinedCareerMatches() {
-            let allMatches = { ...(globalMatchesMap || {}) };
-            const history = seasonStateData.archiveHistory || {};
-            Object.values(history).forEach(season => {
-                if (season.matches) {
-                    Object.assign(allMatches, season.matches);
-                }
-            });
-            return allMatches;
+            const all = {}, h = seasonStateData.archiveHistory || {};
+            Object.keys(h).sort((a, b) => (parseInt(a.replace(/\D/g, '')) || 0) - (parseInt(b.replace(/\D/g, '')) || 0)).forEach(k => Object.assign(all, h[k].matches || {}));
+            return Object.assign(all, globalMatchesMap || {});
         }
 
         function switchTab(activeKey) {
@@ -2572,7 +2587,7 @@ Akademicka Liga Darta © 2026`;
             const btnToggleSeason = document.getElementById('btn-toggle-season');
             const badgeContainer = document.getElementById('prof-status-badge');
 
-            const seasonLabelNum = seasonStateData.finished ? "2. Sezon" : "1. Sezon";
+            const seasonLabelNum = `${seasonStateData.seasonNumber || 1}. Sezon`;
 
             if (data.signedUpForSeason1) {
                 badgeContainer.innerHTML = data.statusSeason1 === "approved" 
@@ -2798,12 +2813,13 @@ Akademicka Liga Darta © 2026`;
         const legacyFetching = new Set();
 
         function renderHomePageUpcoming() {
+            renderPlayoffHome();
             const container = document.getElementById('home-upcoming-matches');
             container.innerHTML = "";
             let count = 0;
             const currentUid = auth.currentUser ? auth.currentUser.uid : null;
 
-            Object.keys(globalUpcomingMatchesMap).forEach(matchId => {
+            Object.keys(globalUpcomingMatchesMap).sort((a, b) => { const A = globalUpcomingMatchesMap[a], B = globalUpcomingMatchesMap[b]; return (roundKeyOf(A) || 5000) - (roundKeyOf(B) || 5000) || new Date(A.scheduledDate || 0) - new Date(B.scheduledDate || 0); }).forEach(matchId => {
                 const m = globalUpcomingMatchesMap[matchId];
                 if (m.status === 'approved' && m.scheduledDate && !m.reported) {
                     count++;
@@ -2815,8 +2831,8 @@ Akademicka Liga Darta © 2026`;
 
                     // Obliczanie kursów i Power Rankingu dla admina
                     const oddsData = getLiveOdds(matchId, m);
-                    const trend = (live, base) => live < base - 0.004 ? '<span class="trend down">▼</span>' : (live > base + 0.004 ? '<span class="trend up">▲</span>' : '');
-                    const t1 = trend(oddsData.odds1, oddsData.baseOdds1), t2 = trend(oddsData.odds2, oddsData.baseOdds2), tD = trend(oddsData.oddsDraw, oddsData.baseOddsDraw);
+                    const trend = (live, base, k) => oddsTrend(matchId, k, live, base);
+                    const t1 = trend(oddsData.odds1, oddsData.baseOdds1, 'o1'), t2 = trend(oddsData.odds2, oddsData.baseOdds2, 'o2'), tD = trend(oddsData.oddsDraw, oddsData.baseOddsDraw, 'od');
                     const isAdmin = auth.currentUser && auth.currentUser.email === ADMIN_EMAIL;
 
                     let adminPowerInfo = "";
@@ -2855,7 +2871,7 @@ Akademicka Liga Darta © 2026`;
                             const isSel = !bet && !started && inSlip && inSlip.kind === '1x2' && inSlip.pick === pick;
                             const cls = `bet-pick ${extra || ''} ${isBetPick ? 'picked' : ((bet || started) ? 'locked' : (isSel ? 'sel' : ''))}`;
                             const attrs = (bet || started) ? 'disabled' : `onclick="toggleSelection('${matchId}', '1x2', '${pick}', '')"`;
-                            return `<button class="${cls}" ${attrs}><span>${(isBetPick || isSel) ? '✓ ' : ''}${nwEsc(label)}</span><span class="odd">${isBetPick ? bet.odds : odd}${(bet || started) ? '' : tr}</span></button>`;
+                            return `<button class="${cls}" ${attrs}><span>${(isBetPick || isSel) ? '✓ ' : ''}${nwEsc(label)}</span><span class="odd">${isBetPick ? bet.odds : odd}${(isBetPick || started) ? '' : tr}</span></button>`;
                         };
                         let note = '';
                         if (bet) note = `<div class="bet-slip">🎫 Obstawiono: ${nwEsc(bet.label)} · kurs ${bet.odds}${bet.combo ? ` · kupon łączony (${bet.legsCount} ${nwPlural(bet.legsCount, 'typ', 'typy', 'typów')})` : ''} · stawka ${bet.stake} DK · możliwa wygrana ${bet.potential} DK</div>`;
@@ -2871,7 +2887,7 @@ Akademicka Liga Darta © 2026`;
 
                     card.innerHTML = `
                         <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                            <div class="match-vs">${m.p1Name} <br><span style="color:var(--accent-blue); font-size:12px; font-weight:600;">VS</span><br> ${m.p2Name}</div>
+                            <div class="match-vs">${roundBadge(m)}${m.p1Name} <br><span style="color:var(--accent-blue); font-size:12px; font-weight:600;">VS</span><br> ${m.p2Name}</div>
                             <div class="match-date">📅 ${matchDate.toLocaleString('pl-PL', { dateStyle: 'short', timeStyle: 'short' })}</div>
                         </div>
                         ${bettingHtml}
@@ -3476,6 +3492,7 @@ ${board}</svg>`;
 
         onValue(dbRef(db, 'matchPools'), (snap) => {
             globalMatchPools = snap.val() || {};
+            if (window.__openMarketsId && !nwEl('modal-markets').classList.contains('hidden')) renderMarkets(window.__openMarketsId);
             if (typeof renderHomePageUpcoming === 'function') renderHomePageUpcoming();
         }, (err) => console.warn('Brak dostępu do puli zakładów:', err.message));
 
@@ -3977,7 +3994,7 @@ ${board}</svg>`;
             const isOn = (kind, pick, uid) => cur && cur.kind === kind && cur.pick === pick && (cur.uid || '') === (uid || '');
             const o = getLiveOdds(matchId, m);
             const btn = (kind, pick, uid, label, odds) =>
-                `<button class="mk-btn ${isOn(kind, pick, uid) ? 'on' : ''}" onclick="toggleSelection('${matchId}', '${kind}', '${pick}', '${uid || ''}')"><span>${label}</span><b>${odds}</b></button>`;
+                `<button class="mk-btn ${isOn(kind, pick, uid) ? 'on' : ''}" onclick="toggleSelection('${matchId}', '${kind}', '${pick}', '${uid || ''}')"><span>${label}</span><b>${odds}${kind === '1x2' ? mkTrend(matchId, m, o, pick, odds) : ''}</b></button>`;
 
             let html = `<div class="mk-section"><div class="mk-title">Zwycięzca meczu</div><div class="mk-grid">
                 ${btn('1x2', m.p1Uid, '', nwEsc(m.p1Name), o.odds1)}${btn('1x2', 'draw', '', 'Remis', o.oddsDraw)}${btn('1x2', m.p2Uid, '', nwEsc(m.p2Name), o.odds2)}
@@ -4268,6 +4285,7 @@ ${board}</svg>`;
         // --- PANEL ADMINA ---
 
         function renderAdminPanelData() {
+            setTimeout(renderPlayoffAdmin, 0);
             const listContainer = document.getElementById('admin-players-list');
             const selectP1 = document.getElementById('admin-create-p1');
             const selectP2 = document.getElementById('admin-create-p2');
@@ -4343,10 +4361,11 @@ ${board}</svg>`;
                 item.className = 'admin-match-item';
                 const dateStr = m.scheduledDate ? new Date(m.scheduledDate).toLocaleString('pl-PL') : 'Brak zatw. daty';
                 item.innerHTML = `
-                    <div><b>${m.p1Name} vs ${m.p2Name}</b> - <span style="color:#fbbf24;">${dateStr}</span>${m.reportData ? ' <span style="color:#34d399; font-size: 0.78rem;">· protokół wysłany</span>' : ''}</div>
+                    <div>${roundBadge(m)}<b>${m.p1Name} vs ${m.p2Name}</b> - <span style="color:#fbbf24;">${dateStr}</span>${m.reportData ? ' <span style="color:#34d399; font-size: 0.78rem;">· protokół wysłany</span>' : ''}</div>
                     <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
                         <input type="datetime-local" id="adm-date-${matchId}" value="${m.scheduledDate || ''}" style="width: auto; padding: 6px 8px; font-size: 0.8rem;">
                         <button class="btn-sm btn-primary" onclick="adminSetMatchDate('${matchId}')">📅 Ustaw termin</button>
+                        <select id="rnd-upcoming-${matchId}" style="width:auto;padding:6px 8px;font-size:.8rem">${roundOptions(m)}</select><button class="btn-sm btn-primary" onclick="adminSetRound('upcoming','${matchId}')">Zapisz kolejkę</button>
                         ${m.reportData ? '' : `<button class="btn-sm btn-success" onclick="openAdminEditReport('${matchId}')">📝 Wypełnij protokół</button>`}
                         <button class="btn-sm btn-danger" onclick="deleteUpcomingMatch('${matchId}')">Usuń</button>
                     </div>
@@ -4356,13 +4375,13 @@ ${board}</svg>`;
             if (upcomingCount === 0) upcomingListContainer.innerHTML = "<p style='color:var(--text-muted);'>Brak zaplanowanych meczów.</p>";
 
             matchesContainer.innerHTML = "";
-            Object.keys(globalMatchesMap).reverse().forEach(matchId => {
+            Object.keys(globalMatchesMap).reverse().sort((a, b) => roundKeyOf(globalMatchesMap[b]) - roundKeyOf(globalMatchesMap[a])).forEach(matchId => {
                 const m = globalMatchesMap[matchId];
                 const item = document.createElement('div');
                 item.className = 'admin-match-item';
                 item.innerHTML = `
-                    <div><b>${m.p1Name}</b> [śr: ${m.avg1 || 0}] <b style="color:var(--accent-blue);">${m.s1}:${m.s2}</b> <b>${m.p2Name}</b> [śr: ${m.avg2 || 0}]</div>
-                    <div><button class="btn-sm btn-danger" onclick="deleteMatch('${matchId}')">Usuń</button></div>
+                    <div>${roundBadge(m)}<b>${m.p1Name}</b> [śr: ${m.avg1 || 0}] <b style="color:var(--accent-blue);">${m.s1}:${m.s2}</b> <b>${m.p2Name}</b> [śr: ${m.avg2 || 0}]</div>
+                    <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><select id="rnd-matches-${matchId}" style="width:auto;padding:6px 8px;font-size:.8rem">${roundOptions(m)}</select><button class="btn-sm btn-primary" onclick="adminSetRound('matches','${matchId}')">Zapisz kolejkę</button><button class="btn-sm btn-danger" onclick="deleteMatch('${matchId}')">Usuń</button></div>
                 `;
                 matchesContainer.appendChild(item);
             });
@@ -4378,35 +4397,15 @@ ${board}</svg>`;
 
         document.getElementById('btn-admin-finish-season').onclick = async () => {
     if (!confirm("Czy na pewno chcesz zakończyć obecny sezon? Tabela i mecze trafią do archiwum.")) return;
+    if (seasonStateData.playoff && !poWinner(globalMatchesMap, 'final') && !confirm("Playoff nie jest jeszcze zakończony (brak rozegranego finału). Zakończyć sezon mimo to?")) return;
     try {
-        let scores = {};
-        Object.keys(globalUsersData).forEach(uid => {
-            if (globalUsersData[uid].signedUpForSeason1 && globalUsersData[uid].statusSeason1 === "approved") {
-                scores[uid] = { points: 0, diff: 0, wins: 0, uid };
-            }
-        });
-
-        Object.values(globalMatchesMap).forEach(m => {
-            const s1 = parseInt(m.s1) || 0;
-            const s2 = parseInt(m.s2) || 0;
-            if (scores[m.p1Uid]) {
-                scores[m.p1Uid].diff += (s1 - s2);
-                if (s1 > s2) { scores[m.p1Uid].points += 3; scores[m.p1Uid].wins++; }
-                else if (s1 === s2) { scores[m.p1Uid].points += 1; }
-            }
-            if (scores[m.p2Uid]) {
-                scores[m.p2Uid].diff += (s2 - s1);
-                if (s2 > s1) { scores[m.p2Uid].points += 3; scores[m.p2Uid].wins++; }
-                else if (s1 === s2) { scores[m.p2Uid].points += 1; }
-            }
-        });
-
-        let sortedLeaderboard = Object.values(scores).sort((a, b) => b.points - a.points || b.diff - a.diff || b.wins - a.wins);
+        const sUids = Object.keys(globalUsersData).filter(uid => globalUsersData[uid].signedUpForSeason1 && globalUsersData[uid].statusSeason1 === "approved");
+        const sortedLeaderboard = computeSeasonTable(globalMatchesMap, sUids);
         
         const updates = {};
         let winnerUid = null;
         if (sortedLeaderboard.length > 0) {
-            winnerUid = sortedLeaderboard[0].uid;
+            winnerUid = poWinner(globalMatchesMap, 'final') || sortedLeaderboard[0].uid; // z playoff: zwycięzca finału
             const winnerCurrentKasa = globalUsersData[winnerUid].dartKasa !== undefined ? globalUsersData[winnerUid].dartKasa : 0;
             updates[`users/${winnerUid}/dartKasa`] = winnerCurrentKasa + 300;
         }
@@ -4417,10 +4416,13 @@ ${board}</svg>`;
         // Zapisujemy tabelę oraz wszystkie rozegrane mecze sezonu
         currentHistory[`season_${currentSeasonNum}`] = {
             matches: globalMatchesMap,
-            leaderboard: sortedLeaderboard
+            leaderboard: sortedLeaderboard,
+            playoff: seasonStateData.playoff || null,
+            championUid: winnerUid || null
         };
 
         updates['seasonState/finished'] = true;
+        updates['seasonState/playoff'] = null;
         updates['seasonState/seasonNumber'] = currentSeasonNum + 1;
         updates['seasonState/lastWinnerUid'] = winnerUid;
         updates['seasonState/archiveHistory'] = currentHistory;
@@ -4463,6 +4465,7 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
 
         // Przywracamy mecze z archiwum do głównej bazy
         updates['matches'] = lastSeasonData.matches || null;
+        updates['seasonState/playoff'] = lastSeasonData.playoff || null;
         
         // Usuwamy ten sezon z historii archiwum
         delete history[lastKey];
@@ -4496,7 +4499,7 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
                 const newMatchRef = await push(dbRef(db, 'upcomingMatches'), {
                     p1Uid, p1Name: `${u1.firstName} ${u1.lastName}`,
                     p2Uid, p2Name: `${u2.firstName} ${u2.lastName}`,
-                    scheduledDate: dateVal || null,
+                    scheduledDate: dateVal || null, ...roundFromSelect(nwEl('admin-create-round').value),
                     reported: false,
                     status: dateVal ? 'approved' : 'none'
                 });
@@ -4513,6 +4516,7 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
         window.approveMatchReport = async (matchId) => {
     const m = globalUpcomingMatchesMap[matchId];
     if (!m || !m.reportData) return;
+    if (m.phase && (parseInt(m.reportData.s1) || 0) === (parseInt(m.reportData.s2) || 0)) { alert('W playoff nie może być remisu - popraw wynik w protokole (✏️ Edytuj).'); return; }
 
     try {
         const s1 = m.reportData.s1;
@@ -4557,7 +4561,7 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
             avg1: m.reportData.avg1, avg2: m.reportData.avg2,
             hf1: m.reportData.hf1 || 0, s80_1: m.reportData.s80_1 || 0, s100_1: m.reportData.s100_1 || 0, s140_1: m.reportData.s140_1 || 0, s180_1: m.reportData.s180_1 || 0,
             hf2: m.reportData.hf2 || 0, s80_2: m.reportData.s80_2 || 0, s100_2: m.reportData.s100_2 || 0, s140_2: m.reportData.s140_2 || 0, s180_2: m.reportData.s180_2 || 0,
-            date: new Date().toLocaleString('pl-PL')
+            date: new Date().toLocaleString('pl-PL'), ts: Date.now(), round: m.round || 0, phase: m.phase || null, slot: m.slot || null
         });
 
         // --- ROZLICZENIE ZAKŁADÓW BUKMACHERSKICH Z UWZGLĘDNIENIEM BOOSTEREK I UBEZPIECZEŃ ---
@@ -4602,6 +4606,7 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
         await settleSlipsForMatch(matchId, m, (l) => evalLeg(l, m));
         await remove(dbRef(db, 'upcomingMatches/' + matchId));
         try { await remove(dbRef(db, 'matchPools/' + matchId)); } catch (e) { console.warn(e.message); }
+        if (m.slot) { try { await advancePlayoff(); } catch (e) { console.warn(e.message); } }
         alert(`Wynik został zatwierdzony! Przyznano Dart Kasę: ${m.p1Name} (+${p1Delta} DK), ${m.p2Name} (+${p2Delta} DK). Zakłady zostały rozliczone.`);
     } catch(err) { alert(err.message); }
 };
@@ -4889,7 +4894,7 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
             recentListContainer.innerHTML = '';
 
             const playerMatches = [];
-            Object.values(globalMatchesMap).forEach(m => {
+            Object.values(getCombinedCareerMatches()).forEach(m => {
                 if (m.p1Uid === uid || m.p2Uid === uid) {
                     const isP1 = m.p1Uid === uid;
                     const myLegs = isP1 ? parseInt(m.s1) : parseInt(m.s2);
@@ -4934,125 +4939,194 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
 
         document.getElementById('btn-close-view-player').onclick = () => document.getElementById('modal-view-player').classList.add('hidden');
 
+        // ===== Kolejki / fazy =====
+        const PHASE_LABEL = { qf: 'Ćwierćfinał', sf: 'Półfinał', final: 'Finał' };
+        const PHASE_ORD = { qf: 1001, sf: 1002, final: 1003 };
+        function roundKeyOf(m) { return m && m.phase ? (PHASE_ORD[m.phase] || 1000) : (parseInt(m && m.round) || 0); }
+        function roundLabel(m) { return m && m.phase ? (PHASE_LABEL[m.phase] || 'Playoff') : ((parseInt(m && m.round) || 0) > 0 ? `Kolejka ${m.round}` : ''); }
+        function roundBadge(m) { const l = roundLabel(m); return l ? `<span class="round-badge">${l}</span>` : ''; }
+        function roundOptions(m) {
+            const cur = m && m.phase ? 'p:' + m.phase : 'r:' + (parseInt(m && m.round) || 0);
+            let h = '<option value="r:0">Bez kolejki</option>';
+            for (let i = 1; i <= 30; i++) h += `<option value="r:${i}">Kolejka ${i}</option>`;
+            Object.entries(PHASE_LABEL).forEach(([k, l]) => h += `<option value="p:${k}">Playoff: ${l}</option>`);
+            return h.replace(`value="${cur}"`, `value="${cur}" selected`);
+        }
+        function roundFromSelect(v) { return v.startsWith('p:') ? { round: 0, phase: v.slice(2) } : { round: parseInt(v.slice(2)) || 0 }; }
+        window.adminSetRound = async (kind, id) => {
+            if (!isAdminUser()) return;
+            const v = nwEl(`rnd-${kind}-${id}`).value;
+            const upd = v.startsWith('p:') ? { round: 0, phase: v.slice(2) } : { round: parseInt(v.slice(2)) || 0, phase: null };
+            try { await update(dbRef(db, `${kind === 'matches' ? 'matches' : 'upcomingMatches'}/${id}`), upd); } catch (e) { alert(e.message); }
+        };
+        nwEl('admin-create-round').innerHTML = roundOptions({});
+
+        // ===== Strzałki kursów: kierunek ostatniej zmiany (zapamiętany w przeglądarce) =====
+        const _tm = (() => { try { return JSON.parse(localStorage.getItem('aldOddsTrend') || '{}'); } catch (e) { return {}; } })();
+        function saveTm() {
+            try {
+                if (Object.keys(globalUpcomingMatchesMap).length) Object.keys(_tm).forEach(k => { if (!globalUpcomingMatchesMap[k.split('|')[0]]) delete _tm[k]; });
+                localStorage.setItem('aldOddsTrend', JSON.stringify(_tm));
+            } catch (e) {}
+        }
+        function oddsTrend(matchId, key, live, base) {
+            const k = matchId + '|' + key; let e = _tm[k];
+            if (!e) { e = _tm[k] = { last: live, dir: live < base - 0.004 ? 'down' : (live > base + 0.004 ? 'up' : '') }; saveTm(); }
+            else if (Math.abs(live - e.last) > 0.004) { e.dir = live < e.last ? 'down' : 'up'; e.last = live; saveTm(); }
+            return e.dir === 'down' ? '<span class="trend down">▼</span>' : (e.dir === 'up' ? '<span class="trend up">▲</span>' : '');
+        }
+        function mkTrend(matchId, m, o, pick, odds) {
+            const k = pick === m.p1Uid ? 'o1' : (pick === 'draw' ? 'od' : 'o2');
+            return oddsTrend(matchId, k, odds, pick === m.p1Uid ? o.baseOdds1 : (pick === 'draw' ? o.baseOddsDraw : o.baseOdds2));
+        }
+
+        // ===== Tabela sezonu: pkt -> różnica legów -> wygrane -> legi zdobyte -> średnia =====
+        function computeSeasonTable(matches, uids, names) {
+            const st = {};
+            uids.forEach(uid => {
+                const u = globalUsersData[uid];
+                st[uid] = { uid, name: u ? `${u.firstName || ''} ${u.lastName || ''}`.trim() : ((names && names[uid]) || 'Gracz'), played: 0, wins: 0, draws: 0, losses: 0, legsFor: 0, legsAgainst: 0, points: 0, at: 0, an: 0 };
+            });
+            Object.values(matches || {}).forEach(m => {
+                if (m.phase) return; // playoff nie liczy się do tabeli
+                [[m.p1Uid, m.s1, m.s2, m.avg1], [m.p2Uid, m.s2, m.s1, m.avg2]].forEach(([uid, f, a, av]) => {
+                    const r = st[uid]; if (!r) return;
+                    f = parseInt(f) || 0; a = parseInt(a) || 0;
+                    r.played++; r.legsFor += f; r.legsAgainst += a; r.at += parseFloat(av) || 0; r.an++;
+                    if (f > a) { r.wins++; r.points += 3; } else if (f === a) { r.draws++; r.points += 1; } else r.losses++;
+                });
+            });
+            return Object.values(st).map(r => ({ ...r, diff: r.legsFor - r.legsAgainst, avg: r.an ? r.at / r.an : 0 }))
+                .sort((a, b) => b.points - a.points || b.diff - a.diff || b.wins - a.wins || b.legsFor - a.legsFor || b.avg - a.avg || a.name.localeCompare(b.name));
+        }
+        function standingRowHtml(r, i) {
+            const u = globalUsersData[r.uid];
+            const av = avatarHtml((u && u.photoUrl) || PRESET_AVATARS[0], u ? frameKeyFor(u) : null, 36, 'table-avatar');
+            return `<tr><td><b>${i + 1}</b></td><td><div class="player-cell">${av}<span>${nwEsc(r.name)}</span></div></td><td>${r.played}</td><td>${r.wins}</td><td>${r.draws}</td><td>${r.losses}</td><td>${r.legsFor}:${r.legsAgainst}</td><td style="color:${r.diff > 0 ? '#34d399' : (r.diff < 0 ? '#f87171' : 'inherit')}">${r.diff > 0 ? '+' + r.diff : r.diff}</td><td>${r.avg.toFixed(2)}</td><td><b style="color:var(--accent-blue);">${r.points}</b></td></tr>`;
+        }
+        function currentSeasonTable() {
+            const uids = Object.keys(globalUsersData).filter(uid => globalUsersData[uid].signedUpForSeason1 && globalUsersData[uid].statusSeason1 === 'approved');
+            return computeSeasonTable(globalMatchesMap, uids);
+        }
+
         function renderTableAndMatches() {
             const tableBody = document.getElementById('league-table-body');
             const historyContainer = document.getElementById('matches-history-list');
-            tableBody.innerHTML = '';
-            historyContainer.innerHTML = '';
-
-            let stats = {};
-            Object.keys(globalUsersData).forEach(uid => {
-                 const u = globalUsersData[uid];
-                if (u.signedUpForSeason1 && u.statusSeason1 === "approved") {
-                    stats[uid] = {
-                        uid: uid, name: `${u.firstName || ''} ${u.lastName || ''}`, photo: u.photoUrl || PRESET_AVATARS[0],
-                        played: 0, wins: 0, draws: 0, losses: 0, legsFor: 0, legsAgainst: 0, points: 0, totalAvg: 0, avgCount: 0
-                    };
-                }
-            });
-
-            Object.values(globalMatchesMap).forEach(m => {
-                if (stats[m.p1Uid]) {
-                    stats[m.p1Uid].played++;
-                    stats[m.p1Uid].legsFor += parseInt(m.s1);
-                    stats[m.p1Uid].legsAgainst += parseInt(m.s2);
-                    stats[m.p1Uid].totalAvg += parseFloat(m.avg1 || 0);
-                    stats[m.p1Uid].avgCount++;
-                    if (parseInt(m.s1) > parseInt(m.s2)) { stats[m.p1Uid].wins++; stats[m.p1Uid].points += 3; }
-                    else if (parseInt(m.s1) === parseInt(m.s2)) { stats[m.p1Uid].draws++; stats[m.p1Uid].points += 1; }
-                    else { stats[m.p1Uid].losses++; }
-                }
-                if (stats[m.p2Uid]) {
-                    stats[m.p2Uid].played++;
-                    stats[m.p2Uid].legsFor += parseInt(m.s2);
-                    stats[m.p2Uid].legsAgainst += parseInt(m.s1);
-                    stats[m.p2Uid].totalAvg += parseFloat(m.avg2 || 0);
-                    stats[m.p2Uid].avgCount++;
-                    if (parseInt(m.s2) > parseInt(m.s1)) { stats[m.p2Uid].wins++; stats[m.p2Uid].points += 3; }
-                    else if (parseInt(m.s2) === parseInt(m.s1)) { stats[m.p2Uid].draws++; stats[m.p2Uid].points += 1; }
-                    else { stats[m.p2Uid].losses++; }
-                }
-            });
-
             recalcAverages();
+            const rows = currentSeasonTable();
+            tableBody.innerHTML = rows.length ? rows.map(standingRowHtml).join('') : `<tr><td colspan="10" style="text-align:center; color:var(--text-muted)">Brak graczy w tabeli.</td></tr>`;
 
-            let tableArray = Object.values(stats).map(st => {
-                return {
-                    ...st,
-                    diff: st.legsFor - st.legsAgainst,
-                    avg: st.avgCount > 0 ? (st.totalAvg / st.avgCount).toFixed(2) : "0.00"
-                };
+            historyContainer.innerHTML = '';
+            const list = Object.values(globalMatchesMap).reverse().sort((a, b) => roundKeyOf(b) - roundKeyOf(a));
+            if (!list.length) { historyContainer.innerHTML = '<p style="color: var(--text-muted); font-size: 0.9rem;">Brak rozegranych meczów.</p>'; return; }
+            let last = null;
+            list.forEach(m => {
+                const lab = roundLabel(m) || 'Bez przypisanej kolejki';
+                if (lab !== last) { historyContainer.insertAdjacentHTML('beforeend', `<div style="margin:14px 0 6px;color:var(--accent-blue);font-weight:700;font-size:.85rem;text-transform:uppercase">${lab}</div>`); last = lab; }
+                const item = document.createElement('div');
+                item.className = 'match-card';
+                item.innerHTML = `<div class="match-vs">${m.p1Name} <b style="color:var(--accent-blue); font-size:1.2rem; margin:0 8px;">${m.s1}:${m.s2}</b> ${m.p2Name}</div><div class="match-date">${m.date || ''}</div>`;
+                historyContainer.appendChild(item);
             });
+        }
 
-            tableArray.sort((a, b) => b.points - a.points || b.diff - a.diff || b.wins - a.wins || a.name.localeCompare(b.name));
-
-            tableArray.forEach((row, index) => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td><b>${index + 1}</b></td>
-                    <td><div class="player-cell">${avatarHtml(row.photo, frameKeyFor(globalUsersData[row.uid]), 36, 'table-avatar')}<span>${row.name}</span></div></td>
-                    <td>${row.played}</td><td>${row.wins}</td><td>${row.draws}</td><td>${row.losses}</td>
-                    <td>${row.legsFor}:${row.legsAgainst}</td>
-                    <td style="color:${row.diff > 0 ? '#34d399' : (row.diff < 0 ? '#f87171' : 'inherit')}">${row.diff > 0 ? '+' + row.diff : row.diff}</td>
-                    <td>${row.avg}</td>
-                    <td><b style="color:var(--accent-blue);">${row.points}</b></td>
-                `;
-                tableBody.appendChild(tr);
-            });
-
-            if (tableArray.length === 0) tableBody.innerHTML = `<tr><td colspan="10" style="text-align:center; color:var(--text-muted)">Brak graczy w tabeli.</td></tr>`;
-
-            const matchesList = Object.values(globalMatchesMap).reverse();
-            if (matchesList.length === 0) {
-                historyContainer.innerHTML = '<p style="color: var(--text-muted); font-size: 0.9rem;">Brak rozegranych meczów.</p>';
-            } else {
-                matchesList.forEach(m => {
-                    const item = document.createElement('div');
-                    item.className = 'match-card';
-                    item.innerHTML = `
-                        <div class="match-vs">${m.p1Name} <b style="color:var(--accent-blue); font-size:1.2rem; margin:0 8px;">${m.s1}:${m.s2}</b> ${m.p2Name}</div>
-                        <div class="match-date">${m.date || ''}</div>
-                    `;
-                    historyContainer.appendChild(item);
-                });
+        // ===== Playoff =====
+        function poWinner(matches, slot) {
+            const m = Object.values(matches || {}).find(x => x.slot === slot);
+            if (!m) return null;
+            const a = parseInt(m.s1) || 0, b = parseInt(m.s2) || 0;
+            return a > b ? m.p1Uid : (b > a ? m.p2Uid : null);
+        }
+        function bracketHtml(po, matches, upcoming) {
+            if (!po || !po.seeds) return '';
+            const s = po.seeds;
+            const nm = uid => { const u = globalUsersData[uid]; return u ? `${u.firstName || ''} ${u.lastName || ''}`.trim() : 'Gracz'; };
+            const W = { qf1: poWinner(matches, 'qf1'), qf2: poWinner(matches, 'qf2'), sf1: poWinner(matches, 'sf1'), sf2: poWinner(matches, 'sf2') };
+            const slots = { qf1: [s[3], s[4]], qf2: [s[2], s[5]], sf1: [s[0], W.qf1], sf2: [s[1], W.qf2], final: [W.sf1, W.sf2] };
+            const row = (uid, sc, w) => `<div class="po-r${w ? ' w' : ''}"><span>${uid ? `<small>#${s.indexOf(uid) + 1}</small> ${nwEsc(nm(uid))}` : '<i style="color:var(--text-muted)">do ustalenia</i>'}</span><b>${sc}</b></div>`;
+            const box = slot => {
+                const [a, b] = slots[slot];
+                const m = Object.values(matches || {}).find(x => x.slot === slot);
+                const up = Object.values(upcoming || {}).find(x => x.slot === slot);
+                let sa = '', sb = '', wa = false, wb = false;
+                if (m) { const sw = m.p1Uid !== a; sa = sw ? m.s2 : m.s1; sb = sw ? m.s1 : m.s2; wa = +sa > +sb; wb = +sb > +sa; }
+                const when = !m && up && up.scheduledDate ? `<div class="po-d">📅 ${new Date(up.scheduledDate).toLocaleString('pl-PL', { dateStyle: 'short', timeStyle: 'short' })}</div>` : '';
+                return `<div class="po-m">${row(a, sa, wa)}${row(b, sb, wb)}${when}</div>`;
+            };
+            const champ = poWinner(matches, 'final');
+            return `<div class="po-grid"><div><h4>Ćwierćfinały</h4>${box('qf1')}${box('qf2')}</div><div><h4>Półfinały</h4>${box('sf1')}${box('sf2')}</div><div><h4>Finał</h4>${box('final')}${champ ? `<div class="po-champ">🏆 ${nwEsc(nm(champ))}</div>` : ''}</div></div>`;
+        }
+        function renderPlayoffHome() {
+            const c = nwEl('home-playoff-card'); if (!c) return;
+            const po = seasonStateData.playoff;
+            if (!po) { c.classList.add('hidden'); return; }
+            c.classList.remove('hidden');
+            nwEl('home-playoff').innerHTML = bracketHtml(po, globalMatchesMap, globalUpcomingMatchesMap);
+        }
+        function renderPlayoffAdmin() {
+            const box = nwEl('admin-playoff-seeds'); if (!box) return;
+            const prev = [0, 1, 2, 3, 4, 5].map(i => { const e = nwEl('po-seed-' + i); return e ? e.value : null; });
+            const tbl = currentSeasonTable();
+            const opts = tbl.map(r => `<option value="${r.uid}">${nwEsc(r.name)} (${r.points} pkt)</option>`).join('');
+            box.innerHTML = [0, 1, 2, 3, 4, 5].map(i => `<div class="form-group"><label>Rozstawienie #${i + 1}${i < 2 ? ' (od razu do półfinału)' : ' (ćwierćfinał)'}</label><select id="po-seed-${i}">${opts}</select></div>`).join('');
+            [0, 1, 2, 3, 4, 5].forEach(i => { const e = nwEl('po-seed-' + i); e.value = prev[i] && tbl.some(r => r.uid === prev[i]) ? prev[i] : (tbl[i] ? tbl[i].uid : ''); });
+        }
+        async function createPoMatch(slot, phase, u1, u2) {
+            const a = globalUsersData[u1], b = globalUsersData[u2];
+            const n1 = `${a.firstName} ${a.lastName}`, n2 = `${b.firstName} ${b.lastName}`;
+            const r = await push(dbRef(db, 'upcomingMatches'), { p1Uid: u1, p1Name: n1, p2Uid: u2, p2Name: n2, scheduledDate: null, reported: false, status: 'none', phase, slot, round: 0 });
+            notifyUser(u1, 'new_match', 'Masz nowy mecz!', `${PHASE_LABEL[phase]}: ${n1} vs ${n2}. Zaproponuj termin spotkania.`, r.key);
+            notifyUser(u2, 'new_match', 'Masz nowy mecz!', `${PHASE_LABEL[phase]}: ${n2} vs ${n1}. Zaproponuj termin spotkania.`, r.key);
+        }
+        async function advancePlayoff() {
+            const po = (await get(dbRef(db, 'seasonState/playoff'))).val();
+            if (!po || !po.seeds) return;
+            const mm = (await get(dbRef(db, 'matches'))).val() || {}, up = (await get(dbRef(db, 'upcomingMatches'))).val() || {};
+            const has = sl => [...Object.values(mm), ...Object.values(up)].some(x => x.slot === sl);
+            const S = po.seeds, w = sl => poWinner(mm, sl);
+            for (const [slot, ph, a, b] of [['sf1', 'sf', S[0], w('qf1')], ['sf2', 'sf', S[1], w('qf2')], ['final', 'final', w('sf1'), w('sf2')]]) {
+                if (a && b && !has(slot)) await createPoMatch(slot, ph, a, b);
             }
         }
+        nwEl('btn-admin-gen-playoff').onclick = async () => {
+            if (!isAdminUser()) return;
+            const msg = nwEl('admin-playoff-msg');
+            const seeds = [0, 1, 2, 3, 4, 5].map(i => nwEl('po-seed-' + i) ? nwEl('po-seed-' + i).value : '');
+            if (seasonStateData.playoff) { msg.className = 'msg error'; msg.innerText = 'Drabinka już istnieje. Usuń ją, aby wygenerować nową.'; return; }
+            if (seeds.some(x => !x) || new Set(seeds).size !== 6) { msg.className = 'msg error'; msg.innerText = 'Wybierz 6 różnych zawodników (potrzeba min. 6 zatwierdzonych graczy).'; return; }
+            const left = Object.values(globalUpcomingMatchesMap).filter(m => !m.phase).length;
+            if (left && !confirm(`Zostało jeszcze ${left} niezatwierdzonych meczów ligowych. Generować drabinkę mimo to?`)) return;
+            try {
+                await set(dbRef(db, 'seasonState/playoff'), { seeds, createdAt: Date.now() });
+                await createPoMatch('qf1', 'qf', seeds[3], seeds[4]);
+                await createPoMatch('qf2', 'qf', seeds[2], seeds[5]);
+                msg.className = 'msg success'; msg.innerText = 'Drabinka wygenerowana i widoczna na stronie głównej. Kolejne mecze pojawią się po zatwierdzeniu wyników.';
+            } catch (e) { msg.className = 'msg error'; msg.innerText = e.message; }
+        };
+        nwEl('btn-admin-del-playoff').onclick = async () => {
+            if (!isAdminUser() || !seasonStateData.playoff || !confirm('Usunąć drabinkę i nierozegrane mecze playoff?')) return;
+            try {
+                const upd = { 'seasonState/playoff': null };
+                Object.entries(globalUpcomingMatchesMap).forEach(([id, m]) => { if (m.slot) upd['upcomingMatches/' + id] = null; });
+                await update(dbRef(db), upd);
+            } catch (e) { alert(e.message); }
+        };
 
         function renderArchiveTable() {
-    const archiveBody = document.getElementById('archive-table-body');
-    archiveBody.innerHTML = "";
-
-    const history = seasonStateData.archiveHistory || {};
-    const keys = Object.keys(history);
-
-    if (keys.length === 0) {
-        archiveBody.innerHTML = `<tr><td colspan="10" style="text-align:center; color:var(--text-muted)">Brak zarchiwizowanych sezonów.</td></tr>`;
-        return;
-    }
-
-    keys.forEach(seasonKey => {
-        const seasonData = history[seasonKey];
-        const headerTr = document.createElement('tr');
-        headerTr.innerHTML = `<td colspan="10" style="background:#0d1322; color:var(--accent-blue); font-weight:bold; text-align:center; text-transform:uppercase;">--- ${seasonKey.replace('_', ' ')} ---</td>`;
-        archiveBody.appendChild(headerTr);
-
-        if (seasonData.leaderboard) {
-            seasonData.leaderboard.forEach((row, idx) => {
-                const u = globalUsersData[row.uid] || { firstName: 'Gracz', lastName: 'Usunięty', photoUrl: PRESET_AVATARS[0] };
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td><b>${idx + 1}</b></td>
-                    <td class="player-cell">${avatarHtml(u.photoUrl || PRESET_AVATARS[0], frameKeyFor(u), 36, 'table-avatar')} ${u.firstName} ${u.lastName}</td>
-                    <td>-</td><td>${row.wins || 0}</td><td>-</td><td>-</td>
-                    <td>-</td>
-                    <td>${row.diff > 0 ? '+' + row.diff : (row.diff || 0)}</td>
-                    <td>-</td>
-                    <td><b style="color:var(--accent-blue);">${row.points || 0}</b></td>
-                `;
-                archiveBody.appendChild(tr);
+            const body = document.getElementById('archive-table-body');
+            const po = document.getElementById('archive-playoffs');
+            const history = seasonStateData.archiveHistory || {};
+            const keys = Object.keys(history);
+            body.innerHTML = ''; po.innerHTML = '';
+            if (!keys.length) { body.innerHTML = `<tr><td colspan="10" style="text-align:center; color:var(--text-muted)">Brak zarchiwizowanych sezonów.</td></tr>`; return; }
+            keys.forEach(k => {
+                const s = history[k], label = k.replace('_', ' ');
+                const lb = s.leaderboard || [], names = {};
+                lb.forEach(r => { names[r.uid] = r.name; });
+                const rows = computeSeasonTable(s.matches, lb.map(r => r.uid), names);
+                body.insertAdjacentHTML('beforeend', `<tr><td colspan="10" style="background:#0d1322; color:var(--accent-blue); font-weight:bold; text-align:center; text-transform:uppercase;">--- ${label} ---</td></tr>` + rows.map(standingRowHtml).join(''));
+                if (s.playoff) po.insertAdjacentHTML('beforeend', `<h3 style="margin:20px 0 10px;text-transform:uppercase;color:var(--accent-blue)">${label} - playoff</h3>` + bracketHtml(s.playoff, s.matches, {}));
             });
-        }
-    });
         }
 
         // Firebase Listeners
@@ -5071,14 +5145,16 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
 
         onValue(dbRef(db, 'matches'), (snapshot) => {
             globalMatchesMap = snapshot.val() || {};
+            recomputeStats();
+        });
+
+        // Statystyki wszechczasów = wszystkie zarchiwizowane sezony + bieżący
+        function recomputeStats() {
             recalcAverages();
-            // Przeliczanie statystyk szczegółowych
             globalPlayerDetailsStats = {};
             globalCalculatedStats = {};
-
             const careerMatches = getCombinedCareerMatches();
-
-            Object.values(globalMatchesMap).forEach(m => {
+            Object.values(careerMatches).forEach(m => {
                 [m.p1Uid, m.p2Uid].forEach((uid, idx) => {
                     if (!uid) return;
                     if (!globalPlayerDetailsStats[uid]) {
@@ -5113,7 +5189,8 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
                 updateProfileUI(globalUsersData[auth.currentUser.uid]);
             }
             if (typeof renderApprovedPlayers === 'function') renderApprovedPlayers();
-        });
+            renderPlayoffHome();
+        }
 
         onValue(dbRef(db, 'upcomingMatches'), (snapshot) => {
             globalUpcomingMatchesMap = snapshot.val() || {};
@@ -5131,6 +5208,7 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
 
         onValue(dbRef(db, 'seasonState'), (snapshot) => {
             seasonStateData = snapshot.val() || { finished: false };
+            recomputeStats();
             const archiveTabBtn = document.getElementById('tab-archive');
             if (seasonStateData.finished || (seasonStateData.archiveHistory && Object.keys(seasonStateData.archiveHistory).length > 0)) {
                 archiveTabBtn.classList.remove('hidden');
