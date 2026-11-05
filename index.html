@@ -861,6 +861,96 @@
         .bet-pick > span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .bet-row.three .bet-pick { min-width: 120px; }
         @media (max-width: 768px) { .bet-row.three .bet-draw { order: 3; flex-basis: 100%; } }
+        /* ===== NOWE ANIMOWANE OBRAMÓWKI ===== */
+        @keyframes avglow { from { filter: brightness(1); } to { filter: brightness(1.22); } }
+        @keyframes avfloat { 0%, 100% { transform: translateX(-50%) translateY(0) rotate(-8deg); } 50% { transform: translateX(-50%) translateY(-14%) rotate(-8deg); } }
+        @keyframes avbob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-9%); } }
+        @keyframes avflick { 0%, 100% { opacity: 1; } 45% { opacity: .5; } 50% { opacity: 1; } 75% { opacity: .75; } }
+        @keyframes avspinr { to { transform: rotate(-360deg); } }
+        .av-f-ice > img { box-shadow: 0 0 0 calc(var(--s) * .035) #67e8f9, 0 0 calc(var(--s) * .22) rgba(103,232,249,.85) !important; animation: avglow 1.8s ease-in-out infinite alternate; }
+        .av-f-ice .av-deco { animation: avfloat 2.4s ease-in-out infinite; }
+        .av-f-electric::before { inset: calc(var(--s) * -.07); border-radius: 50%; z-index: 0;
+            background: conic-gradient(from 0deg, #fde047, #fff, #fde047, rgba(253,224,71,.15), #fde047, #fff, rgba(253,224,71,.15), #fde047);
+            animation: avspin .9s linear infinite, avflick 1.1s steps(2) infinite; filter: drop-shadow(0 0 5px #fde047); }
+        .av-f-galaxy::before { inset: calc(var(--s) * -.08); border-radius: 50%; z-index: 0; background: conic-gradient(#7c3aed, #2563eb, #06b6d4, #ec4899, #7c3aed);
+            animation: avspin 3.5s linear infinite; filter: drop-shadow(0 0 6px #8b5cf6); }
+        .av-f-galaxy::after { inset: calc(var(--s) * -.17); border-radius: 50%; z-index: 0; border: calc(var(--s) * .025) dotted rgba(196,181,253,.85); animation: avspinr 9s linear infinite; }
+        .av-f-halo > img { box-shadow: 0 0 calc(var(--s) * .18) rgba(253,224,71,.6) !important; }
+        .av-f-halo::before { left: 18%; width: 64%; top: calc(var(--s) * -.2); height: calc(var(--s) * .2); border: calc(var(--s) * .05) solid #fde047; border-radius: 50%; z-index: 3;
+            box-shadow: 0 0 calc(var(--s) * .14) #fde047, inset 0 0 calc(var(--s) * .06) #fde047; animation: avbob 2.2s ease-in-out infinite; }
+        .av-f-devil > img { box-shadow: 0 0 0 calc(var(--s) * .035) #b91c1c, 0 0 calc(var(--s) * .2) rgba(239,68,68,.8) !important; animation: avglow 1.2s ease-in-out infinite alternate; }
+        .av-f-devil::before, .av-f-devil::after { width: calc(var(--s) * .26); height: calc(var(--s) * .36); top: calc(var(--s) * -.2); z-index: 1;
+            background: linear-gradient(#ef4444, #7f1d1d); clip-path: polygon(0 100%, 100% 100%, 50% 0); }
+        .av-f-devil::before { left: calc(var(--s) * .12); transform: rotate(-22deg); }
+        .av-f-devil::after { right: calc(var(--s) * .12); transform: rotate(22deg); }
+        .av-f-flowers::before { inset: calc(var(--s) * -.1); border-radius: 50%; border: calc(var(--s) * .06) dotted #f9a8d4; z-index: 1; animation: avspin 14s linear infinite; }
+        .av-f-flowers::after { inset: calc(var(--s) * -.2); border-radius: 50%; border: calc(var(--s) * .035) dotted #fbcfe8; z-index: 1; animation: avspinr 20s linear infinite; }
+        .av-f-flowers .av-deco { left: auto; right: calc(var(--s) * -.08); top: calc(var(--s) * -.12); transform: none; font-size: calc(var(--s) * .34); animation: avbob 2.5s ease-in-out infinite; }
+        .av-f-hearts > img { box-shadow: 0 0 0 calc(var(--s) * .035) #f472b6, 0 0 calc(var(--s) * .2) rgba(244,114,182,.8) !important; animation: avglow 1s ease-in-out infinite alternate; }
+        .av-f-hearts .av-deco { animation: avfloat 1.6s ease-in-out infinite; }
+        .av-f-goldspin::before { inset: calc(var(--s) * -.09); border-radius: 50%; z-index: 0; background: conic-gradient(#fde047, #b45309, #fde047, #fffbeb, #fde047, #b45309, #fde047);
+            animation: avspin 4s linear infinite; filter: drop-shadow(0 0 5px rgba(250,204,21,.7)); }
+        .av-f-toxic::before { inset: calc(var(--s) * -.07); border-radius: 50%; z-index: 0; background: conic-gradient(#22c55e, #052e16, #a3e635, #052e16, #22c55e);
+            animation: avspin 2s linear infinite; filter: drop-shadow(0 0 6px #22c55e); }
+        .av-f-toxic > img { animation: avglow 1.4s ease-in-out infinite alternate; }
+
+        /* ===== NOWE MOTYWY ===== */
+        body[data-theme="ocean"] {
+            --bg-color:#04141c; --card-bg:#082230; --card-border:#0f3a50; --accent-blue:#06b6d4; --accent-red:#38bdf8; --accent-glow:rgba(6,182,212,.2);
+            background-image: radial-gradient(ellipse at 50% 120%, rgba(6,182,212,.22) 0%, transparent 60%), repeating-radial-gradient(circle at 50% 130%, rgba(56,189,248,.05) 0, rgba(56,189,248,.05) 2px, transparent 2px, transparent 40px);
+        }
+        body[data-theme="winter"] {
+            --bg-color:#0b1320; --card-bg:#111d30; --card-border:#22344f; --accent-blue:#93c5fd; --accent-red:#7dd3fc; --accent-glow:rgba(147,197,253,.2);
+            background-image: linear-gradient(180deg, rgba(147,197,253,.10) 0%, transparent 40%), radial-gradient(circle at 20% 0%, rgba(224,242,254,.10) 0%, transparent 45%);
+        }
+        body[data-theme="space"] {
+            --bg-color:#05030f; --card-bg:#0d0a1f; --card-border:#241b4a; --accent-blue:#8b5cf6; --accent-red:#f472b6; --accent-glow:rgba(139,92,246,.2);
+            background-image: radial-gradient(circle at 15% 20%, rgba(139,92,246,.22) 0%, transparent 40%), radial-gradient(circle at 85% 75%, rgba(236,72,153,.16) 0%, transparent 42%);
+        }
+        body[data-theme="ocean"] .nav-btn.active, body[data-theme="winter"] .nav-btn.active, body[data-theme="space"] .nav-btn.active { color: #0b0f19; }
+
+        /* ===== ANIMOWANE ELEMENTY MOTYWÓW (znaki rozpoznawcze) ===== */
+        #theme-fx { position: fixed; inset: 0; pointer-events: none; z-index: -1; overflow: hidden; }
+        .fx { position: absolute; top: 0; left: 0; will-change: transform; }
+        @keyframes fxfall { 0% { transform: translate(0, -12vh) rotate(0deg); } 25% { transform: translate(40px, 22vh) rotate(110deg); } 50% { transform: translate(-30px, 50vh) rotate(230deg); } 75% { transform: translate(35px, 78vh) rotate(330deg); } 100% { transform: translate(0, 112vh) rotate(430deg); } }
+        @keyframes fxrise { 0% { transform: translate(0, 112vh) scale(1); opacity: 0; } 15% { opacity: .9; } 100% { transform: translate(30px, -12vh) scale(.4); opacity: 0; } }
+        @keyframes fxbubble { 0% { transform: translate(0, 112vh); opacity: 0; } 15% { opacity: .75; } 50% { transform: translate(22px, 55vh); } 100% { transform: translate(-16px, -12vh); opacity: 0; } }
+        @keyframes fxtwinkle { 0%, 100% { transform: scale(.4); opacity: .1; } 50% { transform: scale(1.1); opacity: 1; } }
+        @keyframes fxdrift { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(40px, -60px) scale(1.25); } }
+        @keyframes fxrain { 0% { transform: translateY(-10vh); opacity: 0; } 10% { opacity: .9; } 100% { transform: translateY(112vh); opacity: .1; } }
+        @keyframes fxshoot { 0% { transform: translate(0, 0) rotate(35deg); opacity: 0; } 2% { opacity: 1; } 9% { transform: translate(-60vw, 38vh) rotate(35deg); opacity: 0; } 100% { transform: translate(-60vw, 38vh) rotate(35deg); opacity: 0; } }
+        .fx-petal { width: 14px; height: 10px; background: radial-gradient(circle at 30% 30%, #fff1f6, #f9a8d4 60%, #ec4899); border-radius: 150% 0 150% 0; animation: fxfall linear infinite; opacity: .85; }
+        .fx-rain { color: #22c55e; font-family: monospace; text-shadow: 0 0 6px #22c55e; animation: fxrain linear infinite; }
+        .fx-orb { border-radius: 50%; filter: blur(18px); animation: fxdrift ease-in-out infinite; }
+        .fx-ember { border-radius: 50%; background: radial-gradient(circle, #fde68a, #f97316 60%, transparent); animation: fxrise linear infinite; }
+        .fx-sparkle { color: #facc15; text-shadow: 0 0 8px #facc15; animation: fxtwinkle ease-in-out infinite; }
+        .fx-bubble { border-radius: 50%; border: 1.5px solid rgba(125,211,252,.7); background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.35), transparent 60%); animation: fxbubble linear infinite; }
+        .fx-snow { border-radius: 50%; background: #fff; box-shadow: 0 0 6px rgba(255,255,255,.8); animation: fxfall linear infinite; opacity: .85; }
+        .fx-star { border-radius: 50%; background: #fff; animation: fxtwinkle ease-in-out infinite; }
+        .fx-shoot { width: 120px; height: 2px; background: linear-gradient(90deg, #fff, transparent); animation: fxshoot 9s linear infinite; }
+        @media (prefers-reduced-motion: reduce) { .fx, .av-wrap::before, .av-wrap::after, .av-wrap > img, .av-deco { animation: none !important; } }
+
+        /* ===== TYPY, KUPON ŁĄCZONY ===== */
+        #bonus-banner { bottom: 76px; }
+        #slip-bar { position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: 900; background: var(--card-bg); border: 1px solid var(--accent-blue);
+            padding: 10px 16px; border-radius: var(--radius); box-shadow: 0 10px 30px rgba(0,0,0,.5); display: flex; align-items: center; gap: 14px; max-width: 92vw; font-size: 0.9rem; }
+        .mk-section { margin-bottom: 16px; }
+        .mk-title { font-size: 0.85rem; font-weight: 700; margin-bottom: 4px; color: #fff; }
+        .mk-sub { font-size: 0.74rem; color: var(--text-muted); margin-bottom: 8px; }
+        .mk-grid { display: flex; gap: 8px; flex-wrap: wrap; }
+        .mk-btn { flex: 1; min-width: 110px; background: #0d1322; border: 1px solid var(--card-border); color: #fff; border-radius: 10px; padding: 10px 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 8px; font-weight: 700; font-size: 0.85rem; transition: var(--transition); }
+        .mk-btn b { background: rgba(59,130,246,.2); color: #93c5fd; padding: 2px 8px; border-radius: 6px; }
+        .mk-btn:hover { border-color: var(--accent-blue); }
+        .mk-btn.on { background: rgba(16,185,129,.18); border-color: #10b981; }
+        .mk-btn.on b { background: #10b981; color: #052e22; }
+        .mk-na { font-size: 0.8rem; color: var(--text-muted); font-style: italic; }
+        .slip-leg { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; padding: 10px 12px; border: 1px solid var(--card-border); border-radius: 10px; background: #0d1322; margin-bottom: 8px; }
+        .slip-leg .sl-main { font-size: 0.88rem; }
+        .slip-leg .sl-sub { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+        .slip-leg .sl-odd { font-weight: 800; color: #93c5fd; white-space: nowrap; }
+        .slip-leg button { background: none; border: none; color: #f87171; cursor: pointer; font-size: 1rem; }
+        .slip-summary { background: rgba(16,185,129,.08); border: 1px solid rgba(16,185,129,.3); border-radius: 10px; padding: 10px 14px; font-size: 0.88rem; line-height: 1.6; margin-top: 6px; }
+        .leg-line { font-size: 0.84rem; color: #cbd5e1; margin: 4px 0; }
     </style>
 </head>
 <body>
@@ -1333,6 +1423,34 @@
         </div>
     </div>
 </div>
+    <!-- MODAL: TYPY NA MECZ (rynki) -->
+    <div id="modal-markets" class="modal hidden">
+        <div class="modal-content" style="max-width: 580px;">
+            <h2 id="markets-title">Typy na mecz</h2>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 14px;">Kliknij kurs, aby dodać typ do kuponu (kliknij ponownie, aby usunąć). Z jednego meczu możesz wybrać jeden typ. Typy z różnych meczów łączą się w kupon łączony.</p>
+            <div id="markets-body"></div>
+            <button class="btn-primary btn-sm" id="btn-markets-close" style="width: 100%; margin-top: 14px;">Gotowe</button>
+        </div>
+    </div>
+
+    <!-- MODAL: KUPON -->
+    <div id="modal-slip" class="modal hidden">
+        <div class="modal-content" style="max-width: 540px;">
+            <h2 id="slip-title">🎫 Twój kupon</h2>
+            <div id="slip-legs"></div>
+            <div class="form-group"><label>Stawka (DK)</label><input type="number" id="slip-amount" min="1" value="10"></div>
+            <div class="form-group"><label>Bonus</label><select id="slip-bonus"></select></div>
+            <div id="slip-summary" class="slip-summary"></div>
+            <div id="slip-msg" class="msg"></div>
+            <div style="display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap;">
+                <button class="btn-danger btn-sm" id="btn-slip-clear" style="flex: 1;">Wyczyść</button>
+                <button class="btn-primary btn-sm" id="btn-slip-close" style="flex: 1;">Dodaj więcej</button>
+                <button class="btn-success btn-sm" id="btn-slip-place" style="flex: 1;">Postaw kupon</button>
+            </div>
+        </div>
+    </div>
+    <div id="slip-bar" class="hidden"></div>
+
     <div id="toast-stack"></div>
     <div id="notif-panel" class="hidden"></div>
 
@@ -1463,12 +1581,11 @@ window.openBetModal = (matchId, playerUid, playerName, odds) => {
     
     if (currentUserProfileData && currentUserProfileData.inventory) {
         const inv = currentUserProfileData.inventory;
-        if (inv.boost_25 && inv.boost_25 > 0) {
-            bonusSelect.innerHTML += `<option value="boost_25">Booster Kursu +25% (Posiadasz: ${inv.boost_25})</option>`;
-        }
-        if (inv.insurance && inv.insurance > 0) {
-            bonusSelect.innerHTML += `<option value="insurance">Ubezpieczenie Kuponu (Posiadasz: ${inv.insurance})</option>`;
-        }
+        Object.keys(BONUS_DEFS).forEach(k => {
+            const d = BONUS_DEFS[k];
+            if ((d.minLegs || 1) > 1) return; // bonusy tylko do kuponów łączonych
+            if ((inv[k] || 0) > 0) bonusSelect.innerHTML += `<option value="${k}">${d.icon} ${d.name} (Posiadasz: ${inv[k]})</option>`;
+        });
     }
 
     // Jeśli bonus został wybrany przyciskiem "Wykorzystaj" w ekwipunku - zaznacz go automatycznie
@@ -1557,6 +1674,11 @@ document.getElementById('btn-confirm-bet').onclick = async () => {
 
         let inventory = currentUserProfileData.inventory ? {...currentUserProfileData.inventory} : {};
         if (selectedBonus !== 'none') {
+            if (!BONUS_DEFS[selectedBonus] || (BONUS_DEFS[selectedBonus].minLegs || 1) > 1) {
+                msgEl.className = "msg error";
+                msgEl.innerText = "Ten bonus działa tylko w kuponie łączonym.";
+                return;
+            }
             if (!inventory[selectedBonus] || inventory[selectedBonus] <= 0) {
                 msgEl.className = "msg error";
                 msgEl.innerText = "Nie posiadasz wybranego bonusu w ekwipunku!";
@@ -1897,19 +2019,26 @@ Akademicka Liga Darta © 2026`;
             obramowki:   { label: "🖼️ Obramówki" }
         };
         const SLOT_BY_CAT = { motywy: 'theme', tytuly: 'title', obramowki: 'frame' };
-        const FRAME_DECO = { crown: '👑', fire: '🔥' };
+        const FRAME_DECO = { crown: '👑', fire: '🔥', hearts: '💖', flowers: '🌸', ice: '❄️' };
 
         const SHOP_ITEMS = {
             // BUKMACHERKA (jednorazowe, można kupować wielokrotnie)
             boost_25:  { cat: 'bukmacherka', name: "Booster Kursu +25%", price: 50, icon: "⚡", desc: "Zwiększa wygraną z wygranego zakładu o 25% (jednorazowy żeton)." },
             insurance: { cat: 'bukmacherka', name: "Ubezpieczenie Kuponu", price: 80, icon: "🛡️", desc: "Zwraca 50% stawki, jeśli Twój typ okaże się błędny (jednorazowe)." },
+            boost_50:       { cat: 'bukmacherka', name: "Super Booster +50%", price: 110, icon: "🚀", desc: "Zwiększa wypłatę z wygranego zakładu lub kuponu o 50% (jednorazowy)." },
+            insurance_full: { cat: 'bukmacherka', name: "Pełne Ubezpieczenie", price: 140, icon: "🏰", desc: "Zwraca 100% stawki, jeśli kupon lub zakład przegra (jednorazowe)." },
+            combo_boost:    { cat: 'bukmacherka', name: "Bonus Kuponu Łączonego +30%", price: 90, icon: "🎯", desc: "Zwiększa wypłatę z kuponu łączonego (min. 2 typy) o 30%." },
+            second_chance:  { cat: 'bukmacherka', name: "Druga Szansa", price: 130, icon: "🍀", desc: "Kupon łączony (min. 3 typy): jeden przegrany typ nie psuje kuponu - traktowany jak zwrot." },
 
             // MOTYWY (widoczne tylko dla osoby, która je założyła)
-            theme_neon:   { cat: 'motywy', name: "Motyw: Neon Night", price: 150, icon: "🌌", themeKey: 'neon',   swatch: ['#0a0614', '#a855f7', '#ec4899'], desc: "Fioletowo-różowe neony i siatka w tle." },
-            theme_sunset: { cat: 'motywy', name: "Motyw: Zachód Słońca", price: 150, icon: "🌇", themeKey: 'sunset', swatch: ['#1a0d0a', '#f97316', '#ef4444'], desc: "Ciepłe pomarańcze i czerwienie." },
-            theme_matrix: { cat: 'motywy', name: "Motyw: Matrix", price: 150, icon: "💚", themeKey: 'matrix', swatch: ['#020a04', '#22c55e', '#84cc16'], desc: "Zielony terminal z liniami skanowania." },
-            theme_sakura: { cat: 'motywy', name: "Motyw: Sakura", price: 150, icon: "🌸", themeKey: 'sakura', swatch: ['#1a0f16', '#f472b6', '#fb7185'], desc: "Różowe kropki i miękkie kolory." },
-            theme_gold:   { cat: 'motywy', name: "Motyw: Złoto", price: 150, icon: "✨", themeKey: 'gold',   swatch: ['#0f0d05', '#eab308', '#f59e0b'], desc: "Luksusowe złoto w ukośne paski." },
+            theme_neon:   { cat: 'motywy', name: "Motyw: Neon Night", price: 150, icon: "🌌", themeKey: 'neon',   swatch: ['#0a0614', '#a855f7', '#ec4899'], desc: "Fioletowo-różowe neony, siatka i dryfujące świetliste kule." },
+            theme_sunset: { cat: 'motywy', name: "Motyw: Zachód Słońca", price: 150, icon: "🌇", themeKey: 'sunset', swatch: ['#1a0d0a', '#f97316', '#ef4444'], desc: "Ciepłe pomarańcze, czerwienie i unoszące się iskry." },
+            theme_matrix: { cat: 'motywy', name: "Motyw: Matrix", price: 150, icon: "💚", themeKey: 'matrix', swatch: ['#020a04', '#22c55e', '#84cc16'], desc: "Zielony terminal z liniami skanowania i padającymi znakami." },
+            theme_sakura: { cat: 'motywy', name: "Motyw: Sakura", price: 150, icon: "🌸", themeKey: 'sakura', swatch: ['#1a0f16', '#f472b6', '#fb7185'], desc: "Różowe kropki, miękkie kolory i spadające płatki kwiatu wiśni." },
+            theme_gold:   { cat: 'motywy', name: "Motyw: Złoto", price: 150, icon: "✨", themeKey: 'gold',   swatch: ['#0f0d05', '#eab308', '#f59e0b'], desc: "Luksusowe złoto w ukośne paski i migoczące iskierki." },
+            theme_ocean:  { cat: 'motywy', name: "Motyw: Ocean", price: 150, icon: "🌊", themeKey: 'ocean',  swatch: ['#04141c', '#06b6d4', '#38bdf8'], desc: "Głębia oceanu z unoszącymi się bąbelkami." },
+            theme_winter: { cat: 'motywy', name: "Motyw: Zima", price: 150, icon: "❄️", themeKey: 'winter', swatch: ['#0b1320', '#93c5fd', '#7dd3fc'], desc: "Chłodne błękity i padający śnieg." },
+            theme_space:  { cat: 'motywy', name: "Motyw: Kosmos", price: 150, icon: "🚀", themeKey: 'space',  swatch: ['#05030f', '#8b5cf6', '#f472b6'], desc: "Mgławice, migoczące gwiazdy i spadające komety." },
 
             // TYTUŁY (widoczne dla wszystkich)
             title_highroller: { cat: 'tytuly', name: "Tytuł: High Roller", titleName: "High Roller", price: 250, icon: "👑", desc: "Ekskluzywny tytuł wyświetlany na profilu." },
@@ -1918,6 +2047,25 @@ Akademicka Liga Darta © 2026`;
             title_kurwa:      { cat: 'tytuly', name: "Tytuł: Kurwa", titleName: "Kurwa", price: 250, icon: "🤬", desc: "Krótko i na temat." },
             title_jebana:     { cat: 'tytuly', name: "Tytuł: Jebana", titleName: "Jebana", price: 250, icon: "😤", desc: "Dla odważnych." },
             title_srakusia:   { cat: 'tytuly', name: "Tytuł: Srakusia", titleName: "Srakusia", price: 250, icon: "💩", desc: "Dla prawdziwych koneserów." },
+            title_legenda: { cat: 'tytuly', name: "Tytuł: Legenda Ligi", titleName: "Legenda Ligi", price: 400, icon: "🏛️", desc: "Dla tych, o których będą opowiadać wnukom." },
+            title_krol: { cat: 'tytuly', name: "Tytuł: Król Tarczy", titleName: "Król Tarczy", price: 400, icon: "🤴", desc: "Tarcza ma tylko jednego władcę." },
+            title_maniak180: { cat: 'tytuly', name: "Tytuł: 180 Maniak", titleName: "180 Maniak", price: 300, icon: "💯", desc: "Maksimum to dla Ciebie codzienność." },
+            title_snajper: { cat: 'tytuly', name: "Tytuł: Snajper", titleName: "Snajper", price: 250, icon: "🎯", desc: "Jedna lotka, jedno trafienie." },
+            title_bull: { cat: 'tytuly', name: "Tytuł: Bull Hunter", titleName: "Bull Hunter", price: 250, icon: "🐂", desc: "Środek tarczy to Twój dom." },
+            title_maszyna: { cat: 'tytuly', name: "Tytuł: Maszyna", titleName: "Maszyna", price: 250, icon: "🤖", desc: "Zero emocji, sama precyzja." },
+            title_bestia: { cat: 'tytuly', name: "Tytuł: Bestia", titleName: "Bestia", price: 250, icon: "🦍", desc: "Siła, której nie da się zignorować." },
+            title_guru: { cat: 'tytuly', name: "Tytuł: Dartowy Guru", titleName: "Dartowy Guru", price: 250, icon: "🧙", desc: "Wie, gdzie wyląduje lotka, zanim ją rzuci." },
+            title_rekin: { cat: 'tytuly', name: "Tytuł: Rekin Kuponów", titleName: "Rekin Kuponów", price: 300, icon: "🦈", desc: "Kursy drżą, gdy wchodzisz do gry." },
+            title_bukmacher: { cat: 'tytuly', name: "Tytuł: Bukmacher", titleName: "Bukmacher", price: 250, icon: "📊", desc: "Liczby nie kłamią." },
+            title_hazardzista: { cat: 'tytuly', name: "Tytuł: Hazardzista", titleName: "Hazardzista", price: 250, icon: "🎰", desc: "All in albo nic." },
+            title_wrozbita: { cat: 'tytuly', name: "Tytuł: Wróżbita", titleName: "Wróżbita", price: 250, icon: "🔮", desc: "Typuje, zanim mecz się zacznie." },
+            title_krolremisow: { cat: 'tytuly', name: "Tytuł: Król Remisów", titleName: "Król Remisów", price: 250, icon: "🤝", desc: "Nikt nie dzieli punktów lepiej." },
+            title_pajac: { cat: 'tytuly', name: "Tytuł: Pajac", titleName: "Pajac", price: 250, icon: "🤡", desc: "Na tarczy też trzeba umieć się bawić." },
+            title_kretyn: { cat: 'tytuly', name: "Tytuł: Kretyn", titleName: "Kretyn", price: 250, icon: "😵", desc: "Szczerość przede wszystkim." },
+            title_leszcz: { cat: 'tytuly', name: "Tytuł: Leszcz", titleName: "Leszcz", price: 250, icon: "🐟", desc: "Ryba, która nie wie, że jest rybą." },
+            title_oferma: { cat: 'tytuly', name: "Tytuł: Oferma", titleName: "Oferma", price: 250, icon: "🐑", desc: "Dla prawdziwych twardzieli." },
+            title_przypadek: { cat: 'tytuly', name: "Tytuł: Ciężki Przypadek", titleName: "Ciężki Przypadek", price: 250, icon: "🩹", desc: "Lekarze rozkładają ręce." },
+            title_pechowiec: { cat: 'tytuly', name: "Tytuł: Pechowiec", titleName: "Pechowiec", price: 250, icon: "🌧️", desc: "Lotka zawsze ląduje o milimetr obok." },
 
             // OBRAMÓWKI ZDJĘCIA PROFILOWEGO (widoczne dla wszystkich, tylko kosmetyka)
             frame_crown: { cat: 'obramowki', name: "Obramówka: Korona", price: 150, icon: "👑", frameKey: 'crown', desc: "Złota obwódka z koroną." },
@@ -1925,7 +2073,16 @@ Akademicka Liga Darta © 2026`;
             frame_cat:   { cat: 'obramowki', name: "Obramówka: Uszy kota", price: 150, icon: "🐱", frameKey: 'cat',   desc: "Słodkie kocie uszka." },
             frame_dog:   { cat: 'obramowki', name: "Obramówka: Uszy psa", price: 150, icon: "🐶", frameKey: 'dog',   desc: "Zwisające psie uszy." },
             frame_neon:  { cat: 'obramowki', name: "Obramówka: Neon RGB", price: 150, icon: "🌈", frameKey: 'neon',  desc: "Obracający się tęczowy pierścień." },
-            frame_fire:  { cat: 'obramowki', name: "Obramówka: Płomienie", price: 150, icon: "🔥", frameKey: 'fire',  desc: "Płonąca, pulsująca obwódka." }
+            frame_fire:  { cat: 'obramowki', name: "Obramówka: Płomienie", price: 150, icon: "🔥", frameKey: 'fire',  desc: "Płonąca, pulsująca obwódka." },
+            frame_ice: { cat: 'obramowki', name: "Obramówka: Lodowa Aura", price: 200, icon: "❄️", frameKey: 'ice', desc: "Lodowa poświata z unoszącym się kryształkiem." },
+            frame_electric: { cat: 'obramowki', name: "Obramówka: Elektryczna", price: 200, icon: "⚡", frameKey: 'electric', desc: "Błyskawice krążące wokół zdjęcia." },
+            frame_galaxy: { cat: 'obramowki', name: "Obramówka: Galaktyka", price: 200, icon: "🌌", frameKey: 'galaxy', desc: "Wirująca mgławica z gwiezdnym pyłem." },
+            frame_halo: { cat: 'obramowki', name: "Obramówka: Aureola", price: 200, icon: "😇", frameKey: 'halo', desc: "Świetlista aureola nad głową." },
+            frame_devil: { cat: 'obramowki', name: "Obramówka: Diabelskie Rogi", price: 200, icon: "😈", frameKey: 'devil', desc: "Czerwone rogi i pulsująca poświata." },
+            frame_flowers: { cat: 'obramowki', name: "Obramówka: Kwiatowy Wianek", price: 200, icon: "🌸", frameKey: 'flowers', desc: "Obracające się kwiatowe pierścienie." },
+            frame_hearts: { cat: 'obramowki', name: "Obramówka: Serduszka", price: 200, icon: "💖", frameKey: 'hearts', desc: "Pulsująca, różowa poświata z serduszkiem." },
+            frame_goldspin: { cat: 'obramowki', name: "Obramówka: Złoty Wir", price: 200, icon: "🏅", frameKey: 'goldspin', desc: "Wirujący, luksusowy złoty pierścień." },
+            frame_toxic: { cat: 'obramowki', name: "Obramówka: Toksyczna", price: 200, icon: "☣️", frameKey: 'toxic', desc: "Radioaktywny, zielony wir." }
         };
 
         let currentShopCat = 'bukmacherka';
@@ -1974,8 +2131,8 @@ Akademicka Liga Darta © 2026`;
         function applyTheme(d) {
             const id = d && d.equipped && d.equipped.theme;
             const it = id && SHOP_ITEMS[id];
-            if (it && it.cat === 'motywy' && ownsItem(d, id)) document.body.setAttribute('data-theme', it.themeKey);
-            else document.body.removeAttribute('data-theme');
+            if (it && it.cat === 'motywy' && ownsItem(d, id)) { document.body.setAttribute('data-theme', it.themeKey); applyThemeFx(it.themeKey); }
+            else { document.body.removeAttribute('data-theme'); applyThemeFx(null); }
         }
 
         function buildCatTabs(containerId, cats, current, onClickName, withAll) {
@@ -2177,7 +2334,7 @@ Akademicka Liga Darta © 2026`;
             const old = document.getElementById('bonus-banner'); if (old) old.remove();
             const banner = document.createElement('div');
             banner.id = 'bonus-banner';
-            banner.innerHTML = `<span>${item.icon} Wybrano: <b>${item.name}</b>. Kliknij „Obstaw” przy wybranym meczu — bonus zadziała na ten jeden zakład.</span>
+            banner.innerHTML = `<span>${item.icon} Wybrano: <b>${item.name}</b>. ${(BONUS_DEFS[itemId] && BONUS_DEFS[itemId].minLegs > 1) ? 'Zbuduj kupon łączony przyciskiem „➕ Więcej typów i kupon łączony” – bonus zadziała na ten kupon.' : 'Kliknij „Obstaw” przy wybranym meczu — bonus zadziała na ten jeden zakład.'}</span>
                                 <button class="btn-danger btn-sm" onclick="hideBonusBanner()">Anuluj</button>`;
             document.body.appendChild(banner);
             switchTab('home');
@@ -2218,6 +2375,8 @@ Akademicka Liga Darta © 2026`;
                 isGuest = true;
                 currentUserProfileData = null;
                 document.body.removeAttribute('data-theme');
+                applyThemeFx(null);
+                betSlip = []; renderSlipBar();
                 if (window.hideBonusBanner) window.hideBonusBanner();
                 detachNotifications();
                 
@@ -2682,15 +2841,15 @@ Akademicka Liga Darta © 2026`;
 
                         if (myBet) {
                             const sel = myBet.playerUid === m.p1Uid ? 'p1' : (myBet.playerUid === 'draw' ? 'draw' : 'p2');
-                            let win = Math.round(myBet.amount * myBet.odds);
-                            if (myBet.bonus === 'boost_25') win = Math.round(win * 1.25);
-                            const bonusTxt = myBet.bonus === 'boost_25' ? ' · ⚡ Booster +25%' : (myBet.bonus === 'insurance' ? ' · 🛡️ Ubezpieczenie' : '');
+                            const win = calcPayout(myBet.amount, myBet.odds, myBet.bonus, true);
+                            const bonusTxt = BONUS_DEFS[myBet.bonus] ? ` · ${bonusLabel(myBet.bonus)}` : '';
                             const btn = (key, label, odd, tr, extra) => `<button class="bet-pick ${extra || ''} ${sel === key ? 'picked' : 'locked'}" disabled><span>${sel === key ? '✓ ' : ''}${label}</span><span class="odd">${sel === key ? myBet.odds : odd}${sel === key ? '' : tr}</span></button>`;
                             bettingHtml = `
                                 <div class="bet-row three" onclick="event.stopPropagation()">
                                     ${btn('p1', m.p1Name, oddsData.odds1, t1)}${btn('draw', 'Remis', oddsData.oddsDraw, tD, 'bet-draw')}${btn('p2', m.p2Name, oddsData.odds2, t2)}
                                 </div>
                                 <div class="bet-slip">🎫 Obstawiono: ${myBet.amount} DK · możliwa wygrana ${win} DK${bonusTxt}</div>
+                                <div style="text-align: center; margin-top: 8px;"><button class="btn-sm btn-primary" onclick="event.stopPropagation(); openMarkets('${matchId}')">➕ Więcej typów i kupon łączony</button></div>
                                 ${adminPowerInfo}`;
                         } else {
                             bettingHtml = `
@@ -2699,6 +2858,7 @@ Akademicka Liga Darta © 2026`;
                                     <button class="bet-pick bet-draw" onclick="openBetModal('${matchId}', 'draw', 'Remis', ${oddsData.oddsDraw})"><span>Remis</span><span class="odd">${oddsData.oddsDraw}${tD}</span></button>
                                     <button class="bet-pick" onclick="openBetModal('${matchId}', '${m.p2Uid}', '${m.p2Name}', ${oddsData.odds2})"><span>${m.p2Name}</span><span class="odd">${oddsData.odds2}${t2}</span></button>
                                 </div>
+                                <div style="text-align: center; margin-top: 8px;"><button class="btn-sm btn-primary" onclick="event.stopPropagation(); openMarkets('${matchId}')">➕ Więcej typów i kupon łączony</button></div>
                                 ${adminPowerInfo}`;
                         }
                     }
@@ -3627,28 +3787,36 @@ ${board}</svg>`;
                 list.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 24px 0;">Nie masz jeszcze żadnych kuponów. Obstaw mecz na stronie głównej!</p>';
                 return;
             }
-            const pending = items.filter(c => c.status === 'pending').length;
-            const won = items.filter(c => c.status === 'won').length;
-            const lost = items.filter(c => c.status === 'lost').length;
-            sum.innerHTML = `<div class="coupon-stats"><div>Wszystkie<b>${items.length}</b></div><div>Oczekujące<b>${pending}</b></div><div>Wygrane<b>${won}</b></div><div>Przegrane<b>${lost}</b></div></div>`;
-            const bonusName = { boost_25: '⚡ Booster +25%', insurance: '🛡️ Ubezpieczenie' };
+            const cnt = (st) => items.filter(c => c.status === st).length;
+            sum.innerHTML = `<div class="coupon-stats"><div>Wszystkie<b>${items.length}</b></div><div>Oczekujące<b>${cnt('pending')}</b></div><div>Wygrane<b>${cnt('won')}</b></div><div>Przegrane<b>${cnt('lost')}</b></div>${cnt('void') ? `<div>Zwrócone<b>${cnt('void')}</b></div>` : ''}</div>`;
+            const icon = { pending: '⏳', won: '✅', lost: '❌', void: '↩️' };
             list.innerHTML = items.map(c => {
                 const st = c.status || 'pending';
-                let potential = Math.round((c.amount || 0) * (c.odds || 0));
-                if (c.bonus === 'boost_25') potential = Math.round(potential * 1.25);
-                let badge;
-                if (st === 'won') badge = `✅ Wygrany · wypłata ${c.payout} DK`;
-                else if (st === 'lost') badge = `❌ Przegrany${c.payout > 0 ? ` · zwrot z ubezpieczenia ${c.payout} DK` : ''}`;
-                else badge = '⏳ Oczekuje na wynik';
                 const when = c.placedAt ? new Date(c.placedAt).toLocaleString('pl-PL', { dateStyle: 'short', timeStyle: 'short' }) : '';
-                return `<div class="coupon ${st}">
+                const bonusLine = c.bonus && c.bonus !== 'none' ? `<div class="coupon-line">Bonus: ${BONUS_DEFS[c.bonus] ? bonusLabel(c.bonus) : nwEsc(c.bonus)}</div>` : '';
+                if (c.type === 'slip') {
+                    const legs = Array.isArray(c.legs) ? c.legs : Object.values(c.legs || {});
+                    const potential = calcPayout(c.amount || 0, c.totalOdds || 0, c.bonus, true);
+                    const badge = st === 'won' ? `✅ Wygrany · wypłata ${c.payout} DK` : (st === 'lost' ? `❌ Przegrany${c.payout > 0 ? ` · zwrot z ubezpieczenia ${c.payout} DK` : ''}` : (st === 'void' ? `↩️ Zwrot stawki ${c.payout} DK` : '⏳ Oczekuje na wynik'));
+                    return `<div class="coupon ${st === 'void' ? '' : st}">
+                        <div class="coupon-match">${legs.length > 1 ? `Kupon łączony · ${legs.length} ${nwPlural(legs.length, 'typ', 'typy', 'typów')}` : 'Kupon'} · kurs ${c.totalOdds}</div>
+                        ${legs.map(l => `<div class="leg-line">${icon[l.status || 'pending']} <b>${nwEsc(l.label)}</b> <span style="color: var(--text-muted);">· ${nwEsc(l.p1Name)} vs ${nwEsc(l.p2Name)} · kurs ${l.odds}${l.result ? ` · ${nwEsc(l.result)}` : ''}</span></div>`).join('')}
+                        <div class="coupon-line">Stawka: <b>${c.amount} DK</b>${st === 'pending' ? ` · możliwa wygrana: <b>${potential} DK</b>` : ''}</div>
+                        ${bonusLine}${c.forgiven ? '<div class="coupon-line">🍀 Druga Szansa uratowała jeden typ.</div>' : ''}
+                        ${when ? `<div class="coupon-line" style="color: var(--text-muted); font-size: 0.78rem;">Postawiono: ${when}</div>` : ''}
+                        <span class="coupon-status ${st === 'void' ? 'pending' : st}">${badge}</span>
+                    </div>`;
+                }
+                const potential = calcPayout(c.amount || 0, c.odds || 0, c.bonus, true);
+                const badge = st === 'won' ? `✅ Wygrany · wypłata ${c.payout} DK` : (st === 'lost' ? `❌ Przegrany${c.payout > 0 ? ` · zwrot z ubezpieczenia ${c.payout} DK` : ''}` : (st === 'void' ? `↩️ Zwrot stawki ${c.payout} DK` : '⏳ Oczekuje na wynik'));
+                return `<div class="coupon ${st === 'void' ? '' : st}">
                     <div class="coupon-match">${nwEsc(c.p1Name)} vs ${nwEsc(c.p2Name)}</div>
                     <div class="coupon-line">Twój typ: <b>${nwEsc(c.playerName)}</b> · kurs <b>${c.odds}</b></div>
                     <div class="coupon-line">Stawka: <b>${c.amount} DK</b>${st === 'pending' ? ` · możliwa wygrana: <b>${potential} DK</b>` : ''}</div>
-                    ${c.bonus && c.bonus !== 'none' ? `<div class="coupon-line">Bonus: ${bonusName[c.bonus] || nwEsc(c.bonus)}</div>` : ''}
+                    ${bonusLine}
                     ${c.result ? `<div class="coupon-line">Wynik meczu: <b>${nwEsc(c.result)}</b></div>` : ''}
                     ${when ? `<div class="coupon-line" style="color: var(--text-muted); font-size: 0.78rem;">Postawiono: ${when}</div>` : ''}
-                    <span class="coupon-status ${st}">${badge}</span>
+                    <span class="coupon-status ${st === 'void' ? 'pending' : st}">${badge}</span>
                 </div>`;
             }).join('');
         }
@@ -3666,7 +3834,385 @@ ${board}</svg>`;
             }, { passive: true });
         })();
 
+        // ===================== BONUSY, TYPY (RYNKI) I KUPONY ŁĄCZONE =====================
+        const BONUS_DEFS = {
+            boost_25:       { name: 'Booster Kursu +25%',        icon: '⚡', winMult: 1.25 },
+            boost_50:       { name: 'Super Booster +50%',        icon: '🚀', winMult: 1.5 },
+            insurance:      { name: 'Ubezpieczenie Kuponu',      icon: '🛡️', refund: 0.5 },
+            insurance_full: { name: 'Pełne Ubezpieczenie',       icon: '🏰', refund: 1 },
+            combo_boost:    { name: 'Bonus Kuponu Łączonego +30%', icon: '🎯', winMult: 1.3, minLegs: 2 },
+            second_chance:  { name: 'Druga Szansa',              icon: '🍀', minLegs: 3, forgiveOne: true }
+        };
+        const bonusLabel = (k) => BONUS_DEFS[k] ? `${BONUS_DEFS[k].icon} ${BONUS_DEFS[k].name}` : '';
+
+        // Wypłata: przy wygranej kwota * kurs * mnożnik bonusu, przy przegranej zwrot z ubezpieczenia
+        function calcPayout(amount, odds, bonus, won) {
+            const d = BONUS_DEFS[bonus] || {};
+            if (won) return Math.round(Math.round(amount * odds) * (d.winMult || 1));
+            return Math.round(amount * (d.refund || 0));
+        }
+
+        const MAX_SLIP_LEGS = 8;
+        const MAX_SLIP_ODDS = 200;
+        let betSlip = [];
+
+        // ---------- Statystyki z ostatnich meczów zawodnika ----------
+        function playerRecentStats(uid, n = 5) {
+            const arr = [];
+            Object.values(globalMatchesMap || {}).forEach(m => {
+                if (m.p1Uid === uid) arr.push({ legs: parseInt(m.s1) || 0, avg: parseFloat(m.avg1) || 0 });
+                else if (m.p2Uid === uid) arr.push({ legs: parseInt(m.s2) || 0, avg: parseFloat(m.avg2) || 0 });
+            });
+            return arr.slice(-n);
+        }
+        const nwErf = (x) => {
+            const t = 1 / (1 + 0.3275911 * Math.abs(x));
+            const y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-x * x);
+            return x >= 0 ? y : -y;
+        };
+        const normCdf = (z) => 0.5 * (1 + nwErf(z / Math.SQRT2));
+        const clampP = (p) => Math.min(0.85, Math.max(0.15, p));
+        const oddsFromP = (p) => Math.min(8, Math.max(1.1, Number((0.93 / p).toFixed(2))));
+
+        // Rynki Over/Under dla zawodnika: wygrane legi i średnia - linia wyznaczona z ostatnich meczów
+        function buildMarkets(m) {
+            const out = [];
+            [[m.p1Uid, m.p1Name], [m.p2Uid, m.p2Name]].forEach(([uid, name]) => {
+                const rec = playerRecentStats(uid);
+                if (rec.length < 2) {
+                    out.push({ type: 'legs', uid, name, unavailable: true }, { type: 'avg', uid, name, unavailable: true });
+                    return;
+                }
+                const lv = rec.map(r => r.legs);
+                const lMean = lv.reduce((a, b) => a + b, 0) / lv.length;
+                const lLine = Math.floor(lMean) + 0.5;
+                const pOverL = clampP((lv.filter(v => v > lLine).length + 1) / (lv.length + 2));
+                out.push({ type: 'legs', uid, name, line: lLine, overOdds: oddsFromP(pOverL), underOdds: oddsFromP(1 - pOverL), sample: lv });
+
+                const av = rec.map(r => r.avg);
+                const mu = av.reduce((a, b) => a + b, 0) / av.length;
+                const sd = Math.sqrt(av.reduce((s, v) => s + (v - mu) * (v - mu), 0) / av.length);
+                const aLine = Math.floor(mu) + 0.5;
+                const pOverA = clampP(1 - normCdf((aLine - mu) / Math.max(sd, 3)));
+                out.push({ type: 'avg', uid, name, line: aLine, overOdds: oddsFromP(pOverA), underOdds: oddsFromP(1 - pOverA), sample: av.map(v => v.toFixed(1)) });
+            });
+            return out;
+        }
+
+        // Buduje wybór (nogę kuponu) z aktualnymi kursami
+        function nwSel(matchId, kind, pick, uid) {
+            const m = globalUpcomingMatchesMap[matchId];
+            if (!m) return null;
+            const base = { matchId, p1Uid: m.p1Uid, p2Uid: m.p2Uid, p1Name: m.p1Name, p2Name: m.p2Name, kind, pick, uid: uid || '' };
+            if (kind === '1x2') {
+                const o = getLiveOdds(matchId, m);
+                const odds = pick === m.p1Uid ? o.odds1 : (pick === 'draw' ? o.oddsDraw : o.odds2);
+                const label = pick === 'draw' ? 'Remis' : `${pick === m.p1Uid ? m.p1Name : m.p2Name} wygra`;
+                return { ...base, line: 0, odds, label, status: 'pending' };
+            }
+            const mk = buildMarkets(m).find(x => x.type === kind && x.uid === uid);
+            if (!mk || mk.unavailable) return null;
+            const odds = pick === 'over' ? mk.overOdds : mk.underOdds;
+            const what = kind === 'legs' ? 'wygrane legi' : 'średnia';
+            return { ...base, line: mk.line, odds, label: `${mk.name} – ${what} ${pick === 'over' ? 'Over' : 'Under'} ${mk.line}`, status: 'pending' };
+        }
+
+        const slipOdds = () => Number(betSlip.reduce((p, s) => p * s.odds, 1).toFixed(2));
+
+        // ---------- Okno typów na mecz ----------
+        window.openMarkets = (matchId) => {
+            if (isGuest) { document.getElementById('view-login').classList.remove('hidden'); return; }
+            renderMarkets(matchId);
+            nwEl('modal-markets').classList.remove('hidden');
+        };
+
+        function renderMarkets(matchId) {
+            const m = globalUpcomingMatchesMap[matchId];
+            if (!m) { nwEl('markets-body').innerHTML = '<p>Ten mecz nie jest już dostępny.</p>'; return; }
+            nwEl('markets-title').innerText = `${m.p1Name} vs ${m.p2Name}`;
+            const cur = betSlip.find(s => s.matchId === matchId);
+            const isOn = (kind, pick, uid) => cur && cur.kind === kind && cur.pick === pick && (cur.uid || '') === (uid || '');
+            const o = getLiveOdds(matchId, m);
+            const btn = (kind, pick, uid, label, odds) =>
+                `<button class="mk-btn ${isOn(kind, pick, uid) ? 'on' : ''}" onclick="toggleSelection('${matchId}', '${kind}', '${pick}', '${uid || ''}')"><span>${label}</span><b>${odds}</b></button>`;
+
+            let html = `<div class="mk-section"><div class="mk-title">Zwycięzca meczu</div><div class="mk-grid">
+                ${btn('1x2', m.p1Uid, '', nwEsc(m.p1Name), o.odds1)}${btn('1x2', 'draw', '', 'Remis', o.oddsDraw)}${btn('1x2', m.p2Uid, '', nwEsc(m.p2Name), o.odds2)}
+                </div></div>`;
+            buildMarkets(m).forEach(mk => {
+                const title = mk.type === 'legs' ? `${nwEsc(mk.name)} – wygrane legi` : `${nwEsc(mk.name)} – średnia z meczu`;
+                if (mk.unavailable) {
+                    html += `<div class="mk-section"><div class="mk-title">${title}</div><div class="mk-na">Za mało rozegranych meczów, aby wystawić linię (min. 2).</div></div>`;
+                    return;
+                }
+                html += `<div class="mk-section"><div class="mk-title">${title}</div>
+                    <div class="mk-sub">Linia z ostatnich ${mk.sample.length} meczów (${mk.sample.join(' · ')})</div>
+                    <div class="mk-grid">${btn(mk.type, 'under', mk.uid, `Under ${mk.line}`, mk.underOdds)}${btn(mk.type, 'over', mk.uid, `Over ${mk.line}`, mk.overOdds)}</div></div>`;
+            });
+            nwEl('markets-body').innerHTML = html;
+        }
+
+        window.toggleSelection = (matchId, kind, pick, uid) => {
+            const m = globalUpcomingMatchesMap[matchId];
+            const me = auth.currentUser ? auth.currentUser.uid : null;
+            if (!m || !me) return;
+            if (m.p1Uid === me || m.p2Uid === me) { alert('Nie możesz obstawiać meczu, w którym sam grasz.'); return; }
+            const idx = betSlip.findIndex(s => s.matchId === matchId);
+            const same = idx >= 0 && betSlip[idx].kind === kind && betSlip[idx].pick === pick && (betSlip[idx].uid || '') === (uid || '');
+            if (same) betSlip.splice(idx, 1);
+            else {
+                if (idx < 0 && betSlip.length >= MAX_SLIP_LEGS) { alert(`Kupon może mieć maksymalnie ${MAX_SLIP_LEGS} typów.`); return; }
+                const sel = nwSel(matchId, kind, pick, uid);
+                if (!sel) return;
+                if (idx >= 0) betSlip[idx] = sel; else betSlip.push(sel);
+            }
+            renderMarkets(matchId);
+            renderSlipBar();
+        };
+        nwEl('btn-markets-close').onclick = () => nwEl('modal-markets').classList.add('hidden');
+
+        // ---------- Pasek i okno kuponu ----------
+        function renderSlipBar() {
+            const bar = nwEl('slip-bar');
+            if (!betSlip.length) { bar.classList.add('hidden'); bar.innerHTML = ''; return; }
+            bar.classList.remove('hidden');
+            bar.innerHTML = `<span>🎫 Kupon: <b>${betSlip.length}</b> ${nwPlural(betSlip.length, 'typ', 'typy', 'typów')} · kurs łączny <b>${slipOdds()}</b></span><button class="btn-success btn-sm" onclick="openSlip()">Otwórz</button>`;
+        }
+
+        window.openSlip = () => {
+            if (!betSlip.length) return;
+            nwEl('modal-markets').classList.add('hidden');
+            renderSlip();
+            nwEl('slip-msg').innerText = '';
+            nwEl('modal-slip').classList.remove('hidden');
+        };
+
+        function fillSlipBonuses() {
+            const sel = nwEl('slip-bonus');
+            const prev = sel.value;
+            sel.innerHTML = '<option value="none">Brak (czysty kupon)</option>';
+            const inv = (currentUserProfileData && currentUserProfileData.inventory) || {};
+            Object.keys(BONUS_DEFS).forEach(k => {
+                const d = BONUS_DEFS[k];
+                if ((inv[k] || 0) > 0 && (d.minLegs || 1) <= betSlip.length) sel.innerHTML += `<option value="${k}">${d.icon} ${d.name} (Posiadasz: ${inv[k]})</option>`;
+            });
+            const want = prev && prev !== 'none' ? prev : pendingBonus;
+            if (want && [...sel.options].some(o => o.value === want)) sel.value = want;
+        }
+
+        function renderSlip() {
+            if (!betSlip.length) { nwEl('modal-slip').classList.add('hidden'); renderSlipBar(); return; }
+            nwEl('slip-title').innerText = betSlip.length > 1 ? `🎫 Kupon łączony (${betSlip.length} ${nwPlural(betSlip.length, 'typ', 'typy', 'typów')})` : '🎫 Twój kupon';
+            nwEl('slip-legs').innerHTML = betSlip.map((s, i) => `<div class="slip-leg">
+                <div><div class="sl-main">${nwEsc(s.label)}</div><div class="sl-sub">${nwEsc(s.p1Name)} vs ${nwEsc(s.p2Name)}</div></div>
+                <div style="display: flex; gap: 10px; align-items: center;"><span class="sl-odd">${s.odds}</span><button onclick="removeSelection(${i})" title="Usuń">✕</button></div></div>`).join('');
+            fillSlipBonuses();
+            updateSlipSummary();
+            renderSlipBar();
+        }
+
+        function updateSlipSummary() {
+            const total = slipOdds();
+            const amount = parseInt(nwEl('slip-amount').value) || 0;
+            const bonus = nwEl('slip-bonus').value;
+            const win = calcPayout(amount, total, bonus, true);
+            const warn = total > MAX_SLIP_ODDS ? `<br><span style="color: var(--warning-color);">Maksymalny kurs łączny to ${MAX_SLIP_ODDS}. Usuń któryś typ.</span>` : '';
+            nwEl('slip-summary').innerHTML = `Kurs łączny: <b>${total}</b> · Stawka: <b>${amount} DK</b><br>Możliwa wygrana: <b>${win} DK</b>${bonus !== 'none' ? ` (${bonusLabel(bonus)})` : ''}${warn}`;
+        }
+        nwEl('slip-amount').oninput = updateSlipSummary;
+        nwEl('slip-bonus').onchange = updateSlipSummary;
+        window.removeSelection = (i) => { betSlip.splice(i, 1); renderSlip(); };
+        nwEl('btn-slip-clear').onclick = () => { betSlip = []; renderSlip(); nwEl('modal-slip').classList.add('hidden'); };
+        nwEl('btn-slip-close').onclick = () => nwEl('modal-slip').classList.add('hidden');
+
+        nwEl('btn-slip-place').onclick = async () => {
+            const user = auth.currentUser;
+            const msg = nwEl('slip-msg');
+            const fail = (t) => { msg.className = 'msg error'; msg.innerText = t; };
+            if (!user || !currentUserProfileData || !betSlip.length) return;
+            const amount = parseInt(nwEl('slip-amount').value);
+            const bonus = nwEl('slip-bonus').value;
+            if (isNaN(amount) || amount <= 0) return fail('Podaj poprawną stawkę!');
+            if (amount > (currentUserProfileData.dartKasa || 0)) return fail('Stawka przekracza Twoje saldo!');
+            if (slipOdds() > MAX_SLIP_ODDS) return fail(`Maksymalny kurs łączny to ${MAX_SLIP_ODDS}.`);
+            if (bonus !== 'none' && (!BONUS_DEFS[bonus] || (BONUS_DEFS[bonus].minLegs || 1) > betSlip.length)) return fail('Ten bonus nie działa przy tej liczbie typów.');
+
+            const btn = nwEl('btn-slip-place'); btn.disabled = true;
+            try {
+                // Weryfikacja meczów i aktualnych kursów/linii
+                let changed = false;
+                for (let i = 0; i < betSlip.length; i++) {
+                    const s = betSlip[i];
+                    const snap = await get(dbRef(db, `upcomingMatches/${s.matchId}`));
+                    if (!snap.exists() || snap.val().reported) { return fail(`Mecz ${s.p1Name} vs ${s.p2Name} nie jest już dostępny – usuń ten typ.`); }
+                    const mv = snap.val();
+                    if (mv.p1Uid === user.uid || mv.p2Uid === user.uid) { return fail('Nie możesz obstawiać własnego meczu.'); }
+                    const fresh = nwSel(s.matchId, s.kind, s.pick, s.uid);
+                    if (!fresh) { return fail(`Typ „${s.label}” nie jest już dostępny.`); }
+                    if (fresh.odds !== s.odds || fresh.line !== s.line) { betSlip[i] = fresh; changed = true; }
+                }
+                if (changed) { renderSlip(); return fail('Kursy lub linie się zmieniły. Sprawdź kupon i potwierdź ponownie.'); }
+
+                const inventory = currentUserProfileData.inventory ? { ...currentUserProfileData.inventory } : {};
+                if (bonus !== 'none') {
+                    if (!inventory[bonus] || inventory[bonus] <= 0) return fail('Nie posiadasz wybranego bonusu w ekwipunku!');
+                    inventory[bonus] -= 1;
+                    if (inventory[bonus] <= 0) delete inventory[bonus];
+                }
+
+                const slipId = push(dbRef(db, `users/${user.uid}/coupons`)).key;
+                const total = slipOdds();
+                const updates = {};
+                updates[`users/${user.uid}/dartKasa`] = (currentUserProfileData.dartKasa || 0) - amount;
+                updates[`users/${user.uid}/inventory`] = inventory;
+                updates[`users/${user.uid}/coupons/${slipId}`] = { type: 'slip', id: slipId, legs: betSlip.map(s => ({ ...s })), totalOdds: total, amount, bonus, placedAt: Date.now(), status: 'pending' };
+                betSlip.forEach(s => { updates[`slipIndex/${s.matchId}/${slipId}`] = user.uid; });
+                if (betSlip.length === 1 && betSlip[0].kind === '1x2') updates[`matchPools/${betSlip[0].matchId}/${betSlip[0].pick}`] = increment(amount);
+
+                await update(dbRef(db), updates);
+                betSlip = [];
+                renderSlipBar();
+                nwEl('modal-slip').classList.add('hidden');
+                nwEl('modal-markets').classList.add('hidden');
+                window.hideBonusBanner();
+                alert('Kupon został przyjęty! Znajdziesz go w profilu w zakładce Kupony.');
+            } catch (err) {
+                fail(err.message);
+            } finally {
+                btn.disabled = false;
+            }
+        };
+
+        // ---------- Rozliczanie kuponów łączonych i typów Over/Under ----------
+        function evalLeg(l, m) {
+            const rd = m.reportData;
+            const s1 = parseInt(rd.s1) || 0, s2 = parseInt(rd.s2) || 0;
+            if (l.kind === '1x2') {
+                const w = s1 > s2 ? m.p1Uid : (s2 > s1 ? m.p2Uid : 'draw');
+                return { status: l.pick === w ? 'won' : 'lost', result: `${s1}:${s2}` };
+            }
+            const isP1 = l.uid === m.p1Uid;
+            const val = l.kind === 'legs' ? (isP1 ? s1 : s2) : (isP1 ? (parseFloat(rd.avg1) || 0) : (parseFloat(rd.avg2) || 0));
+            const status = val === l.line ? 'void' : (((l.pick === 'over') === (val > l.line)) ? 'won' : 'lost');
+            return { status, result: l.kind === 'legs' ? `${val} ${nwPlural(val, 'leg', 'legi', 'legów')}` : `śr. ${val.toFixed(2)}` };
+        }
+
+        function resolveSlip(c, legs) {
+            const lost = legs.filter(l => l.status === 'lost').length;
+            const hasPending = legs.some(l => l.status === 'pending');
+            const forgive = !!(BONUS_DEFS[c.bonus] && BONUS_DEFS[c.bonus].forgiveOne && legs.length >= (BONUS_DEFS[c.bonus].minLegs || 1));
+            const effectiveLost = forgive && lost === 1 ? 0 : lost;
+            if (effectiveLost > 0) return { status: 'lost', payout: calcPayout(c.amount, 1, c.bonus, false), activeOdds: 0 };
+            if (hasPending) return { status: 'pending' };
+            if (legs.every(l => l.status === 'void')) return { status: 'void', payout: c.amount, activeOdds: 1 };
+            const activeOdds = Number(legs.reduce((p, l) => (l.status === 'won' ? p * l.odds : p), 1).toFixed(2));
+            return { status: 'won', payout: calcPayout(c.amount, activeOdds, c.bonus, true), activeOdds, forgiven: forgive && lost === 1 };
+        }
+
+        async function settleSlipsForMatch(matchId, m, evalFn) {
+            const idxSnap = await get(dbRef(db, `slipIndex/${matchId}`));
+            if (!idxSnap.exists()) return;
+            for (const [slipId, uid] of Object.entries(idxSnap.val())) {
+                try {
+                    const uSnap = await get(dbRef(db, `users/${uid}`));
+                    if (!uSnap.exists()) continue;
+                    const u = uSnap.val();
+                    const c = u.coupons && u.coupons[slipId];
+                    if (!c || c.status !== 'pending') continue;
+                    const legsOld = Array.isArray(c.legs) ? c.legs : Object.values(c.legs || {});
+                    const legs = legsOld.map(l => (l.matchId === matchId && l.status === 'pending') ? { ...l, ...evalFn(l) } : l);
+                    const res = resolveSlip(c, legs);
+                    const coupon = { ...c, legs, status: res.status };
+                    const upd = {};
+                    if (res.status !== 'pending') {
+                        coupon.payout = res.payout; coupon.settledAt = Date.now(); coupon.activeOdds = res.activeOdds;
+                        if (res.forgiven) coupon.forgiven = true;
+                        upd[`users/${uid}/dartKasa`] = (u.dartKasa || 0) + res.payout;
+                    }
+                    upd[`users/${uid}/coupons/${slipId}`] = coupon;
+                    await update(dbRef(db), upd);
+                    if (res.status !== 'pending') {
+                        const n = legs.length;
+                        const kind = n > 1 ? `Kupon łączony (${n} ${nwPlural(n, 'typ', 'typy', 'typów')})` : 'Kupon';
+                        if (res.status === 'won') await notifyUser(uid, 'bet_result', `🎉 ${kind} wygrany!`, `Kurs ${res.activeOdds}. Wypłata: ${res.payout} DK.${res.forgiven ? ' Druga Szansa uratowała jeden typ.' : ''}`, matchId);
+                        else if (res.status === 'void') await notifyUser(uid, 'bet_result', `${kind} zwrócony`, `Stawka ${c.amount} DK wróciła na Twoje konto.`, matchId);
+                        else {
+                            const bad = legs.find(l => l.status === 'lost');
+                            await notifyUser(uid, 'bet_result', `${kind} przegrany`, `${bad ? `Nie wszedł typ: ${bad.label}. ` : ''}Stawka ${c.amount} DK przepadła.${res.payout > 0 ? ` Ubezpieczenie zwróciło ${res.payout} DK.` : ''}`, matchId);
+                        }
+                    }
+                } catch (err) { console.warn('Rozliczenie kuponu:', err.message); }
+            }
+            try { await remove(dbRef(db, `slipIndex/${matchId}`)); } catch (e) {}
+        }
+
+        // Usunięcie meczu z terminarza: zwrot stawek zakładów i anulowanie typów w kuponach
+        async function refundMatchBets(matchId, m) {
+            try {
+                const betsSnap = await get(dbRef(db, `bets/${matchId}`));
+                if (betsSnap.exists()) {
+                    for (const [uid, bet] of Object.entries(betsSnap.val())) {
+                        const uSnap = await get(dbRef(db, `users/${uid}`));
+                        if (!uSnap.exists()) continue;
+                        await update(dbRef(db), {
+                            [`users/${uid}/dartKasa`]: (uSnap.val().dartKasa || 0) + (bet.amount || 0),
+                            [`users/${uid}/coupons/${matchId}/status`]: 'void',
+                            [`users/${uid}/coupons/${matchId}/payout`]: bet.amount || 0,
+                            [`users/${uid}/coupons/${matchId}/settledAt`]: Date.now()
+                        });
+                        await notifyUser(uid, 'bet_result', 'Kupon zwrócony', `Mecz ${m ? `${m.p1Name} vs ${m.p2Name}` : ''} został anulowany. Stawka ${bet.amount} DK wróciła na Twoje konto.`, matchId);
+                    }
+                    await remove(dbRef(db, `bets/${matchId}`));
+                }
+                await settleSlipsForMatch(matchId, m || {}, () => ({ status: 'void', result: 'mecz anulowany' }));
+            } catch (err) { console.warn('Zwrot stawek:', err.message); }
+        }
+
+        // ---------- Motywy: animowane znaki rozpoznawcze ----------
+        const THEME_FX = {
+            sakura: { n: 22, kind: 'petal' }, matrix: { n: 16, kind: 'rain' }, neon: { n: 10, kind: 'orb' }, sunset: { n: 20, kind: 'ember' },
+            gold: { n: 24, kind: 'sparkle' }, ocean: { n: 18, kind: 'bubble' }, winter: { n: 28, kind: 'snow' }, space: { n: 36, kind: 'star' }
+        };
+        function applyThemeFx(key) {
+            let box = document.getElementById('theme-fx');
+            const cfg = key && THEME_FX[key];
+            const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            if (!cfg || reduce) { if (box) box.remove(); return; }
+            if (box && box.dataset.theme === key) return;
+            if (!box) { box = document.createElement('div'); box.id = 'theme-fx'; document.body.appendChild(box); }
+            box.dataset.theme = key;
+            box.innerHTML = '';
+            const rnd = (a, b) => a + Math.random() * (b - a);
+            for (let i = 0; i < cfg.n; i++) {
+                const el = document.createElement('span');
+                el.className = `fx fx-${cfg.kind}`;
+                let dur = rnd(9, 18), size = null, top = null;
+                switch (cfg.kind) {
+                    case 'petal': dur = rnd(9, 17); el.style.width = `${rnd(9, 18)}px`; el.style.height = `${rnd(7, 13)}px`; break;
+                    case 'rain': dur = rnd(5, 11); el.textContent = '01ｱｲｳｴｵｶ'[Math.floor(Math.random() * 7)]; el.style.fontSize = `${rnd(12, 20)}px`; break;
+                    case 'orb': dur = rnd(10, 20); { const s = rnd(120, 240); el.style.width = el.style.height = `${s}px`; el.style.background = Math.random() < 0.5 ? 'rgba(168,85,247,.32)' : 'rgba(236,72,153,.28)'; } top = rnd(0, 90); break;
+                    case 'ember': dur = rnd(7, 14); { const s = rnd(4, 9); el.style.width = el.style.height = `${s}px`; } break;
+                    case 'sparkle': dur = rnd(2, 5); el.textContent = '✦'; el.style.fontSize = `${rnd(10, 22)}px`; top = rnd(0, 95); break;
+                    case 'bubble': dur = rnd(9, 16); { const s = rnd(8, 26); el.style.width = el.style.height = `${s}px`; } break;
+                    case 'snow': dur = rnd(10, 20); { const s = rnd(3, 8); el.style.width = el.style.height = `${s}px`; } break;
+                    case 'star': dur = rnd(2, 6); { const s = rnd(1.5, 3.5); el.style.width = el.style.height = `${s}px`; } top = rnd(0, 100); break;
+                }
+                if (size) el.style.transform = `scale(${size})`;
+                el.style.left = `${rnd(0, 100)}%`;
+                if (top !== null) el.style.top = `${top}%`;
+                el.style.animationDuration = `${dur}s`;
+                el.style.animationDelay = `-${rnd(0, dur)}s`;
+                box.appendChild(el);
+            }
+            if (cfg.kind === 'star') {
+                const s = document.createElement('span');
+                s.className = 'fx fx-shoot'; s.style.left = '95%'; s.style.top = '8%';
+                box.appendChild(s);
+            }
+        }
+
         // --- PANEL ADMINA ---
+
         function renderAdminPanelData() {
             const listContainer = document.getElementById('admin-players-list');
             const selectP1 = document.getElementById('admin-create-p1');
@@ -3922,14 +4468,14 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
         let p2Delta = 5; 
 
         if (s1 > s2) {
-            p1Delta = 40; // 40 za wygraną
+            p1Delta = 50; // 50 za wygraną
             p2Delta = 5;  // 5 za przegraną
         } else if (s2 > s1) {
             p1Delta = 5;  
-            p2Delta = 40; 
+            p2Delta = 50; 
         } else {
-            p1Delta = 20; // 20 za remis
-            p2Delta = 20;
+            p1Delta = 30; // 30 za remis
+            p2Delta = 30;
         }
 
         // Dodatkowe bonusy funkcyjne z Dart Kasy (np. +15 za każdą 180-tkę, +20 za wysoki finish >= 100)
@@ -3973,13 +4519,7 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
                 let currentBalance = bettorData.dartKasa || 0;
 
                 const won = !!(matchWinnerUid && betInfo.playerUid === matchWinnerUid);
-                let payout = 0;
-                if (won) {
-                    payout = Math.round(betInfo.amount * betInfo.odds);
-                    if (betInfo.bonus === 'boost_25') payout = Math.round(payout * 1.25);
-                } else if (betInfo.bonus === 'insurance') {
-                    payout = Math.round(betInfo.amount * 0.5);
-                }
+                const payout = calcPayout(betInfo.amount, betInfo.odds, betInfo.bonus, won);
                 currentBalance += payout;
 
                 const pickedName = betInfo.playerUid === 'draw' ? 'Remis' : (betInfo.playerUid === m.p1Uid ? m.p1Name : m.p2Name);
@@ -4005,13 +4545,14 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
         }
         // --------------------------------------------------------
 
+        await settleSlipsForMatch(matchId, m, (l) => evalLeg(l, m));
         await remove(dbRef(db, 'upcomingMatches/' + matchId));
         try { await remove(dbRef(db, 'matchPools/' + matchId)); } catch (e) { console.warn(e.message); }
         alert(`Wynik został zatwierdzony! Przyznano Dart Kasę: ${m.p1Name} (+${p1Delta} DK), ${m.p2Name} (+${p2Delta} DK). Zakłady zostały rozliczone.`);
     } catch(err) { alert(err.message); }
 };
         window.deleteUpcomingMatch = async (id) => {
-            if (confirm("Usunąć ten mecz z terminarza?")) { await remove(dbRef(db, 'upcomingMatches/' + id)); try { await remove(dbRef(db, 'matchPools/' + id)); } catch (e) {} }
+            if (confirm("Usunąć ten mecz z terminarza? Stawki zakładów zostaną zwrócone.")) { await refundMatchBets(id, globalUpcomingMatchesMap[id]); await remove(dbRef(db, 'upcomingMatches/' + id)); try { await remove(dbRef(db, 'matchPools/' + id)); } catch (e) {} }
         };
 
         window.deleteMatch = async (id) => {
@@ -4551,5 +5092,3 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
     </script>
 </body>
 </html>
-
-
