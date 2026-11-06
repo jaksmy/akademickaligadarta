@@ -966,6 +966,10 @@
 .po-r.w{color:#34d399;font-weight:700}.po-d{font-size:.72rem;color:var(--text-muted);padding:2px 8px}
 .po-champ{text-align:center;font-weight:800;color:var(--warning-color);margin-top:6px}
 @media(max-width:768px){.po-grid{grid-template-columns:1fr}}
+.adm-cat{margin-bottom:12px;border:1px solid var(--card-border);border-radius:12px;background:var(--card-bg)}
+.adm-cat>summary{cursor:pointer;padding:14px 18px;font-weight:800;font-size:1.05rem}
+.adm-sub{margin:0 12px 10px}.adm-sub>summary{cursor:pointer;padding:10px 14px;font-weight:700;background:#0d1322;border-radius:10px}
+.adm-sub>.card{margin-top:8px}.adm-sub>.card>h2{display:none}
 </style>
 </head>
 <body>
@@ -5128,6 +5132,25 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
                 if (s.playoff) po.insertAdjacentHTML('beforeend', `<h3 style="margin:20px 0 10px;text-transform:uppercase;color:var(--accent-blue)">${label} - playoff</h3>` + bracketHtml(s.playoff, s.matches, {}));
             });
         }
+
+        // ===== Panel admina: rozwijane kategorie =====
+        (function groupAdminPanel() {
+            const page = nwEl('page-admin');
+            const cards = [...page.querySelectorAll(':scope > .card')];
+            const cats = [['⚙️ Sezon i playoff', ['Zarządzanie Sezonem', '🏆 Playoff']], ['📰 Aktualności', ['📰 Generator aktualności']], ['👥 Zawodnicy i portfele', ['Zarządzanie Zawodnikami i Portfelami (Dart Kasa)']], ['🎯 Mecze', ['Tworzenie Nadchodzącego Meczu', 'Oczekujące Protokoły Meczowe', 'Zarządzanie Nadchodzącymi Meczami', 'Zarządzanie Historią Meczów']]];
+            const anchor = cards[0];
+            cats.forEach(([title, names]) => {
+                const d = document.createElement('details'); d.className = 'adm-cat';
+                d.innerHTML = `<summary>${title}</summary>`;
+                names.forEach(n => {
+                    const c = cards.find(x => x.querySelector('h2') && x.querySelector('h2').textContent.trim() === n);
+                    if (!c) return;
+                    const s = document.createElement('details'); s.className = 'adm-sub';
+                    s.innerHTML = `<summary>${n}</summary>`; s.appendChild(c); d.appendChild(s);
+                });
+                page.insertBefore(d, anchor && anchor.parentNode === page ? anchor : null);
+            });
+        })();
 
         // Firebase Listeners
         onValue(dbRef(db, 'users'), (snapshot) => {
