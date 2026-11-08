@@ -970,6 +970,22 @@
 .adm-cat>summary{cursor:pointer;padding:14px 18px;font-weight:800;font-size:1.05rem}
 .adm-sub{margin:0 12px 10px}.adm-sub>summary{cursor:pointer;padding:10px 14px;font-weight:700;background:#0d1322;border-radius:10px}
 .adm-sub>.card{margin-top:8px}.adm-sub>.card>h2{display:none}
+@keyframes thmShift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+@keyframes thmGrid{to{background-position:0 48px,48px 0,0 0}}
+body[data-theme="aurora"]{--bg-color:#04120f;--card-bg:#0a1f1b;--card-border:#13433a;--accent-blue:#34d399;--accent-red:#a78bfa;--accent-glow:rgba(52,211,153,.2);
+ background-image:linear-gradient(120deg,rgba(52,211,153,.2),rgba(99,102,241,.2),rgba(34,211,238,.18),rgba(167,139,250,.2));background-size:300% 300%;animation:thmShift 14s ease infinite}
+body[data-theme="lava"]{--bg-color:#140605;--card-bg:#220c09;--card-border:#4a1a12;--accent-blue:#f97316;--accent-red:#facc15;--accent-glow:rgba(249,115,22,.22);
+ background-image:radial-gradient(circle at 20% 85%,rgba(239,68,68,.3),transparent 45%),radial-gradient(circle at 80% 15%,rgba(249,115,22,.25),transparent 45%),linear-gradient(120deg,rgba(250,204,21,.06),rgba(239,68,68,.14),rgba(250,204,21,.06));background-size:100% 100%,100% 100%,300% 300%;animation:thmShift 9s ease infinite}
+body[data-theme="synthwave"]{--bg-color:#0d0221;--card-bg:#170535;--card-border:#3a0f66;--accent-blue:#ff2a6d;--accent-red:#05d9e8;--accent-glow:rgba(255,42,109,.22);
+ background-image:linear-gradient(rgba(255,42,109,.13) 1px,transparent 1px),linear-gradient(90deg,rgba(5,217,232,.13) 1px,transparent 1px),linear-gradient(180deg,rgba(255,42,109,.2),transparent 55%);background-size:48px 48px,48px 48px,100% 100%;animation:thmGrid 3s linear infinite}
+body[data-theme="aurora"] .nav-btn.active,body[data-theme="lava"] .nav-btn.active,body[data-theme="synthwave"] .nav-btn.active{color:#0b0f19}
+@media (prefers-reduced-motion:reduce){body[data-theme]{animation:none}}
+.av-f-plasma::before{inset:calc(var(--s)*-.09);border-radius:50%;z-index:0;background:conic-gradient(#22d3ee,#e879f9,#facc15,#22d3ee);animation:avspin 1.6s linear infinite;filter:drop-shadow(0 0 7px #e879f9)}
+.av-f-plasma::after{inset:calc(var(--s)*-.2);border-radius:50%;border:calc(var(--s)*.03) dashed rgba(34,211,238,.75);z-index:1;animation:avspinr 6s linear infinite}
+.av-f-aurora::before{inset:calc(var(--s)*-.09);border-radius:50%;z-index:0;background:conic-gradient(#34d399,#6366f1,#22d3ee,#a78bfa,#34d399);animation:avspin 5s linear infinite;filter:drop-shadow(0 0 8px #34d399)}
+.av-f-blood::before{inset:calc(var(--s)*-.08);border-radius:50%;z-index:0;background:conic-gradient(#7f1d1d,#ef4444,#7f1d1d,#fca5a5,#7f1d1d);animation:avspin 3s linear infinite;filter:drop-shadow(0 0 7px #ef4444)}
+.av-f-diamond::before{inset:calc(var(--s)*-.08);border-radius:50%;z-index:0;background:conic-gradient(#e0f2fe,#7dd3fc,#fff,#a5f3fc,#e0f2fe);animation:avspin 3s linear infinite;filter:drop-shadow(0 0 7px #7dd3fc)}
+.av-f-diamond .av-deco{animation:avbob 2.5s ease-in-out infinite}
 </style>
 </head>
 <body>
@@ -1242,6 +1258,11 @@
                         <button class="btn-success" id="btn-admin-restore-season">🔄 Przywróć Sezon</button>
                     </div>
                     <div id="admin-season-msg" class="msg"></div>
+                </div>
+
+                <div class="card">
+                    <h2>🎁 Nagrody graczy</h2>
+                    <div id="admin-rewards-list"></div>
                 </div>
 
                 <div class="card">
@@ -1566,7 +1587,7 @@
             sendEmailVerification, sendPasswordResetEmail, onAuthStateChanged, signOut 
         } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { 
-            getDatabase, ref as dbRef, set, get, update, push, remove, onValue, increment 
+            getDatabase, ref as dbRef, set, get, update, push, remove, onValue, increment, runTransaction 
         } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         const firebaseConfig = {
@@ -2041,10 +2062,11 @@ Akademicka Liga Darta © 2026`;
             bukmacherka: { label: "🎲 Bukmacherka" },
             motywy:      { label: "🎨 Motywy" },
             tytuly:      { label: "🏆 Tytuły" },
+            nagrody:     { label: "🎁 Nagrody" },
             obramowki:   { label: "🖼️ Obramówki" }
         };
         const SLOT_BY_CAT = { motywy: 'theme', tytuly: 'title', obramowki: 'frame' };
-        const FRAME_DECO = { crown: '👑', fire: '🔥', hearts: '💖', flowers: '🌸', ice: '❄️' };
+        const FRAME_DECO = { diamond: '💎', crown: '👑', fire: '🔥', hearts: '💖', flowers: '🌸', ice: '❄️' };
 
         const SHOP_ITEMS = {
             // BUKMACHERKA (jednorazowe, można kupować wielokrotnie)
@@ -2107,7 +2129,16 @@ Akademicka Liga Darta © 2026`;
             frame_flowers: { cat: 'obramowki', name: "Obramówka: Kwiatowy Wianek", price: 200, icon: "🌸", frameKey: 'flowers', desc: "Obracające się kwiatowe pierścienie." },
             frame_hearts: { cat: 'obramowki', name: "Obramówka: Serduszka", price: 200, icon: "💖", frameKey: 'hearts', desc: "Pulsująca, różowa poświata z serduszkiem." },
             frame_goldspin: { cat: 'obramowki', name: "Obramówka: Złoty Wir", price: 200, icon: "🏅", frameKey: 'goldspin', desc: "Wirujący, luksusowy złoty pierścień." },
-            frame_toxic: { cat: 'obramowki', name: "Obramówka: Toksyczna", price: 200, icon: "☣️", frameKey: 'toxic', desc: "Radioaktywny, zielony wir." }
+            frame_toxic: { cat: 'obramowki', name: "Obramówka: Toksyczna", price: 200, icon: "☣️", frameKey: 'toxic', desc: "Radioaktywny, zielony wir." },
+            frame_plasma:  { cat: 'obramowki', name: "Obramówka: Plazma", price: 250, icon: "🔮", frameKey: 'plasma', desc: "Szybko wirująca plazma z obracającym się pierścieniem." },
+            frame_aurora:  { cat: 'obramowki', name: "Obramówka: Zorza", price: 250, icon: "🌌", frameKey: 'aurora', desc: "Płynące kolory zorzy polarnej wokół zdjęcia." },
+            frame_blood:   { cat: 'obramowki', name: "Obramówka: Krwawy Księżyc", price: 250, icon: "🩸", frameKey: 'blood', desc: "Czerwony, wirujący pierścień z krwawą poświatą." },
+            frame_diamond: { cat: 'obramowki', name: "Obramówka: Diament", price: 300, icon: "💎", frameKey: 'diamond', desc: "Połyskujący diamentowy pierścień z unoszącym się diamentem." },
+            theme_aurora:  { cat: 'motywy', name: "Motyw: Zorza (animowany)", price: 200, icon: "🌌", themeKey: 'aurora', swatch: ['#04120f', '#34d399', '#6366f1'], desc: "Płynące, zmieniające się kolory zorzy w tle." },
+            theme_lava:    { cat: 'motywy', name: "Motyw: Lawa (animowany)", price: 200, icon: "🌋", themeKey: 'lava', swatch: ['#140605', '#f97316', '#facc15'], desc: "Falujące, rozżarzone tło jak płynąca lawa." },
+            theme_synth:   { cat: 'motywy', name: "Motyw: Synthwave (animowany)", price: 200, icon: "🕹️", themeKey: 'synthwave', swatch: ['#0d0221', '#ff2a6d', '#05d9e8'], desc: "Neonowa siatka, która płynie przez ekran.", },
+            // NAGRODY (jedna sztuka na całą ligę - kto pierwszy, ten lepszy)
+            beer: { cat: 'nagrody', name: "PIWO", price: 1000, icon: "🍺", desc: "Prawdziwe piwo od admina! Każdy zawodnik może kupić swoje piwo tylko raz w całej lidze." }
         };
 
         let currentShopCat = 'bukmacherka';
@@ -2197,7 +2228,8 @@ Akademicka Liga Darta © 2026`;
 
             Object.keys(SHOP_ITEMS).filter(id => SHOP_ITEMS[id].cat === currentShopCat).forEach(itemId => {
                 const item = SHOP_ITEMS[itemId];
-                const isCosmetic = item.cat !== 'bukmacherka';
+                const isReward = item.cat === 'nagrody', rw = isReward && myReward(itemId);
+                const isCosmetic = item.cat !== 'bukmacherka' && !isReward;
                 const owned = isCosmetic && ownsItem(d, itemId);
                 const count = (!isCosmetic && d && d.inventory && d.inventory[itemId]) ? d.inventory[itemId] : 0;
 
@@ -2208,6 +2240,7 @@ Akademicka Liga Darta © 2026`;
                 let btn;
                 if (owned) btn = `<button class="btn-primary btn-sm" disabled style="opacity:.5; cursor:not-allowed;">Już kupione</button>`;
                 else btn = `<button class="btn-primary btn-sm" onclick="buyShopItem('${itemId}')">Kup przedmiot</button>`;
+                if (isReward && rw) { badge = `<div class="item-badge">✔ Już kupione</div>`; btn = `<button class="btn-primary btn-sm" disabled style="opacity:.5; cursor:not-allowed;">Już kupione</button>`; }
 
                 const card = document.createElement('div');
                 card.className = "player-card item-card";
@@ -2224,6 +2257,7 @@ Akademicka Liga Darta © 2026`;
         }
 
         window.buyShopItem = async (itemId) => {
+            if (SHOP_ITEMS[itemId] && SHOP_ITEMS[itemId].cat === 'nagrody') return buyReward(itemId);
             const item = SHOP_ITEMS[itemId];
             const user = auth.currentUser;
             if (!item || !user || !currentUserProfileData) return;
@@ -2277,14 +2311,14 @@ Akademicka Liga Darta © 2026`;
             const grid = document.getElementById('inventory-grid');
             if (!grid) return;
             const d = currentUserProfileData;
-            buildCatTabs('inv-cat-tabs', SHOP_CATS, currentInvCat, 'setInvCat', true);
+            buildCatTabs('inv-cat-tabs', Object.fromEntries(Object.entries(SHOP_CATS).filter(([k]) => k !== 'nagrody')), currentInvCat, 'setInvCat', true);
             grid.innerHTML = "";
             if (!d) return;
 
             let shown = 0;
             Object.keys(SHOP_ITEMS).forEach(itemId => {
                 const item = SHOP_ITEMS[itemId];
-                if (currentInvCat !== 'all' && item.cat !== currentInvCat) return;
+                if (item.cat === 'nagrody' || (currentInvCat !== 'all' && item.cat !== currentInvCat)) return;
 
                 const isCosmetic = item.cat !== 'bukmacherka';
                 let badge = '', btn = '';
@@ -2868,7 +2902,7 @@ Akademicka Liga Darta © 2026`;
                         }
 
                         const started = matchStarted(m);
-                        const inSlip = betSlip.find(x => x.matchId === matchId);
+                        const inSlip = betSlip.find(x => x.matchId === matchId && x.kind === '1x2');
                         // Kafelek kursu: klik zaznacza typ w kuponie, ponowny klik odznacza
                         const tile = (pick, label, odd, tr, extra) => {
                             const isBetPick = bet && bet.pick === pick;
@@ -3994,8 +4028,7 @@ ${board}</svg>`;
             if (!m) { nwEl('markets-body').innerHTML = '<p>Ten mecz nie jest już dostępny.</p>'; return; }
             nwEl('markets-title').innerText = `${m.p1Name} vs ${m.p2Name}`;
             if (matchStarted(m)) { nwEl('markets-body').innerHTML = '<p style="color: var(--text-muted);">🔒 Zakłady zamknięte – mecz się rozpoczął.</p>'; return; }
-            const cur = betSlip.find(s => s.matchId === matchId);
-            const isOn = (kind, pick, uid) => cur && cur.kind === kind && cur.pick === pick && (cur.uid || '') === (uid || '');
+            const isOn = (kind, pick, uid) => betSlip.some(c => c.matchId === matchId && c.kind === kind && c.pick === pick && (c.uid || '') === (uid || ''));
             const o = getLiveOdds(matchId, m);
             const btn = (kind, pick, uid, label, odds) =>
                 `<button class="mk-btn ${isOn(kind, pick, uid) ? 'on' : ''}" onclick="toggleSelection('${matchId}', '${kind}', '${pick}', '${uid || ''}')"><span>${label}</span><b>${odds}${kind === '1x2' ? mkTrend(matchId, m, o, pick, odds) : ''}</b></button>`;
@@ -4024,7 +4057,7 @@ ${board}</svg>`;
             if (m.p1Uid === me || m.p2Uid === me) { alert('Nie możesz obstawiać meczu, w którym sam grasz.'); return; }
             if (matchStarted(m)) { alert('Zakłady na ten mecz są już zamknięte – mecz się rozpoczął.'); return; }
             if (myPendingBetForMatch(matchId)) { alert('Ten mecz jest już obstawiony.'); return; }
-            const idx = betSlip.findIndex(s => s.matchId === matchId);
+            const idx = betSlip.findIndex(s => s.matchId === matchId && s.kind === kind && (s.uid || '') === (uid || ''));
             const same = idx >= 0 && betSlip[idx].kind === kind && betSlip[idx].pick === pick && (betSlip[idx].uid || '') === (uid || '');
             if (same) betSlip.splice(idx, 1);
             else {
@@ -5137,7 +5170,7 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
         (function groupAdminPanel() {
             const page = nwEl('page-admin');
             const cards = [...page.querySelectorAll(':scope > .card')];
-            const cats = [['⚙️ Sezon i playoff', ['Zarządzanie Sezonem', '🏆 Playoff']], ['📰 Aktualności', ['📰 Generator aktualności']], ['👥 Zawodnicy i portfele', ['Zarządzanie Zawodnikami i Portfelami (Dart Kasa)']], ['🎯 Mecze', ['Tworzenie Nadchodzącego Meczu', 'Oczekujące Protokoły Meczowe', 'Zarządzanie Nadchodzącymi Meczami', 'Zarządzanie Historią Meczów']]];
+            const cats = [['⚙️ Sezon i playoff', ['Zarządzanie Sezonem', '🏆 Playoff']], ['📰 Aktualności', ['📰 Generator aktualności']], ['👥 Zawodnicy i portfele', ['Zarządzanie Zawodnikami i Portfelami (Dart Kasa)']], ['🎁 Nagrody', ['🎁 Nagrody graczy']], ['🎯 Mecze', ['Tworzenie Nadchodzącego Meczu', 'Oczekujące Protokoły Meczowe', 'Zarządzanie Nadchodzącymi Meczami', 'Zarządzanie Historią Meczów']]];
             const anchor = cards[0];
             cats.forEach(([title, names]) => {
                 const d = document.createElement('details'); d.className = 'adm-cat';
@@ -5151,6 +5184,44 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
                 page.insertBefore(d, anchor && anchor.parentNode === page ? anchor : null);
             });
         })();
+
+        // ===== Nagrody (jedna sztuka na każdego zawodnika) =====
+        let globalRewards = {};
+        function myReward(id) {
+            const u = auth.currentUser && auth.currentUser.uid; if (!u) return null;
+            return globalRewards[id + '__' + u] || (globalRewards[id] && globalRewards[id].buyerUid === u ? globalRewards[id] : null);
+        }
+        async function buyReward(id) {
+            const item = SHOP_ITEMS[id], user = auth.currentUser, d = currentUserProfileData;
+            if (!item || !user || !d) return;
+            if (myReward(id)) { alert('Już kupiłeś tę nagrodę - można ją kupić tylko raz.'); return; }
+            if (!confirm(`Kupić „${item.name}” za ${item.price} DK? Można ją kupić tylko raz i nie ma zwrotu.`)) return;
+            try {
+                const bal = ((await get(dbRef(db, 'users/' + user.uid))).val() || {}).dartKasa || 0;
+                if (bal < item.price) { alert('Nie masz wystarczającej ilości Dart Kasy!'); return; }
+                const name = `${d.firstName || ''} ${d.lastName || ''}`.trim();
+                const res = await runTransaction(dbRef(db, 'rewards/' + id + '__' + user.uid), cur => cur ? undefined : { buyerUid: user.uid, buyerName: name, price: item.price, ts: Date.now(), redeemed: false });
+                if (!res.committed) { alert('Ta nagroda została już przez Ciebie kupiona.'); return; }
+                await update(dbRef(db), { [`users/${user.uid}/dartKasa`]: bal - item.price, [`users/${user.uid}/ownedItems/${id}`]: true });
+                alert('Gratulacje! Kupiłeś nagrodę. Admin został poinformowany i skontaktuje się z Tobą.');
+            } catch (e) { alert(e.message); }
+        }
+        window.adminRedeemReward = async (id) => {
+            if (!isAdminUser()) return;
+            try { await update(dbRef(db, 'rewards/' + id), { redeemed: true, redeemedAt: Date.now() }); } catch (e) { alert(e.message); }
+        };
+        function renderAdminRewards() {
+            const box = nwEl('admin-rewards-list'); if (!box) return;
+            const list = Object.entries(globalRewards).sort((a, b) => (b[1].ts || 0) - (a[1].ts || 0));
+            const pend = list.filter(([k, v]) => !v.redeemed), done = list.filter(([k, v]) => v.redeemed);
+            const nm = k => (SHOP_ITEMS[k.split('__')[0]] ? SHOP_ITEMS[k.split('__')[0]].name : k);
+            box.innerHTML = list.length ? pend.map(([k, v]) => `<div class="match-card" style="border-color:#f59e0b"><div>🔔 <b>${nwEsc(v.buyerName)}</b> zakupił ${nwEsc(nm(k))} za ${v.price} DK</div><button class="btn-success btn-sm" onclick="adminRedeemReward('${k}')">Zrealizuj</button></div>`).join('')
+                + done.map(([k, v]) => `<div class="match-card" style="opacity:.85"><div>${SHOP_ITEMS[k.split('__')[0]] ? SHOP_ITEMS[k.split('__')[0]].icon : '🎁'} <b>${nwEsc(nm(k))} zrealizowane</b> - ${nwEsc(v.buyerName)} (${new Date(v.redeemedAt || v.ts).toLocaleDateString('pl-PL')})</div></div>`).join('')
+                : '<p style="color:var(--text-muted)">Nikt jeszcze nie kupił nagrody.</p>';
+            const sm = [...document.querySelectorAll('.adm-cat > summary')].find(x => x.textContent.startsWith('🎁'));
+            if (sm) sm.textContent = pend.length ? `🎁 Nagrody 🔴 ${pend.length}` : '🎁 Nagrody';
+        }
+        onValue(dbRef(db, 'rewards'), snap => { globalRewards = snap.val() || {}; renderShop(); renderAdminRewards(); });
 
         // Firebase Listeners
         onValue(dbRef(db, 'users'), (snapshot) => {
