@@ -917,17 +917,23 @@
         @keyframes fxbubble { 0% { transform: translate(0, 112vh); opacity: 0; } 15% { opacity: .75; } 50% { transform: translate(22px, 55vh); } 100% { transform: translate(-16px, -12vh); opacity: 0; } }
         @keyframes fxtwinkle { 0%, 100% { transform: scale(.4); opacity: .1; } 50% { transform: scale(1.1); opacity: 1; } }
         @keyframes fxdrift { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(40px, -60px) scale(1.25); } }
-        @keyframes fxrain { 0% { transform: translateY(-10vh); opacity: 0; } 10% { opacity: .9; } 100% { transform: translateY(112vh); opacity: .1; } }
+        @keyframes fxrain { 0% { transform: translateY(-35vh); opacity: 0; } 10% { opacity: 1; } 100% { transform: translateY(112vh); opacity: .15; } }
         @keyframes fxshoot { 0% { transform: translate(0, 0) rotate(35deg); opacity: 0; } 2% { opacity: 1; } 9% { transform: translate(-60vw, 38vh) rotate(35deg); opacity: 0; } 100% { transform: translate(-60vw, 38vh) rotate(35deg); opacity: 0; } }
-        .fx-petal { width: 14px; height: 10px; background: radial-gradient(circle at 30% 30%, #fff1f6, #f9a8d4 60%, #ec4899); border-radius: 150% 0 150% 0; animation: fxfall linear infinite; opacity: .85; }
-        .fx-rain { color: #22c55e; font-family: monospace; text-shadow: 0 0 6px #22c55e; animation: fxrain linear infinite; }
+        .fx-petal { width: 14px; height: 10px; background: radial-gradient(circle at 30% 30%, #fff1f6, #f9a8d4 60%, #ec4899); border-radius: 150% 0 150% 0; animation: fxfall linear infinite; box-shadow: 0 0 6px rgba(244,114,182,.35); }
+        .fx-rain { color: #22c55e; font-family: monospace; white-space: pre; line-height: 1.05; text-shadow: 0 0 6px #22c55e; -webkit-mask-image: linear-gradient(to bottom, transparent, #000 75%); mask-image: linear-gradient(to bottom, transparent, #000 75%); animation: fxrain linear infinite; }
         .fx-orb { border-radius: 50%; filter: blur(18px); animation: fxdrift ease-in-out infinite; }
-        .fx-ember { border-radius: 50%; background: radial-gradient(circle, #fde68a, #f97316 60%, transparent); animation: fxrise linear infinite; }
+        .fx-ember { border-radius: 50%; background: radial-gradient(circle, #fff7c2, #fbbf24 35%, #f97316 65%, transparent); box-shadow: 0 0 10px 2px rgba(249,115,22,.7); animation: fxrise linear infinite, fxflicker ease-in-out infinite; }
         .fx-sparkle { color: #facc15; text-shadow: 0 0 8px #facc15; animation: fxtwinkle ease-in-out infinite; }
         .fx-bubble { border-radius: 50%; border: 1.5px solid rgba(125,211,252,.7); background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.35), transparent 60%); animation: fxbubble linear infinite; }
-        .fx-snow { border-radius: 50%; background: #fff; box-shadow: 0 0 6px rgba(255,255,255,.8); animation: fxfall linear infinite; opacity: .85; }
+        .fx-snow { border-radius: 50%; background: #fff; box-shadow: 0 0 5px rgba(255,255,255,.85); animation: fxsnow linear infinite; }
         .fx-star { border-radius: 50%; background: #fff; animation: fxtwinkle ease-in-out infinite; }
         .fx-shoot { width: 120px; height: 2px; background: linear-gradient(90deg, #fff, transparent); animation: fxshoot 9s linear infinite; }
+        .fx-firefly { border-radius: 50%; background: #ecfccb; box-shadow: 0 0 12px 3px rgba(190,242,100,.7); animation: fxdrift ease-in-out infinite, fxglow ease-in-out infinite; }
+        .fx-drop { width: 1.5px; background: linear-gradient(transparent, rgba(147,197,253,.85)); animation: fxdrop linear infinite; }
+        @keyframes fxsnow { 0% { transform: translate(0, -6vh); } 25% { transform: translate(22px, 24vh); } 50% { transform: translate(-18px, 50vh); } 75% { transform: translate(20px, 78vh); } 100% { transform: translate(0, 108vh); } }
+        @keyframes fxdrop { 0% { transform: translateY(-10vh); opacity: 0; } 10% { opacity: .9; } 100% { transform: translateY(112vh); opacity: .2; } }
+        @keyframes fxglow { 0%, 100% { opacity: .15; } 50% { opacity: 1; } }
+        @keyframes fxflicker { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.9) saturate(1.3); } }
         @media (prefers-reduced-motion: reduce) { .fx, .av-wrap::before, .av-wrap::after, .av-wrap > img, .av-deco { animation: none !important; } }
 
         /* ===== TYPY, KUPON ŁĄCZONY ===== */
@@ -1037,6 +1043,14 @@ body[data-theme="stormcloud"]{--bg-color:#0b1020;--card-bg:#141c33;--card-border
 .pv-btn{display:inline-block;margin-top:6px;padding:4px 12px;border-radius:7px;background:var(--accent-blue,#3b82f6);color:#0b0f19;font-weight:800}
 .pv-cap{position:absolute;left:0;right:0;bottom:0;padding:4px 10px;background:rgba(0,0,0,.55);font-size:11px}
 [data-theme-preview]{cursor:zoom-in}
+.pv2-nav{position:relative;display:flex;gap:1.6em;align-items:center;padding:.8em 1.4em;background:var(--card-bg);border-bottom:1px solid var(--card-border);font-weight:700}
+.pv2-nav b{color:var(--accent-blue);font-size:1.4em;margin-right:auto}.pv2-dk{color:var(--accent-red)}
+.pv2-card{position:relative;max-width:26em;margin:1.4em auto;background:var(--card-bg);border:1px solid var(--card-border);border-radius:.9em;padding:1em 1.2em}
+.pv2-card h3{margin:0 0 .5em;color:var(--accent-blue)}
+.pv2-row{display:flex;justify-content:space-between;padding:.35em 0;border-bottom:1px solid var(--card-border)}.pv2-row i{font-style:normal;color:var(--accent-red);font-weight:700}
+.pv2-btn{display:inline-block;margin-top:.7em;padding:.35em 1.1em;border-radius:.6em;background:var(--accent-blue);color:#0b0f19;font-weight:800}
+.pv2-cap{position:absolute;left:0;right:0;bottom:0;padding:.4em 1em;background:rgba(0,0,0,.6);color:#fff}
+.pv-fxbox{position:absolute;inset:0;overflow:hidden;pointer-events:none}
 </style>
 </head>
 <body>
@@ -4364,9 +4378,54 @@ ${board}</svg>`;
 
         // ---------- Motywy: animowane znaki rozpoznawcze ----------
         const THEME_FX = {
-            sakura: { n: 22, kind: 'petal' }, matrix: { n: 16, kind: 'rain' }, neon: { n: 10, kind: 'orb' }, sunset: { n: 20, kind: 'ember' },
-            gold: { n: 24, kind: 'sparkle' }, ocean: { n: 18, kind: 'bubble' }, winter: { n: 28, kind: 'snow' }, space: { n: 36, kind: 'star' }
+            sakura: { n: 70, kind: 'petal' }, matrix: { n: 46, kind: 'rain' }, greengrid: { n: 46, kind: 'rain' },
+            neon: { n: 14, kind: 'orb', colors: ['rgba(168,85,247,.32)', 'rgba(236,72,153,.28)', 'rgba(56,189,248,.25)'] },
+            sunset: { n: 60, kind: 'ember' }, gold: { n: 40, kind: 'sparkle' }, goldrush: { n: 44, kind: 'sparkle' },
+            ocean: { n: 50, kind: 'bubble' }, tidal: { n: 50, kind: 'bubble' }, winter: { n: 140, kind: 'snow' }, glacier: { n: 130, kind: 'snow' },
+            space: { n: 110, kind: 'star' }, nebula: { n: 100, kind: 'star' }, aurora: { n: 90, kind: 'star' },
+            lava: { n: 75, kind: 'ember' }, inferno: { n: 80, kind: 'ember' }, dusk: { n: 36, kind: 'sparkle', color: '#fb7185' },
+            jungle: { n: 45, kind: 'firefly' }, stormcloud: { n: 100, kind: 'drop' }, vapor: { n: 34, kind: 'sparkle', color: '#f472b6' },
+            bubblegum: { n: 40, kind: 'bubble', color: '#f9a8d4' },
+            synthwave: { n: 14, kind: 'orb', colors: ['rgba(255,42,109,.3)', 'rgba(5,217,232,.25)'] }
         };
+        // Wypełnia kontener cząsteczkami motywu - używane na stronie i w podglądzie (identyczny wygląd)
+        function fillFx(box, key) {
+            const cfg = THEME_FX[key];
+            box.innerHTML = '';
+            if (!cfg) return;
+            const rnd = (a, b) => a + Math.random() * (b - a), pick = a => a[Math.floor(Math.random() * a.length)];
+            const GL = Array.from('01ｱｲｳｴｵｶｷｸｹｺﾊﾐﾑﾒﾓ');
+            for (let i = 0; i < cfg.n; i++) {
+                const el = document.createElement('span');
+                el.className = `fx fx-${cfg.kind}`;
+                let dur = rnd(9, 18), dur2 = 0, top = null;
+                const sq = s => { el.style.width = el.style.height = `${s}px`; };
+                switch (cfg.kind) {
+                    case 'petal': dur = rnd(8, 16); { const s = rnd(8, 20); el.style.width = `${s}px`; el.style.height = `${s * .7}px`; el.style.filter = `hue-rotate(${rnd(-15, 15)}deg)`; el.style.opacity = rnd(.55, .95); } break;
+                    case 'rain': dur = rnd(4, 10); el.textContent = Array.from({ length: Math.floor(rnd(6, 14)) }, () => pick(GL)).join('\n'); el.style.fontSize = `${rnd(11, 18)}px`; el.style.opacity = rnd(.4, 1); break;
+                    case 'orb': dur = rnd(10, 20); sq(rnd(140, 300)); el.style.background = pick(cfg.colors); top = rnd(0, 90); break;
+                    case 'ember': dur = rnd(5, 12); dur2 = rnd(.5, 1.8); sq(rnd(2, 8)); break;
+                    case 'sparkle': dur = rnd(2, 5); el.textContent = pick(['✦', '✧', '✦']); el.style.fontSize = `${rnd(10, 24)}px`; if (cfg.color) { el.style.color = cfg.color; el.style.textShadow = `0 0 8px ${cfg.color}`; } top = rnd(0, 95); break;
+                    case 'bubble': dur = rnd(8, 16); sq(rnd(8, 34)); if (cfg.color) el.style.borderColor = cfg.color; break;
+                    case 'snow': dur = rnd(8, 18); sq(rnd(2, 6.5)); el.style.opacity = rnd(.5, 1); break;
+                    case 'star': dur = rnd(2, 6); sq(rnd(1, 3.2)); top = rnd(0, 100); break;
+                    case 'firefly': dur = rnd(6, 14); dur2 = rnd(1.5, 4); sq(rnd(3, 7)); top = rnd(10, 95); break;
+                    case 'drop': dur = rnd(.7, 1.6); el.style.height = `${rnd(14, 32)}px`; el.style.opacity = rnd(.3, .8); break;
+                }
+                el.style.left = `${rnd(0, 100)}%`;
+                if (top !== null) el.style.top = `${top}%`;
+                el.style.animationDuration = dur2 ? `${dur}s, ${dur2}s` : `${dur}s`;
+                el.style.animationDelay = dur2 ? `-${rnd(0, dur)}s, -${rnd(0, dur2)}s` : `-${rnd(0, dur)}s`;
+                box.appendChild(el);
+            }
+            if (cfg.kind === 'star') {
+                for (let i = 0; i < 3; i++) {
+                    const s = document.createElement('span');
+                    s.className = 'fx fx-shoot'; s.style.left = `${rnd(70, 100)}%`; s.style.top = `${rnd(2, 30)}%`; s.style.animationDelay = `-${rnd(0, 9)}s`;
+                    box.appendChild(s);
+                }
+            }
+        }
         function applyThemeFx(key) {
             let box = document.getElementById('theme-fx');
             const cfg = key && THEME_FX[key];
@@ -4375,34 +4434,7 @@ ${board}</svg>`;
             if (box && box.dataset.theme === key) return;
             if (!box) { box = document.createElement('div'); box.id = 'theme-fx'; document.body.appendChild(box); }
             box.dataset.theme = key;
-            box.innerHTML = '';
-            const rnd = (a, b) => a + Math.random() * (b - a);
-            for (let i = 0; i < cfg.n; i++) {
-                const el = document.createElement('span');
-                el.className = `fx fx-${cfg.kind}`;
-                let dur = rnd(9, 18), size = null, top = null;
-                switch (cfg.kind) {
-                    case 'petal': dur = rnd(9, 17); el.style.width = `${rnd(9, 18)}px`; el.style.height = `${rnd(7, 13)}px`; break;
-                    case 'rain': dur = rnd(5, 11); el.textContent = '01ｱｲｳｴｵｶ'[Math.floor(Math.random() * 7)]; el.style.fontSize = `${rnd(12, 20)}px`; break;
-                    case 'orb': dur = rnd(10, 20); { const s = rnd(120, 240); el.style.width = el.style.height = `${s}px`; el.style.background = Math.random() < 0.5 ? 'rgba(168,85,247,.32)' : 'rgba(236,72,153,.28)'; } top = rnd(0, 90); break;
-                    case 'ember': dur = rnd(7, 14); { const s = rnd(4, 9); el.style.width = el.style.height = `${s}px`; } break;
-                    case 'sparkle': dur = rnd(2, 5); el.textContent = '✦'; el.style.fontSize = `${rnd(10, 22)}px`; top = rnd(0, 95); break;
-                    case 'bubble': dur = rnd(9, 16); { const s = rnd(8, 26); el.style.width = el.style.height = `${s}px`; } break;
-                    case 'snow': dur = rnd(10, 20); { const s = rnd(3, 8); el.style.width = el.style.height = `${s}px`; } break;
-                    case 'star': dur = rnd(2, 6); { const s = rnd(1.5, 3.5); el.style.width = el.style.height = `${s}px`; } top = rnd(0, 100); break;
-                }
-                if (size) el.style.transform = `scale(${size})`;
-                el.style.left = `${rnd(0, 100)}%`;
-                if (top !== null) el.style.top = `${top}%`;
-                el.style.animationDuration = `${dur}s`;
-                el.style.animationDelay = `-${rnd(0, dur)}s`;
-                box.appendChild(el);
-            }
-            if (cfg.kind === 'star') {
-                const s = document.createElement('span');
-                s.className = 'fx fx-shoot'; s.style.left = '95%'; s.style.top = '8%';
-                box.appendChild(s);
-            }
+            fillFx(box, key);
         }
 
         // --- PANEL ADMINA ---
@@ -5362,12 +5394,11 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
         }
         onValue(dbRef(db, 'rewards'), snap => { globalRewards = snap.val() || {}; renderShop(); renderAdminRewards(); });
 
-        // ===== Podgląd motywów (najechanie lub kliknięcie; znika po zjechaniu / kliknięciu obok) =====
+        // ===== Podgląd motywów: skalowana replika całego okna z tymi samymi efektami co na stronie =====
         (function themePreview() {
             const box = document.createElement('div'); box.id = 'theme-preview'; document.body.appendChild(box);
             let cloned = false, pinned = false, curKey = null, lastX = 20, lastY = 20;
-            const FXK = { sakura: ['🌸', 0], matrix: ['01', 0], neon: ['●', 1], sunset: ['✦', 1], gold: ['✦', 0], ocean: ['○', 1], winter: ['❄', 0], space: ['✦', 0] };
-            function cloneRules() { // kopiuje reguły body[data-theme="x"] na .thm-pv, żeby pokazać motyw tylko w oknie podglądu
+            function cloneRules() { // kopiuje reguły body[data-theme="x"] na .thm-pv
                 if (cloned) return; cloned = true;
                 [...document.styleSheets].forEach(sh => {
                     let rules; try { rules = sh.cssRules; } catch (e) { return; }
@@ -5378,7 +5409,7 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
                 });
             }
             function place() {
-                const w = 300, h = 196;
+                const w = box.offsetWidth, h = box.offsetHeight;
                 box.style.left = Math.max(8, Math.min(lastX + 18, window.innerWidth - w - 8)) + 'px';
                 box.style.top = Math.max(8, Math.min(lastY + 18, window.innerHeight - h - 8)) + 'px';
             }
@@ -5387,25 +5418,27 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
                 const key = card.dataset.themePreview; if (!key) return;
                 if (curKey !== key) {
                     curKey = key;
-                    const fx = FXK[key], reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-                    let parts = '';
-                    if (fx && !reduce) for (let i = 0; i < 14; i++) parts += `<span class="${fx[1] ? 'up' : ''}" style="left:${Math.random() * 95}%;font-size:${10 + Math.random() * 10}px;animation-duration:${3 + Math.random() * 4}s;animation-delay:-${Math.random() * 6}s">${fx[0]}</span>`;
-                    box.innerHTML = `<div class="thm-pv" data-theme="${key}"><div class="pv-fx">${parts}</div><div class="pv-nav"><b>ADL</b><span>Strona · Sklep · Gracze</span><span>💰 120 DK</span></div><div class="pv-card"><b>Tabela ligi</b><div class="pv-row"><span>1. Jan K.</span><i>12 pkt</i></div><div class="pv-row"><span>2. Adam W.</span><i>9 pkt</i></div><span class="pv-btn">Zatwierdź</span></div><div class="pv-cap">Podgląd: ${nwEsc(card.dataset.themeName || '')}</div></div>`;
+                    const iw = window.innerWidth, ih = window.innerHeight, s = Math.min(380 / iw, 300 / ih);
+                    box.style.width = `${iw * s}px`; box.style.height = `${ih * s}px`;
+                    const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                    box.innerHTML = `<div class="thm-pv" data-theme="${key}" style="width:${iw}px;height:${ih}px;transform:scale(${s});transform-origin:0 0;font-size:${(11 / s).toFixed(1)}px"><div class="pv-fxbox"></div><div class="pv2-nav"><b>ADL</b><span>Strona</span><span>Tabela</span><span>Sklep</span><span class="pv2-dk">💰 120 DK</span></div><div class="pv2-card"><h3>Tabela ligi</h3><div class="pv2-row"><span>1. Jan K.</span><i>12 pkt</i></div><div class="pv2-row"><span>2. Adam W.</span><i>9 pkt</i></div><div class="pv2-row"><span>3. Piotr S.</span><i>6 pkt</i></div><span class="pv2-btn">Zatwierdź</span></div><div class="pv2-cap">Podgląd: ${nwEsc(card.dataset.themeName || '')}</div></div>`;
+                    if (!reduce) fillFx(box.querySelector('.pv-fxbox'), key);
                 }
                 place(); box.classList.add('show');
             }
-            function hide() { pinned = false; curKey = null; box.classList.remove('show'); }
+            function hide() { pinned = false; curKey = null; box.classList.remove('show'); box.innerHTML = ''; }
             document.addEventListener('mousemove', e => { lastX = e.clientX; lastY = e.clientY; if (box.classList.contains('show')) place(); });
             document.addEventListener('mouseover', e => { if (pinned) return; const c = e.target.closest && e.target.closest('[data-theme-preview]'); if (c) { lastX = e.clientX; lastY = e.clientY; show(c); } else if (box.classList.contains('show')) hide(); });
             document.addEventListener('mouseout', e => { if (pinned) return; const c = e.target.closest && e.target.closest('[data-theme-preview]'); if (c && !c.contains(e.relatedTarget)) hide(); });
             document.addEventListener('click', e => {
                 const c = e.target.closest && e.target.closest('[data-theme-preview]');
-                if (e.target.closest && e.target.closest('button')) { if (pinned) hide(); return; } // przyciski kup/załóż działają normalnie
+                if (e.target.closest && e.target.closest('button')) { if (pinned) hide(); return; }
                 if (c) { lastX = e.clientX; lastY = e.clientY; if (pinned && curKey === c.dataset.themePreview) hide(); else { show(c); pinned = true; } }
                 else if (pinned) hide();
             });
             document.addEventListener('keydown', e => { if (e.key === 'Escape') hide(); });
             window.addEventListener('scroll', () => { if (!pinned) hide(); }, { passive: true });
+            window.addEventListener('resize', hide);
         })();
 
         // Firebase Listeners
