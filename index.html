@@ -4885,7 +4885,28 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
             document.getElementById('modal-badges').classList.remove('hidden');
         }
 
+        // Dosyłanie przedmiotów za achievementy odebrane przed zmianą nagród (działa automatycznie przy wejściu gracza)
+        let achSyncBusy = false;
+        async function syncAchItems(data) {
+            const user = auth.currentUser;
+            if (!user || !data || achSyncBusy) return;
+            const c = data.achClaimed || {}, missing = [];
+            Object.keys(c).forEach(k => {
+                const r = c[k] && ALL_BADGES[k] && ALL_BADGES[k].reward;
+                if (r && r.item && SHOP_ITEMS[r.item] && !ownsItem(data, r.item) && !missing.includes(r.item)) missing.push(r.item);
+            });
+            if (!missing.length) return;
+            achSyncBusy = true;
+            try {
+                const upd = {};
+                missing.forEach(i => upd[`users/${user.uid}/ownedItems/${i}`] = true);
+                await update(dbRef(db), upd);
+                notifyUser(user.uid, 'achievement', '🎁 Przyznano przedmioty', `Za wcześniej odebrane achievementy dodano do Ekwipunku: ${missing.map(i => SHOP_ITEMS[i].name).join(', ')}.`, null);
+            } catch (e) { console.warn(e.message); }
+            achSyncBusy = false;
+        }
         function updateAchDot(data) {
+            syncAchItems(data);
             const el = document.getElementById('ach-dot'); if (!el || !auth.currentUser) return;
             const c = (data && data.achClaimed) || {};
             const n = calculatePlayerUnlockedBadges(auth.currentUser.uid).filter(k => !c[k]).length;
