@@ -986,6 +986,16 @@ body[data-theme="aurora"] .nav-btn.active,body[data-theme="lava"] .nav-btn.activ
 .av-f-blood::before{inset:calc(var(--s)*-.08);border-radius:50%;z-index:0;background:conic-gradient(#7f1d1d,#ef4444,#7f1d1d,#fca5a5,#7f1d1d);animation:avspin 3s linear infinite;filter:drop-shadow(0 0 7px #ef4444)}
 .av-f-diamond::before{inset:calc(var(--s)*-.08);border-radius:50%;z-index:0;background:conic-gradient(#e0f2fe,#7dd3fc,#fff,#a5f3fc,#e0f2fe);animation:avspin 3s linear infinite;filter:drop-shadow(0 0 7px #7dd3fc)}
 .av-f-diamond .av-deco{animation:avbob 2.5s ease-in-out infinite}
+.ach-dot{background:var(--accent-red);color:#fff;border-radius:9px;min-width:18px;padding:0 5px;font-size:.7rem;margin-left:6px;display:inline-block;text-align:center}
+.ach-dot.hidden{display:none}
+.ach-group{grid-column:1/-1;margin:14px 0 4px;font-weight:800;font-size:.85rem;text-transform:uppercase;color:var(--accent-blue);display:flex;justify-content:space-between;align-items:center;gap:8px}
+.ach-reward{font-size:.68rem;color:#fbbf24;margin:4px 0}
+.av-f-fire::before{inset:calc(var(--s)*-.09);border-radius:50%;z-index:0;background:conic-gradient(#f97316,#facc15,#ef4444,#f97316);animation:avspin 1.2s linear infinite;filter:drop-shadow(0 0 9px #f97316)}
+.av-f-royal::before{inset:calc(var(--s)*-.09);border-radius:50%;z-index:0;background:conic-gradient(#facc15,#a855f7,#facc15,#7c3aed,#facc15);animation:avspin 2.5s linear infinite;filter:drop-shadow(0 0 8px #facc15)}
+.av-f-ice::before{inset:calc(var(--s)*-.09);border-radius:50%;z-index:0;background:conic-gradient(#e0f2fe,#38bdf8,#fff,#0ea5e9,#e0f2fe);animation:avspin 4s linear infinite;filter:drop-shadow(0 0 7px #38bdf8)}
+@keyframes thmMat{to{background-position:0 36px,36px 0}}
+body[data-theme="goldrush"]{--bg-color:#130f02;--card-bg:#201a05;--card-border:#4d3d0a;--accent-blue:#fbbf24;--accent-red:#f87171;--accent-glow:rgba(251,191,36,.22);background-image:linear-gradient(120deg,rgba(251,191,36,.14),rgba(250,204,21,.03),rgba(245,158,11,.16),rgba(250,204,21,.03));background-size:300% 300%;animation:thmShift 7s ease infinite}
+body[data-theme="matrix"]{--bg-color:#020a04;--card-bg:#06150a;--card-border:#0e3a1c;--accent-blue:#22c55e;--accent-red:#ef4444;--accent-glow:rgba(34,197,94,.22);background-image:linear-gradient(rgba(34,197,94,.1) 1px,transparent 1px),linear-gradient(90deg,rgba(34,197,94,.06) 1px,transparent 1px);background-size:36px 36px,36px 36px;animation:thmMat 4s linear infinite}
 </style>
 </head>
 <body>
@@ -1183,14 +1193,14 @@ body[data-theme="aurora"] .nav-btn.active,body[data-theme="lava"] .nav-btn.activ
                         <p style="color: var(--text-muted); font-size: 0.9rem;" id="prof-email-display">-</p>
                         
                         <div style="margin-top: 8px;">
-                            <span style="font-size:0.75rem; text-transform:uppercase; color:var(--text-muted); display:block; margin-bottom:2px;">Gablota odznak</span>
+                            <span style="font-size:0.75rem; text-transform:uppercase; color:var(--text-muted); display:block; margin-bottom:2px;">Gablota achievementów</span>
                             <div id="prof-showcase" class="showcase-container" style="justify-content: flex-start; width: fit-content; padding: 4px 10px;"></div>
                         </div>
 
                         <div id="prof-status-badge"></div>
                         <div style="margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap;">
                             <button class="btn-primary btn-sm" id="btn-open-edit-profile">Edytuj profil</button>
-                            <button class="btn-primary btn-sm" id="btn-open-my-badges" style="background: linear-gradient(135deg, #f59e0b, #d97706);">🏆 Moje Odznaki</button>
+                            <button class="btn-primary btn-sm" id="btn-open-my-badges" style="background: linear-gradient(135deg, #f59e0b, #d97706);">🏆 Moje Achievementy <span id="ach-dot" class="ach-dot hidden">0</span></button>
                             <button class="btn-danger btn-sm" id="btn-logout">Wyloguj</button>
                         </div>
                     </div>
@@ -1395,12 +1405,12 @@ body[data-theme="aurora"] .nav-btn.active,body[data-theme="lava"] .nav-btn.activ
     <!-- MODAL: ZARZĄDZANIE ODZNAKAMI -->
     <div id="modal-badges" class="modal hidden">
         <div class="modal-content">
-            <h2 id="badges-modal-title">Odznaki Zawodnika</h2>
-            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">Wyróżnij do 3 ulubionych odznak w swojej gablocie:</p>
+            <h2 id="badges-modal-title">Achievementy Zawodnika</h2>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">Wyróżnij do 3 ulubionych achievementów w swojej gablocie. Pod każdym kryje się nagroda - odbierz ją przyciskiem „Odbierz”:</p>
             
             <div id="badges-showcase-edit-slots" class="showcase-container" style="justify-content: center; margin-bottom: 20px; min-height: 48px; background: #0d1322; border-radius: var(--radius); border: 1px solid var(--card-border);"></div>
 
-            <h3 style="font-size: 1rem; margin-bottom: 8px;">Wszystkie Odznaki i Kamienie Milowe</h3>
+            <h3 style="font-size: 1rem; margin-bottom: 8px;">Wszystkie Achievementy</h3>
             <div id="badges-grid-container" class="badges-grid-modal"></div>
 
             <button class="btn-primary btn-sm" id="btn-close-badges-modal" style="margin-top: 24px; width: 100%;">Zamknij</button>
@@ -1419,6 +1429,7 @@ body[data-theme="aurora"] .nav-btn.active,body[data-theme="lava"] .nav-btn.activ
             <div id="view-player-showcase" class="showcase-container" style="max-width: 200px; margin: 6px auto 14px auto;"></div>
 
             <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 6px;">Wiek: <span id="view-player-age" style="color:#fff;">-</span> lat</p>
+                    <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 6px;">Miejscowość: <span id="view-player-city" style="color:#fff;">-</span></p>
             <p style="font-size: 0.9rem; margin-bottom: 16px;">Średnia wszechczasów: <b id="view-player-avg" style="color: var(--accent-blue);">0.00</b></p>
             
             <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 16px;">
@@ -1430,7 +1441,7 @@ body[data-theme="aurora"] .nav-btn.active,body[data-theme="lava"] .nav-btn.activ
             </div>
 
             <a id="view-player-dartcounter" href="#" target="_blank" rel="noopener noreferrer" class="btn-primary btn-sm hidden" style="display: block; text-decoration: none; text-align: center; margin-bottom: 10px;">🎯 Profil DartCounter</a>
-            <button class="btn-badge-trigger" id="btn-view-player-badges" style="margin-bottom: 16px; width: 100%;">🏆 Zobacz wszystkie odznaki zawodnika</button>
+            <button class="btn-badge-trigger" id="btn-view-player-badges" style="margin-bottom: 16px; width: 100%;">🏆 Zobacz achievementy zawodnika</button>
 
             <hr style="border-color: var(--card-border); margin: 10px 0;">
             
@@ -1903,36 +1914,51 @@ function calculateMatchOdds(p1Uid, p2Uid) {
     return { odds1, odds2, oddsDraw, p1Power, p2Power };
 }
         
+        const BOGEY = [159, 162, 163, 165, 166, 168, 169]; // finishe niemożliwe do zagrania
+        const ACH_GROUPS = { special: '💎 Specjalne', matches: '🎯 Rozegrane mecze', s80: '⭐ Punktowanie +80', s100: '🌟 Punktowanie +100', s140: '🌠 Punktowanie +140', s180: '🔥 180-tki', fin1: '🎯 Finishe 2-50', fin2: '🏹 Finishe 51-99', fin3: '💥 Finishe 100-149', fin4: '👑 Finishe 150-170' };
+        const FIN_SPECIAL = [2, 13, 100, 120, 132, 170];
         function getAllBadgesDefinitions() {
-            let defs = {};
-            MILESTONE_THRESHOLDS.forEach(t => {
-                defs[`matches_${t}`] = { name: `${t} Mecz${t === 1 ? '' : (t < 5 ? 'e' : 'ów')}`, emoji: '🎯', desc: `Rozegrano ${t} spotkań` };
+            const defs = {};
+            const dkAt = i => 1 + Math.floor(i * 4 / (MILESTONE_THRESHOLDS.length - 1)); // 1..5 DK
+            MILESTONE_THRESHOLDS.forEach((t, i) => {
+                defs[`matches_${t}`] = { group: 'matches', name: `${t} Mecz${t === 1 ? '' : (t < 5 ? 'e' : 'ów')}`, emoji: '🎯', desc: `Rozegrano ${t} spotkań`, reward: t === 100 ? { item: 'ach_frame_ice' } : { dk: dkAt(i) } };
             });
-
-            const statsMeta = [
-                { key: '80', emoji: '⭐', namePrefix: '+80' },
-                { key: '100', emoji: '🌟', namePrefix: '+100' },
-                { key: '140', emoji: '🌠', namePrefix: '+140' },
-                { key: '180', emoji: '🔥', namePrefix: '180' }
-            ];
-
-            statsMeta.forEach(meta => {
-                MILESTONE_THRESHOLDS.forEach(t => {
-                    defs[`stat_${meta.key}_${t}`] = { name: `${meta.namePrefix} x${t}`, emoji: meta.emoji, desc: `Trafiono ${meta.namePrefix} ${t} razy` };
+            [['80', '⭐', '+80'], ['100', '🌟', '+100'], ['140', '🌠', '+140'], ['180', '🔥', '180']].forEach(([k, emoji, pre]) => {
+                MILESTONE_THRESHOLDS.forEach((t, i) => {
+                    const item = (k === '180' && t === 100) ? 'ach_frame_fire' : (k === '140' && t === 100) ? 'ach_theme_matrix' : null;
+                    defs[`stat_${k}_${t}`] = { group: 's' + k, name: `${pre} x${t}`, emoji, desc: `Trafiono ${pre} ${t} razy`, reward: item ? { item } : { dk: dkAt(i) } };
                 });
             });
-
             for (let f = 2; f <= 170; f++) {
-                defs[`finish_${f}`] = { name: `Finish ${f}`, emoji: '🎯', desc: `Zakonczono leg z wynikiem ${f}` };
+                if (BOGEY.includes(f) || FIN_SPECIAL.includes(f)) continue;
+                const g = f <= 50 ? 'fin1' : f <= 99 ? 'fin2' : f <= 149 ? 'fin3' : 'fin4';
+                defs[`finish_${f}`] = { group: g, name: `Finish ${f}`, emoji: { fin1: '🎯', fin2: '🏹', fin3: '💥', fin4: '👑' }[g], desc: `Zakończono leg z wynikiem ${f}`, reward: { dk: { fin1: 1, fin2: 2, fin3: 3, fin4: 5 }[g] } };
             }
-
-            defs['special_big_fish'] = { name: 'Big Fish', emoji: '🐋', desc: 'Legendarny finish ze 170 punktów!' };
-            defs['special_shanghai'] = { name: 'Shanghai', emoji: '🏙️', desc: 'Prestiżowy finish Shanghai (120 pkt)!' };
-
+            const sp = (id, name, emoji, desc, reward) => defs[id] = { group: 'special', name, emoji, desc, reward };
+            sp('special_nine', '9 Darter', '9️⃣', 'Leg zakończony 9 lotkami - perfekcyjny!', { dk: 200 });
+            sp('special_big_fish', 'Big Fish', '🐋', 'Legendarny finish ze 170 punktów!', { dk: 100 });
+            sp('special_shanghai', 'Shanghai', '🏙️', 'Prestiżowy finish Shanghai (120 pkt)!', { dk: 100 });
+            sp('special_szampan', 'Szampański Finisz', '🍾', 'Finish 132 - czas otworzyć szampana!', { item: 'ach_theme_gold' });
+            sp('special_syzyf', 'Syzyf', '🪨', 'Finish 2 - tyle prób, a w końcu się udało.', { dk: 5 });
+            sp('special_setka', 'Okrągła Setka', '💯', 'Finish równo 100 punktów.', { dk: 3 });
+            sp('special_trzynastka', 'Pechowa Trzynastka', '🐈‍⬛', 'Finish 13 - pech Cię omija!', { dk: 3 });
+            sp('special_hat', 'Hat-trick', '🎩', 'Trzy 180-tki w jednym meczu.', { item: 'ach_frame_ice' });
+            sp('special_czyste', 'Czyste Konto', '🧤', 'Wygrany mecz bez straty nawet jednego lega.', { dk: 5 });
+            sp('special_first', 'Pierwsza Krew', '🩸', 'Pierwsza wygrana w lidze.', { dk: 2 });
+            sp('special_zimna', 'Zimna Krew', '🧊', '10 wygranych meczów.', { dk: 5 });
             return defs;
         }
-
         const ALL_BADGES = getAllBadgesDefinitions();
+        function achievementsFromDetails(d) {
+            d = d || {}; const n = k => d[k] || 0, f = d.finishes || {}, u = [];
+            MILESTONE_THRESHOLDS.forEach(t => {
+                if (n('matches') >= t) u.push(`matches_${t}`);
+                ['80', '100', '140', '180'].forEach(k => { if (n('s' + k) >= t) u.push(`stat_${k}_${t}`); });
+            });
+            Object.keys(f).forEach(s => { if (f[s] > 0 && ALL_BADGES['finish_' + s]) u.push('finish_' + s); });
+            [['special_nine', n('nine')], ['special_big_fish', f[170]], ['special_shanghai', f[120]], ['special_szampan', f[132]], ['special_syzyf', f[2]], ['special_setka', f[100]], ['special_trzynastka', f[13]], ['special_hat', n('hat')], ['special_czyste', n('clean')], ['special_first', n('wins')], ['special_zimna', n('wins') >= 10 ? 1 : 0]].forEach(([k, c]) => { if (c > 0) u.push(k); });
+            return u;
+        }
 
         const TITLE_THRESHOLDS = [
             { threshold: 100, name: "Legenda Klubu" },
@@ -2137,6 +2163,11 @@ Akademicka Liga Darta © 2026`;
             theme_aurora:  { cat: 'motywy', name: "Motyw: Zorza (animowany)", price: 200, icon: "🌌", themeKey: 'aurora', swatch: ['#04120f', '#34d399', '#6366f1'], desc: "Płynące, zmieniające się kolory zorzy w tle." },
             theme_lava:    { cat: 'motywy', name: "Motyw: Lawa (animowany)", price: 200, icon: "🌋", themeKey: 'lava', swatch: ['#140605', '#f97316', '#facc15'], desc: "Falujące, rozżarzone tło jak płynąca lawa." },
             theme_synth:   { cat: 'motywy', name: "Motyw: Synthwave (animowany)", price: 200, icon: "🕹️", themeKey: 'synthwave', swatch: ['#0d0221', '#ff2a6d', '#05d9e8'], desc: "Neonowa siatka, która płynie przez ekran.", },
+            ach_frame_fire:  { cat: 'obramowki', name: "Obramówka: Płomień (limitowana)", icon: "🔥", frameKey: 'fire', achOnly: true, desc: "Do zdobycia tylko z achievementu." },
+            ach_frame_royal: { cat: 'obramowki', name: "Obramówka: Królewska (limitowana)", icon: "👑", frameKey: 'royal', achOnly: true, desc: "Do zdobycia tylko z achievementu." },
+            ach_frame_ice:   { cat: 'obramowki', name: "Obramówka: Lód (limitowana)", icon: "🧊", frameKey: 'ice', achOnly: true, desc: "Do zdobycia tylko z achievementu." },
+            ach_theme_gold:  { cat: 'motywy', name: "Motyw: Złota Gorączka (limitowany)", icon: "🍾", themeKey: 'goldrush', swatch: ['#130f02', '#fbbf24', '#f59e0b'], achOnly: true, desc: "Do zdobycia tylko z achievementu." },
+            ach_theme_matrix:{ cat: 'motywy', name: "Motyw: Matrix (limitowany)", icon: "💻", themeKey: 'matrix', swatch: ['#020a04', '#22c55e', '#0e3a1c'], achOnly: true, desc: "Do zdobycia tylko z achievementu." },
             // NAGRODY (jedna sztuka na całą ligę - kto pierwszy, ten lepszy)
             beer: { cat: 'nagrody', name: "PIWO", price: 1000, icon: "🍺", desc: "Prawdziwe piwo od admina! Każdy zawodnik może kupić swoje piwo tylko raz w całej lidze." }
         };
@@ -2226,7 +2257,7 @@ Akademicka Liga Darta © 2026`;
             grid.innerHTML = "";
             const d = currentUserProfileData;
 
-            Object.keys(SHOP_ITEMS).filter(id => SHOP_ITEMS[id].cat === currentShopCat).forEach(itemId => {
+            Object.keys(SHOP_ITEMS).filter(id => SHOP_ITEMS[id].cat === currentShopCat && !SHOP_ITEMS[id].achOnly).forEach(itemId => {
                 const item = SHOP_ITEMS[itemId];
                 const isReward = item.cat === 'nagrody', rw = isReward && myReward(itemId);
                 const isCosmetic = item.cat !== 'bukmacherka' && !isReward;
@@ -2524,33 +2555,7 @@ Akademicka Liga Darta © 2026`;
             }
         };
 
-        function calculatePlayerUnlockedBadges(uid) {
-            const details = globalPlayerDetailsStats[uid] || { matches: 0, s80: 0, s100: 0, s140: 0, s180: 0, finishes: {} };
-            let unlocked = [];
-
-            MILESTONE_THRESHOLDS.forEach(t => {
-                if (details.matches >= t) unlocked.push(`matches_${t}`);
-            });
-
-            MILESTONE_THRESHOLDS.forEach(t => {
-                if (details.s80 >= t) unlocked.push(`stat_80_${t}`);
-                if (details.s100 >= t) unlocked.push(`stat_100_${t}`);
-                if (details.s140 >= t) unlocked.push(`stat_140_${t}`);
-                if (details.s180 >= t) unlocked.push(`stat_180_${t}`);
-            });
-
-            Object.keys(details.finishes).forEach(fStr => {
-                const fVal = parseInt(fStr);
-                if (details.finishes[fVal] > 0 && ALL_BADGES[`finish_${fVal}`]) {
-                    unlocked.push(`finish_${fVal}`);
-                }
-            });
-
-            if (details.finishes[170] > 0) unlocked.push('special_big_fish');
-            if (details.finishes[120] > 0) unlocked.push('special_shanghai');
-
-            return unlocked;
-        }
+        function calculatePlayerUnlockedBadges(uid) { return achievementsFromDetails(globalPlayerDetailsStats[uid]); }
 
         function renderShowcaseHtml(showcaseArray, unlockedArray) {
             if (!showcaseArray || showcaseArray.length === 0) {
@@ -2570,6 +2575,7 @@ Akademicka Liga Darta © 2026`;
             currentUserProfileData = data;
             const uid = auth.currentUser ? auth.currentUser.uid : null;
             applyTheme(data);
+            updateAchDot(data);
 
             // Widget Dart Kasa w prawym górnym rogu
             const walletBalance = data.dartKasa !== undefined ? data.dartKasa : 0;
@@ -3799,7 +3805,7 @@ ${board}</svg>`;
                     const v = rd[key] !== undefined ? rd[key] : 0;
                     html += `<div class="form-group"><label style="font-size: 0.75rem;">${label}</label><input type="number" id="aer-${key}" min="0" ${type === 'float' ? 'step="0.01"' : ''} value="${nwEsc(v)}"></div>`;
                 });
-                html += `</div>`;
+                html += `</div><div style="margin-top:10px;display:flex;flex-direction:column;gap:6px;font-size:.85rem"><label><input type="checkbox" id="aer-nd${p}" ${rd['nd' + p] ? 'checked' : ''}> 9️⃣ Leg zakończony 9-darterem (achievement 9 Darter, 200 DK)</label><label><input type="checkbox" id="aer-ofc${p}" ${rd['of' + p] ? 'checked' : ''} onchange="document.getElementById('aer-of${p}').disabled = !this.checked"> 🎯 Skończył leg innym finiszem</label><input type="number" id="aer-of${p}" min="2" max="170" placeholder="Jaki finisz? (np. 121)" value="${rd['of' + p] || ''}" ${rd['of' + p] ? '' : 'disabled'}></div>`;
             });
             nwEl('aer-fields').innerHTML = html;
             nwEl('modal-admin-edit-report').classList.remove('hidden');
@@ -3822,6 +3828,15 @@ ${board}</svg>`;
                 }
             }
             try {
+                for (const p of [1, 2]) {
+                    data['nd' + p] = nwEl('aer-nd' + p).checked ? 1 : 0;
+                    let of = 0;
+                    if (nwEl('aer-ofc' + p).checked) {
+                        of = parseInt(nwEl('aer-of' + p).value) || 0;
+                        if (of < 2 || of > 170 || BOGEY.includes(of)) throw new Error('Podaj poprawny finisz (2-170, bez liczb niemożliwych do zagrania).');
+                    }
+                    data['of' + p] = of;
+                }
                 const upd = {
                     [`upcomingMatches/${matchId}/reportData`]: data,
                     [`upcomingMatches/${matchId}/reportEditedByAdmin`]: true
@@ -4591,12 +4606,24 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
         await update(dbRef(db, 'users/' + m.p1Uid), { dartKasa: u1Kasa + p1Delta });
         await update(dbRef(db, 'users/' + m.p2Uid), { dartKasa: u2Kasa + p2Delta });
 
+        try { // jedno łączne powiadomienie o achievementach zdobytych w tym meczu
+            const prevM = Object.values(getCombinedCareerMatches());
+            const before = buildDetails(prevM).details, after = buildDetails([...prevM, { ...m.reportData, p1Uid: m.p1Uid, p2Uid: m.p2Uid }]).details;
+            for (const uid of [m.p1Uid, m.p2Uid]) {
+                const had = new Set(achievementsFromDetails(before[uid]));
+                const gained = achievementsFromDetails(after[uid]).filter(k => !had.has(k));
+                if (gained.length) {
+                    const names = gained.slice(0, 6).map(k => `${ALL_BADGES[k].emoji} ${ALL_BADGES[k].name}`).join(', ') + (gained.length > 6 ? ` i ${gained.length - 6} więcej` : '');
+                    notifyUser(uid, 'achievement', '🏆 Nowe achievementy!', `W tym meczu zdobyłeś: ${names}. Odbierz nagrody w „Moje Achievementy”.`, matchId);
+                }
+            }
+        } catch (e) { console.warn(e.message); }
         await push(dbRef(db, 'matches'), {
             p1Uid: m.p1Uid, p1Name: m.p1Name,
             p2Uid: m.p2Uid, p2Name: m.p2Name,
             s1: m.reportData.s1, s2: m.reportData.s2,
             avg1: m.reportData.avg1, avg2: m.reportData.avg2,
-            hf1: m.reportData.hf1 || 0, s80_1: m.reportData.s80_1 || 0, s100_1: m.reportData.s100_1 || 0, s140_1: m.reportData.s140_1 || 0, s180_1: m.reportData.s180_1 || 0,
+            nd1: m.reportData.nd1 || 0, of1: m.reportData.of1 || 0, nd2: m.reportData.nd2 || 0, of2: m.reportData.of2 || 0, hf1: m.reportData.hf1 || 0, s80_1: m.reportData.s80_1 || 0, s100_1: m.reportData.s100_1 || 0, s140_1: m.reportData.s140_1 || 0, s180_1: m.reportData.s180_1 || 0,
             hf2: m.reportData.hf2 || 0, s80_2: m.reportData.s80_2 || 0, s100_2: m.reportData.s100_2 || 0, s140_2: m.reportData.s140_2 || 0, s180_2: m.reportData.s180_2 || 0,
             date: new Date().toLocaleString('pl-PL'), ts: Date.now(), round: m.round || 0, phase: m.phase || null, slot: m.slot || null
         });
@@ -4739,7 +4766,7 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
             // Edycja gabloty dozwolona wyłącznie na własnym profilu - zawsze weryfikujemy to po zalogowanym użytkowniku
             isOwnProfile = !!(isOwnProfile && auth.currentUser && auth.currentUser.uid === uid);
             const modalTitle = document.getElementById('badges-modal-title');
-            modalTitle.innerText = `Odznaki: ${playerData.firstName || ''} ${playerData.lastName || ''}`;
+            modalTitle.innerText = `Achievementy: ${playerData.firstName || ''} ${playerData.lastName || ''}`;
 
             const unlockedKeys = calculatePlayerUnlockedBadges(uid);
             const showcase = playerData.showcase || [];
@@ -4774,44 +4801,63 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
             const gridContainer = document.getElementById('badges-grid-container');
             gridContainer.innerHTML = '';
 
-            const sortedBadgeKeys = Object.keys(ALL_BADGES).sort((a, b) => {
-                const aUnlocked = unlockedKeys.includes(a);
-                const bUnlocked = unlockedKeys.includes(b);
-                return (bUnlocked === true) - (aUnlocked === true);
-            });
-
-            sortedBadgeKeys.forEach(key => {
-                const badgeDef = ALL_BADGES[key];
-                const isUnlocked = unlockedKeys.includes(key);
-                const isInShowcase = showcase.includes(key);
-
+            const claimed = playerData.achClaimed || {};
+            const rewardText = d => d.reward && d.reward.dk ? `💰 +${d.reward.dk} DK` : (d.reward && d.reward.item ? `🎁 ${SHOP_ITEMS[d.reward.item].name}` : '');
+            const mk = key => {
+                const badgeDef = ALL_BADGES[key], isUnlocked = unlockedKeys.includes(key), isInShowcase = showcase.includes(key);
                 const item = document.createElement('div');
                 item.className = `badge-card-item ${isUnlocked ? 'unlocked' : 'locked'}`;
-                
                 let actionBtnHtml = '';
+                if (isOwnProfile && isUnlocked && !claimed[key]) actionBtnHtml += `<button class="badge-card-action btn-pin" onclick="window.claimAchievements('${key}')">Odbierz</button>`;
+                else if (isUnlocked) actionBtnHtml += `<span style="font-size:0.65rem; color:#34d399; display:block">✔ Odebrano</span>`;
                 if (isOwnProfile && isUnlocked) {
-                    if (isInShowcase) {
-                        actionBtnHtml = `<button class="badge-card-action btn-unpin" onclick="window.toggleBadgeShowcase('${key}', false)">Odrysuj</button>`;
-                    } else if (showcase.length < 3) {
-                        actionBtnHtml = `<button class="badge-card-action btn-pin" onclick="window.toggleBadgeShowcase('${key}', true)">Wyróżnij</button>`;
-                    } else {
-                        actionBtnHtml = `<span style="font-size:0.65rem; color:var(--text-muted)">Pełna gablota (3/3)</span>`;
-                    }
-                } else if (!isUnlocked) {
-                    actionBtnHtml = `<span style="font-size:0.65rem; color:var(--text-muted)">Zablokowane</span>`;
-                }
-
-                item.innerHTML = `
-                    <div class="badge-card-emoji">${badgeDef.emoji}</div>
-                    <div class="badge-card-title">${badgeDef.name}</div>
-                    <div class="badge-card-desc">${badgeDef.desc}</div>
-                    ${actionBtnHtml}
-                `;
-                gridContainer.appendChild(item);
+                    if (isInShowcase) actionBtnHtml += `<button class="badge-card-action btn-unpin" onclick="window.toggleBadgeShowcase('${key}', false)">Odepnij</button>`;
+                    else if (showcase.length < 3) actionBtnHtml += `<button class="badge-card-action btn-pin" onclick="window.toggleBadgeShowcase('${key}', true)">Wyróżnij</button>`;
+                } else if (!isUnlocked) actionBtnHtml = `<span style="font-size:0.65rem; color:var(--text-muted)">Zablokowane</span>`;
+                item.innerHTML = `<div class="badge-card-emoji">${badgeDef.emoji}</div><div class="badge-card-title">${badgeDef.name}</div><div class="badge-card-desc">${badgeDef.desc}</div><div class="ach-reward">${rewardText(badgeDef)}</div>${actionBtnHtml}`;
+                return item;
+            };
+            const head = html => { const h = document.createElement('div'); h.className = 'ach-group'; h.innerHTML = html; gridContainer.appendChild(h); };
+            const pend = isOwnProfile ? unlockedKeys.filter(k => !claimed[k]) : [];
+            if (pend.length) { head(`<span>🎁 Do odebrania (${pend.length})</span><button class="btn-primary btn-sm" onclick="window.claimAchievements('all')">Odbierz wszystko</button>`); pend.forEach(k => gridContainer.appendChild(mk(k))); }
+            Object.keys(ACH_GROUPS).forEach(g => {
+                const keys = Object.keys(ALL_BADGES).filter(k => ALL_BADGES[k].group === g && !pend.includes(k));
+                const all = Object.keys(ALL_BADGES).filter(k => ALL_BADGES[k].group === g);
+                keys.sort((a, b) => unlockedKeys.includes(b) - unlockedKeys.includes(a));
+                head(`<span>${ACH_GROUPS[g]}</span><span style="color:var(--text-muted)">${all.filter(k => unlockedKeys.includes(k)).length}/${all.length}</span>`);
+                keys.forEach(k => gridContainer.appendChild(mk(k)));
             });
 
             document.getElementById('modal-badges').classList.remove('hidden');
         }
+
+        function updateAchDot(data) {
+            const el = document.getElementById('ach-dot'); if (!el || !auth.currentUser) return;
+            const c = (data && data.achClaimed) || {};
+            const n = calculatePlayerUnlockedBadges(auth.currentUser.uid).filter(k => !c[k]).length;
+            el.textContent = n > 99 ? '99+' : n; el.classList.toggle('hidden', n === 0);
+        }
+        window.claimAchievements = async (key) => {
+            const user = auth.currentUser; if (!user) return;
+            const d = globalUsersData[user.uid] || {}, claimed = d.achClaimed || {};
+            const unlocked = calculatePlayerUnlockedBadges(user.uid);
+            const keys = (key === 'all' ? unlocked : [key]).filter(k => unlocked.includes(k) && !claimed[k] && ALL_BADGES[k]);
+            if (!keys.length) return;
+            let dk = 0; const upd = {}, items = [];
+            keys.forEach(k => {
+                const r = ALL_BADGES[k].reward || {};
+                if (r.dk) dk += r.dk;
+                if (r.item) { upd[`users/${user.uid}/ownedItems/${r.item}`] = true; items.push(SHOP_ITEMS[r.item].name); }
+                upd[`users/${user.uid}/achClaimed/${k}`] = true;
+            });
+            if (dk) upd[`users/${user.uid}/dartKasa`] = increment(dk);
+            try {
+                await update(dbRef(db), upd);
+                d.achClaimed = { ...claimed, ...Object.fromEntries(keys.map(k => [k, true])) };
+                alert(`Odebrano ${keys.length} nagród${dk ? `: +${dk} DK` : ''}${items.length ? `${dk ? ', ' : ': '}${items.join(', ')} (znajdziesz w Ekwipunku)` : ''}.`);
+                updateAchDot(d); openBadgesModal(user.uid, d, true);
+            } catch (e) { alert(e.message); }
+        };
 
         window.toggleBadgeShowcase = async (badgeKey, pin) => {
             const user = auth.currentUser;
@@ -4862,7 +4908,7 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
                         <div class="showcase-container">${showcaseHtml}</div>
                         <div class="player-info" style="margin-top:6px;">🎯 Średnia: <b style="color:var(--text-color);">${userAvg}</b></div>
                         <div class="player-info">⭐ 180-tki: <b style="color:var(--accent-red);">${st.s180}</b> | Finish: <b>${st.hf}</b></div>
-                        <button class="btn-badge-trigger" onclick="event.stopPropagation(); openPlayerBadgesFromGrid('${uid}')">🏆 Odznaki</button>
+                        <button class="btn-badge-trigger" onclick="event.stopPropagation(); openPlayerBadgesFromGrid('${uid}')">🏆 Achievementy</button>
                     `;
                     card.onclick = () => openPlayerModal(uid, p);
                     grid.appendChild(card);
@@ -4898,6 +4944,7 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
                 player.photoUrl || PRESET_AVATARS[0], frameKeyFor(player), 96, '',
                 'width: 96px; height: 96px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-blue); box-shadow: 0 8px 20px rgba(59, 130, 246, 0.25);');
             document.getElementById('view-player-age').innerText = calculateAge(player.birthDate);
+            document.getElementById('view-player-city').innerText = player.city || 'Brak';
             document.getElementById('view-player-avg').innerText = globalCalculatedAverages[uid] !== undefined ? globalCalculatedAverages[uid].toFixed(2) : "0.00";
 
             const dcLink = document.getElementById('view-player-dartcounter');
@@ -5242,39 +5289,29 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
             recomputeStats();
         });
 
+        function buildDetails(matches) {
+            const details = {}, calc = {};
+            matches.forEach(m => {
+                [m.p1Uid, m.p2Uid].forEach((uid, idx) => {
+                    if (!uid) return;
+                    if (!details[uid]) { details[uid] = { matches: 0, s80: 0, s100: 0, s140: 0, s180: 0, finishes: {}, wins: 0, clean: 0, hat: 0, nine: 0 }; calc[uid] = { hf: 0, s80: 0, s100: 0, s140: 0, s180: 0 }; }
+                    const d = details[uid], st = calc[uid], pf = idx === 0 ? '1' : '2', g = k => parseInt(m[k + pf]) || 0;
+                    d.matches++; d.s80 += g('s80_'); d.s100 += g('s100_'); d.s140 += g('s140_');
+                    const s180 = g('s180_'); d.s180 += s180; if (s180 >= 3) d.hat++;
+                    st.s80 = d.s80; st.s100 = d.s100; st.s140 = d.s140; st.s180 = d.s180;
+                    const mine = g('s'), opp = parseInt(m['s' + (idx === 0 ? 2 : 1)]) || 0;
+                    if (mine > opp) { d.wins++; if (opp === 0) d.clean++; }
+                    [g('hf'), g('of')].forEach(f => { if (f > 0) { d.finishes[f] = (d.finishes[f] || 0) + 1; if (f > st.hf) st.hf = f; } });
+                    d.nine += g('nd');
+                });
+            });
+            return { details, calc };
+        }
         // Statystyki wszechczasów = wszystkie zarchiwizowane sezony + bieżący
         function recomputeStats() {
             recalcAverages();
-            globalPlayerDetailsStats = {};
-            globalCalculatedStats = {};
-            const careerMatches = getCombinedCareerMatches();
-            Object.values(careerMatches).forEach(m => {
-                [m.p1Uid, m.p2Uid].forEach((uid, idx) => {
-                    if (!uid) return;
-                    if (!globalPlayerDetailsStats[uid]) {
-                        globalPlayerDetailsStats[uid] = { matches: 0, s80: 0, s100: 0, s140: 0, s180: 0, finishes: {} };
-                        globalCalculatedStats[uid] = { hf: 0, s80: 0, s100: 0, s140: 0, s180: 0 };
-                    }
-                    const details = globalPlayerDetailsStats[uid];
-                    const st = globalCalculatedStats[uid];
-                    details.matches++;
-
-                    const prefix = (idx === 0) ? '1' : '2';
-                    const s80 = parseInt(m[`s80_${prefix}`]) || 0;
-                    const s100 = parseInt(m[`s100_${prefix}`]) || 0;
-                    const s140 = parseInt(m[`s140_${prefix}`]) || 0;
-                    const s180 = parseInt(m[`s180_${prefix}`]) || 0;
-                    const hf = parseInt(m[`hf${prefix}`]) || 0;
-
-                    details.s80 += s80; details.s100 += s100; details.s140 += s140; details.s180 += s180;
-                    st.s80 = details.s80; st.s100 = details.s100; st.s140 = details.s140; st.s180 = details.s180;
-
-                    if (hf > 0) {
-                        details.finishes[hf] = (details.finishes[hf] || 0) + 1;
-                        if (hf > st.hf) st.hf = hf;
-                    }
-                });
-            });
+            const bd = buildDetails(Object.values(getCombinedCareerMatches()));
+            globalPlayerDetailsStats = bd.details; globalCalculatedStats = bd.calc;
 
             if (!document.getElementById('page-info').classList.contains('hidden')) {
                 renderTableAndMatches();
