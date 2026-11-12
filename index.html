@@ -995,7 +995,7 @@ body[data-theme="aurora"] .nav-btn.active,body[data-theme="lava"] .nav-btn.activ
 .av-f-ice::before{inset:calc(var(--s)*-.09);border-radius:50%;z-index:0;background:conic-gradient(#e0f2fe,#38bdf8,#fff,#0ea5e9,#e0f2fe);animation:avspin 4s linear infinite;filter:drop-shadow(0 0 7px #38bdf8)}
 @keyframes thmMat{to{background-position:0 36px,36px 0}}
 body[data-theme="goldrush"]{--bg-color:#130f02;--card-bg:#201a05;--card-border:#4d3d0a;--accent-blue:#fbbf24;--accent-red:#f87171;--accent-glow:rgba(251,191,36,.22);background-image:linear-gradient(120deg,rgba(251,191,36,.14),rgba(250,204,21,.03),rgba(245,158,11,.16),rgba(250,204,21,.03));background-size:300% 300%;animation:thmShift 7s ease infinite}
-body[data-theme="matrix"]{--bg-color:#020a04;--card-bg:#06150a;--card-border:#0e3a1c;--accent-blue:#22c55e;--accent-red:#ef4444;--accent-glow:rgba(34,197,94,.22);background-image:linear-gradient(rgba(34,197,94,.1) 1px,transparent 1px),linear-gradient(90deg,rgba(34,197,94,.06) 1px,transparent 1px);background-size:36px 36px,36px 36px;animation:thmMat 4s linear infinite}
+body[data-theme="greengrid"]{--bg-color:#020a04;--card-bg:#06150a;--card-border:#0e3a1c;--accent-blue:#22c55e;--accent-red:#ef4444;--accent-glow:rgba(34,197,94,.22);background-image:linear-gradient(rgba(34,197,94,.1) 1px,transparent 1px),linear-gradient(90deg,rgba(34,197,94,.06) 1px,transparent 1px);background-size:36px 36px,36px 36px;animation:thmMat 4s linear infinite}
 @keyframes thmDiag{to{background-position:60px 60px}}
 @keyframes thmFloat{0%,100%{background-position:0% 0%,100% 100%}50%{background-position:100% 100%,0% 0%}}
 .av-f-sunset::before{inset:calc(var(--s)*-.09);border-radius:50%;z-index:0;background:conic-gradient(#f97316,#ec4899,#facc15,#f97316);animation:avspin 2.8s linear infinite;filter:drop-shadow(0 0 7px #f97316)}
@@ -1022,6 +1022,21 @@ body[data-theme="inferno"]{--bg-color:#180504;--card-bg:#2a0c08;--card-border:#5
 body[data-theme="carbon"]{--bg-color:#0a0a0a;--card-bg:#151515;--card-border:#2a2a2a;--accent-blue:#94a3b8;--accent-red:#e2e8f0;--accent-glow:rgba(148,163,184,.22);background-image:linear-gradient(rgba(148,163,184,.12) 1px,transparent 1px),linear-gradient(90deg,rgba(226,232,240,.1) 1px,transparent 1px),linear-gradient(180deg,rgba(148,163,184,.1),transparent 60%);background-size:48px 48px,48px 48px,100% 100%;animation:thmGrid 3s linear infinite}
 body[data-theme="vapor"]{--bg-color:#12081f;--card-bg:#1d0f33;--card-border:#3d1f66;--accent-blue:#22d3ee;--accent-red:#f472b6;--accent-glow:rgba(34,211,238,.22);background-image:linear-gradient(120deg,rgba(34,211,238,.2),rgba(244,114,182,.04),rgba(244,114,182,.2),rgba(34,211,238,.04));background-size:300% 300%;animation:thmShift 10s ease infinite}
 body[data-theme="stormcloud"]{--bg-color:#0b1020;--card-bg:#141c33;--card-border:#27345c;--accent-blue:#60a5fa;--accent-red:#94a3b8;--accent-glow:rgba(96,165,250,.22);background-image:radial-gradient(circle at 30% 30%,rgba(96,165,250,.28),transparent 45%),radial-gradient(circle at 70% 70%,rgba(148,163,184,.24),transparent 45%);background-size:200% 200%;animation:thmFloat 14s ease-in-out infinite}
+#theme-preview{position:fixed;z-index:10050;width:300px;height:196px;border-radius:14px;border:1px solid rgba(255,255,255,.2);box-shadow:0 14px 44px rgba(0,0,0,.65);overflow:hidden;pointer-events:none;display:none}
+#theme-preview.show{display:block}
+.thm-pv{position:relative;width:100%;height:100%;background-color:var(--bg-color,#0b0f19);color:#e5e7eb;font-size:12px;overflow:hidden}
+.pv-fx{position:absolute;inset:0;overflow:hidden}.pv-fx span{position:absolute;top:0;opacity:0;animation:pvfall linear infinite}
+.pv-fx span.up{top:auto;bottom:0;animation-name:pvrise}
+@keyframes pvfall{0%{transform:translateY(-20px);opacity:0}10%{opacity:.9}100%{transform:translateY(210px);opacity:.1}}
+@keyframes pvrise{0%{transform:translateY(20px);opacity:0}10%{opacity:.9}100%{transform:translateY(-210px);opacity:.1}}
+.pv-nav{position:relative;display:flex;justify-content:space-between;padding:7px 10px;background:var(--card-bg,#131b2e);border-bottom:1px solid var(--card-border,#26324a);font-weight:700}
+.pv-nav b{color:var(--accent-blue,#3b82f6)}
+.pv-card{position:relative;background:var(--card-bg,#131b2e);border:1px solid var(--card-border,#26324a);border-radius:10px;padding:8px 10px;margin:8px 10px}
+.pv-row{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--card-border,#26324a)}
+.pv-row:last-of-type{border:none}.pv-row i{font-style:normal;color:var(--accent-red,#ef4444);font-weight:700}
+.pv-btn{display:inline-block;margin-top:6px;padding:4px 12px;border-radius:7px;background:var(--accent-blue,#3b82f6);color:#0b0f19;font-weight:800}
+.pv-cap{position:absolute;left:0;right:0;bottom:0;padding:4px 10px;background:rgba(0,0,0,.55);font-size:11px}
+[data-theme-preview]{cursor:zoom-in}
 </style>
 </head>
 <body>
@@ -2221,7 +2236,7 @@ Akademicka Liga Darta © 2026`;
             ach_frame_royal: { cat: 'obramowki', name: "Obramówka: Królewska (limitowana)", icon: "👑", frameKey: 'royal', achOnly: true, desc: "Do zdobycia tylko z achievementu." },
             ach_frame_ice:   { cat: 'obramowki', name: "Obramówka: Lód (limitowana)", icon: "🧊", frameKey: 'ice', achOnly: true, desc: "Do zdobycia tylko z achievementu." },
             ach_theme_gold:  { cat: 'motywy', name: "Motyw: Złota Gorączka (limitowany)", icon: "🍾", themeKey: 'goldrush', swatch: ['#130f02', '#fbbf24', '#f59e0b'], achOnly: true, desc: "Do zdobycia tylko z achievementu." },
-            ach_theme_matrix:{ cat: 'motywy', name: "Motyw: Matrix (limitowany)", icon: "💻", themeKey: 'matrix', swatch: ['#020a04', '#22c55e', '#0e3a1c'], achOnly: true, desc: "Do zdobycia tylko z achievementu." },
+            ach_theme_matrix:{ cat: 'motywy', name: "Motyw: Zielona Siatka (limitowany)", icon: "🟩", themeKey: 'greengrid', swatch: ['#020a04', '#22c55e', '#0e3a1c'], achOnly: true, desc: "Do zdobycia tylko z achievementu." },
             // NAGRODY (jedna sztuka na całą ligę - kto pierwszy, ten lepszy)
             beer: { cat: 'nagrody', name: "PIWO", price: 1000, icon: "🍺", desc: "Prawdziwe piwo od admina! Każdy zawodnik może kupić swoje piwo tylko raz w całej lidze." }
         };
@@ -2329,6 +2344,7 @@ Akademicka Liga Darta © 2026`;
 
                 const card = document.createElement('div');
                 card.className = "player-card item-card";
+                if (item.themeKey) { card.dataset.themePreview = item.themeKey; card.dataset.themeName = item.name; }
                 card.innerHTML = `
                     ${previewHtml(itemId, item, d)}
                     <div class="player-name">${item.name}</div>
@@ -2426,6 +2442,7 @@ Akademicka Liga Darta © 2026`;
                 shown++;
                 const card = document.createElement('div');
                 card.className = "player-card item-card";
+                if (item.themeKey) { card.dataset.themePreview = item.themeKey; card.dataset.themeName = item.name; }
                 card.innerHTML = `
                     ${previewHtml(itemId, item, d)}
                     <div class="player-name">${item.name}</div>
@@ -5344,6 +5361,52 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
             if (sm) sm.textContent = pend.length ? `🎁 Nagrody 🔴 ${pend.length}` : '🎁 Nagrody';
         }
         onValue(dbRef(db, 'rewards'), snap => { globalRewards = snap.val() || {}; renderShop(); renderAdminRewards(); });
+
+        // ===== Podgląd motywów (najechanie lub kliknięcie; znika po zjechaniu / kliknięciu obok) =====
+        (function themePreview() {
+            const box = document.createElement('div'); box.id = 'theme-preview'; document.body.appendChild(box);
+            let cloned = false, pinned = false, curKey = null, lastX = 20, lastY = 20;
+            const FXK = { sakura: ['🌸', 0], matrix: ['01', 0], neon: ['●', 1], sunset: ['✦', 1], gold: ['✦', 0], ocean: ['○', 1], winter: ['❄', 0], space: ['✦', 0] };
+            function cloneRules() { // kopiuje reguły body[data-theme="x"] na .thm-pv, żeby pokazać motyw tylko w oknie podglądu
+                if (cloned) return; cloned = true;
+                [...document.styleSheets].forEach(sh => {
+                    let rules; try { rules = sh.cssRules; } catch (e) { return; }
+                    [...rules].forEach(r => {
+                        const m = r.selectorText && r.selectorText.match(/^body\[data-theme="(\w+)"\]$/);
+                        if (m) { try { sh.insertRule(`.thm-pv[data-theme="${m[1]}"]{${r.style.cssText}}`, sh.cssRules.length); } catch (e) {} }
+                    });
+                });
+            }
+            function place() {
+                const w = 300, h = 196;
+                box.style.left = Math.max(8, Math.min(lastX + 18, window.innerWidth - w - 8)) + 'px';
+                box.style.top = Math.max(8, Math.min(lastY + 18, window.innerHeight - h - 8)) + 'px';
+            }
+            function show(card) {
+                cloneRules();
+                const key = card.dataset.themePreview; if (!key) return;
+                if (curKey !== key) {
+                    curKey = key;
+                    const fx = FXK[key], reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                    let parts = '';
+                    if (fx && !reduce) for (let i = 0; i < 14; i++) parts += `<span class="${fx[1] ? 'up' : ''}" style="left:${Math.random() * 95}%;font-size:${10 + Math.random() * 10}px;animation-duration:${3 + Math.random() * 4}s;animation-delay:-${Math.random() * 6}s">${fx[0]}</span>`;
+                    box.innerHTML = `<div class="thm-pv" data-theme="${key}"><div class="pv-fx">${parts}</div><div class="pv-nav"><b>ADL</b><span>Strona · Sklep · Gracze</span><span>💰 120 DK</span></div><div class="pv-card"><b>Tabela ligi</b><div class="pv-row"><span>1. Jan K.</span><i>12 pkt</i></div><div class="pv-row"><span>2. Adam W.</span><i>9 pkt</i></div><span class="pv-btn">Zatwierdź</span></div><div class="pv-cap">Podgląd: ${nwEsc(card.dataset.themeName || '')}</div></div>`;
+                }
+                place(); box.classList.add('show');
+            }
+            function hide() { pinned = false; curKey = null; box.classList.remove('show'); }
+            document.addEventListener('mousemove', e => { lastX = e.clientX; lastY = e.clientY; if (box.classList.contains('show')) place(); });
+            document.addEventListener('mouseover', e => { if (pinned) return; const c = e.target.closest && e.target.closest('[data-theme-preview]'); if (c) { lastX = e.clientX; lastY = e.clientY; show(c); } else if (box.classList.contains('show')) hide(); });
+            document.addEventListener('mouseout', e => { if (pinned) return; const c = e.target.closest && e.target.closest('[data-theme-preview]'); if (c && !c.contains(e.relatedTarget)) hide(); });
+            document.addEventListener('click', e => {
+                const c = e.target.closest && e.target.closest('[data-theme-preview]');
+                if (e.target.closest && e.target.closest('button')) { if (pinned) hide(); return; } // przyciski kup/załóż działają normalnie
+                if (c) { lastX = e.clientX; lastY = e.clientY; if (pinned && curKey === c.dataset.themePreview) hide(); else { show(c); pinned = true; } }
+                else if (pinned) hide();
+            });
+            document.addEventListener('keydown', e => { if (e.key === 'Escape') hide(); });
+            window.addEventListener('scroll', () => { if (!pinned) hide(); }, { passive: true });
+        })();
 
         // Firebase Listeners
         onValue(dbRef(db, 'users'), (snapshot) => {
