@@ -1943,15 +1943,23 @@ function calculateMatchOdds(p1Uid, p2Uid) {
         const BOGEY = [159, 162, 163, 165, 166, 168, 169]; // finishe niemożliwe do zagrania
         const ACH_GROUPS = { special: '💎 Specjalne', matches: '🎯 Rozegrane mecze', s80: '⭐ Punktowanie +80', s100: '🌟 Punktowanie +100', s140: '🌠 Punktowanie +140', s180: '🔥 180-tki', fin1: '🎯 Finishe 2-50', fin2: '🏹 Finishe 51-99', fin3: '💥 Finishe 100-149', fin4: '👑 Finishe 150-170' };
         const FIN_SPECIAL = [2, 13, 100, 120, 132, 170];
+        // Nagrody rzeczowe za najniższe progi (1, 5, 10) - wyższe progi dają DK
+        const ACH_ITEMS = {
+            matches: ['frame_silver', 'theme_carbon', 'ach_frame_ice'],
+            s80: ['theme_bubblegum', 'frame_candy', 'theme_glacier'],
+            s100: ['frame_storm', 'theme_stormcloud', 'frame_magma'],
+            s140: ['theme_inferno', 'ach_frame_fire', 'ach_theme_matrix'],
+            s180: ['frame_rainbow', 'ach_frame_royal', 'ach_theme_gold']
+        };
         function getAllBadgesDefinitions() {
             const defs = {};
             const dkAt = i => 1 + Math.floor(i * 4 / (MILESTONE_THRESHOLDS.length - 1)); // 1..5 DK
             MILESTONE_THRESHOLDS.forEach((t, i) => {
-                defs[`matches_${t}`] = { group: 'matches', name: `${t} Mecz${t === 1 ? '' : (t < 5 ? 'e' : 'ów')}`, emoji: '🎯', desc: `Rozegrano ${t} spotkań`, reward: t === 100 ? { item: 'ach_frame_ice' } : { dk: dkAt(i) } };
+                defs[`matches_${t}`] = { group: 'matches', name: `${t} Mecz${t === 1 ? '' : (t < 5 ? 'e' : 'ów')}`, emoji: '🎯', desc: `Rozegrano ${t} spotkań`, reward: ACH_ITEMS.matches[i] ? { item: ACH_ITEMS.matches[i] } : { dk: dkAt(i) } };
             });
             [['80', '⭐', '+80'], ['100', '🌟', '+100'], ['140', '🌠', '+140'], ['180', '🔥', '180']].forEach(([k, emoji, pre]) => {
                 MILESTONE_THRESHOLDS.forEach((t, i) => {
-                    const item = (k === '180' && t === 100) ? 'ach_frame_fire' : (k === '140' && t === 100) ? 'ach_theme_matrix' : null;
+                    const item = (ACH_ITEMS['s' + k] || [])[i] || null;
                     defs[`stat_${k}_${t}`] = { group: 's' + k, name: `${pre} x${t}`, emoji, desc: `Trafiono ${pre} ${t} razy`, reward: item ? { item } : { dk: dkAt(i) } };
                 });
             });
@@ -1964,11 +1972,11 @@ function calculateMatchOdds(p1Uid, p2Uid) {
             sp('special_nine', '9 Darter', '9️⃣', 'Leg zakończony 9 lotkami - perfekcyjny!', { dk: 200 });
             sp('special_big_fish', 'Big Fish', '🐋', 'Legendarny finish ze 170 punktów!', { dk: 100 });
             sp('special_shanghai', 'Shanghai', '🏙️', 'Prestiżowy finish Shanghai (120 pkt)!', { dk: 100 });
-            sp('special_szampan', 'Szampański Finisz', '🍾', 'Finish 132 - czas otworzyć szampana!', { item: 'ach_theme_gold' });
+            sp('special_szampan', 'Szampański Finisz', '🍾', 'Finish 132 - czas otworzyć szampana!', { dk: 50 });
             sp('special_syzyf', 'Syzyf', '🪨', 'Finish 2 - tyle prób, a w końcu się udało.', { dk: 5 });
             sp('special_setka', 'Okrągła Setka', '💯', 'Finish równo 100 punktów.', { dk: 3 });
             sp('special_trzynastka', 'Pechowa Trzynastka', '🐈‍⬛', 'Finish 13 - pech Cię omija!', { dk: 3 });
-            sp('special_hat', 'Hat-trick', '🎩', 'Trzy 180-tki w jednym meczu.', { item: 'ach_frame_ice' });
+            sp('special_hat', 'Hat-trick', '🎩', 'Trzy 180-tki w jednym meczu.', { dk: 25 });
             sp('special_czyste', 'Czyste Konto', '🧤', 'Wygrany mecz bez straty nawet jednego lega.', { dk: 5 });
             sp('special_first', 'Pierwsza Krew', '🩸', 'Pierwsza wygrana w lidze.', { dk: 2 });
             sp('special_zimna', 'Zimna Krew', '🧊', '10 wygranych meczów.', { dk: 5 });
@@ -2193,22 +2201,22 @@ Akademicka Liga Darta © 2026`;
             frame_ocean: { cat: 'obramowki', name: "Obramówka: Fala Oceanu", price: 250, icon: "🌊", frameKey: 'ocean', desc: "Animowana obramówka: Fala Oceanu." },
             frame_emerald: { cat: 'obramowki', name: "Obramówka: Szmaragd", price: 250, icon: "💚", frameKey: 'emerald', desc: "Animowana obramówka: Szmaragd." },
             frame_violet: { cat: 'obramowki', name: "Obramówka: Fiolet", price: 250, icon: "🟣", frameKey: 'violet', desc: "Animowana obramówka: Fiolet." },
-            frame_candy: { cat: 'obramowki', name: "Obramówka: Cukierek", price: 250, icon: "🍭", frameKey: 'candy', desc: "Animowana obramówka: Cukierek." },
+            frame_candy: { cat: 'obramowki', name: "Obramówka: Cukierek (limitowana)", icon: "🍭", frameKey: 'candy', achOnly: true, desc: "Do zdobycia tylko z achievementu." },
             frame_cyber: { cat: 'obramowki', name: "Obramówka: Cyberpunk", price: 300, icon: "🤖", frameKey: 'cyber', desc: "Animowana obramówka: Cyberpunk." },
-            frame_storm: { cat: 'obramowki', name: "Obramówka: Burza", price: 300, icon: "⛈️", frameKey: 'storm', desc: "Animowana obramówka: Burza." },
-            frame_magma: { cat: 'obramowki', name: "Obramówka: Magma", price: 300, icon: "🌋", frameKey: 'magma', desc: "Animowana obramówka: Magma." },
-            frame_silver: { cat: 'obramowki', name: "Obramówka: Srebro", price: 250, icon: "🥈", frameKey: 'silver', desc: "Animowana obramówka: Srebro." },
-            frame_rainbow: { cat: 'obramowki', name: "Obramówka: Tęcza", price: 350, icon: "🌈", frameKey: 'rainbow', desc: "Animowana obramówka: Tęcza." },
+            frame_storm: { cat: 'obramowki', name: "Obramówka: Burza (limitowana)", icon: "⛈️", frameKey: 'storm', achOnly: true, desc: "Do zdobycia tylko z achievementu." },
+            frame_magma: { cat: 'obramowki', name: "Obramówka: Magma (limitowana)", icon: "🌋", frameKey: 'magma', achOnly: true, desc: "Do zdobycia tylko z achievementu." },
+            frame_silver: { cat: 'obramowki', name: "Obramówka: Srebro (limitowana)", icon: "🥈", frameKey: 'silver', achOnly: true, desc: "Do zdobycia tylko z achievementu." },
+            frame_rainbow: { cat: 'obramowki', name: "Obramówka: Tęcza (limitowana)", icon: "🌈", frameKey: 'rainbow', achOnly: true, desc: "Do zdobycia tylko z achievementu." },
             theme_tidal: { cat: 'motywy', name: "Motyw: Przypływ (animowany)", price: 200, icon: "🌊", themeKey: 'tidal', swatch: ['#03111f', '#38bdf8', '#22d3ee'], desc: "Animowany motyw strony: Przypływ." },
             theme_dusk: { cat: 'motywy', name: "Motyw: Zmierzch (animowany)", price: 200, icon: "🌇", themeKey: 'dusk', swatch: ['#1a0b14', '#fb7185', '#f59e0b'], desc: "Animowany motyw strony: Zmierzch." },
             theme_jungle: { cat: 'motywy', name: "Motyw: Dżungla (animowany)", price: 200, icon: "🌴", themeKey: 'jungle', swatch: ['#04140a', '#4ade80', '#a3e635'], desc: "Animowany motyw strony: Dżungla." },
-            theme_bubblegum: { cat: 'motywy', name: "Motyw: Guma Balonowa (animowany)", price: 200, icon: "🍬", themeKey: 'bubblegum', swatch: ['#1a0716', '#f472b6', '#c084fc'], desc: "Animowany motyw strony: Guma Balonowa." },
+            theme_bubblegum: { cat: 'motywy', name: "Motyw: Guma Balonowa (animowany) (limitowana)", icon: "🍬", themeKey: 'bubblegum', swatch: ['#1a0716', '#f472b6', '#c084fc'], achOnly: true, desc: "Do zdobycia tylko z achievementu." },
             theme_nebula: { cat: 'motywy', name: "Motyw: Mgławica (animowany)", price: 250, icon: "🪐", themeKey: 'nebula', swatch: ['#0a0620', '#a78bfa', '#f0abfc'], desc: "Animowany motyw strony: Mgławica." },
-            theme_glacier: { cat: 'motywy', name: "Motyw: Lodowiec (animowany)", price: 200, icon: "🧊", themeKey: 'glacier', swatch: ['#071320', '#7dd3fc', '#e0f2fe'], desc: "Animowany motyw strony: Lodowiec." },
-            theme_inferno: { cat: 'motywy', name: "Motyw: Piekło (animowany)", price: 250, icon: "🔥", themeKey: 'inferno', swatch: ['#180504', '#ef4444', '#f97316'], desc: "Animowany motyw strony: Piekło." },
-            theme_carbon: { cat: 'motywy', name: "Motyw: Karbon (animowany)", price: 200, icon: "⚫", themeKey: 'carbon', swatch: ['#0a0a0a', '#94a3b8', '#e2e8f0'], desc: "Animowany motyw strony: Karbon." },
+            theme_glacier: { cat: 'motywy', name: "Motyw: Lodowiec (animowany) (limitowana)", icon: "🧊", themeKey: 'glacier', swatch: ['#071320', '#7dd3fc', '#e0f2fe'], achOnly: true, desc: "Do zdobycia tylko z achievementu." },
+            theme_inferno: { cat: 'motywy', name: "Motyw: Piekło (animowany) (limitowana)", icon: "🔥", themeKey: 'inferno', swatch: ['#180504', '#ef4444', '#f97316'], achOnly: true, desc: "Do zdobycia tylko z achievementu." },
+            theme_carbon: { cat: 'motywy', name: "Motyw: Karbon (animowany) (limitowana)", icon: "⚫", themeKey: 'carbon', swatch: ['#0a0a0a', '#94a3b8', '#e2e8f0'], achOnly: true, desc: "Do zdobycia tylko z achievementu." },
             theme_vapor: { cat: 'motywy', name: "Motyw: Vaporwave (animowany)", price: 250, icon: "🌴", themeKey: 'vapor', swatch: ['#12081f', '#22d3ee', '#f472b6'], desc: "Animowany motyw strony: Vaporwave." },
-            theme_stormcloud: { cat: 'motywy', name: "Motyw: Chmura Burzowa (animowany)", price: 200, icon: "⛈️", themeKey: 'stormcloud', swatch: ['#0b1020', '#60a5fa', '#94a3b8'], desc: "Animowany motyw strony: Chmura Burzowa." },
+            theme_stormcloud: { cat: 'motywy', name: "Motyw: Chmura Burzowa (animowany) (limitowana)", icon: "⛈️", themeKey: 'stormcloud', swatch: ['#0b1020', '#60a5fa', '#94a3b8'], achOnly: true, desc: "Do zdobycia tylko z achievementu." },
             ach_frame_fire:  { cat: 'obramowki', name: "Obramówka: Płomień (limitowana)", icon: "🔥", frameKey: 'fire', achOnly: true, desc: "Do zdobycia tylko z achievementu." },
             ach_frame_royal: { cat: 'obramowki', name: "Obramówka: Królewska (limitowana)", icon: "👑", frameKey: 'royal', achOnly: true, desc: "Do zdobycia tylko z achievementu." },
             ach_frame_ice:   { cat: 'obramowki', name: "Obramówka: Lód (limitowana)", icon: "🧊", frameKey: 'ice', achOnly: true, desc: "Do zdobycia tylko z achievementu." },
