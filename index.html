@@ -1247,12 +1247,9 @@ body.overlay-mode .lv-event{position:fixed;font-size:max(40px,5vw);background:ra
                 <div class="card">
                     <h2>Transmisja / Wyniki Na Żywo</h2>
                     <p style="margin-bottom: 14px;">
-                        <a id="live-external-link" href="https://n01darts.com/n01/tournament/comp.php?id=t_30JY_2230&tab=live" target="_blank" style="color: var(--accent-blue); font-weight: 600; text-decoration: none;">Otwórz w nowej karcie ↗</a>
+                        <a id="live-external-link" href="https://n01darts.com/n01/tournament/comp.php?id=t_30JY_2230&tab=live" target="_blank" style="display:inline-block; padding:10px 18px; border-radius:10px; background:var(--accent-blue); color:#0b0f19; font-weight:800; text-decoration:none;">Otwórz w nowej karcie ↗</a>
                     </p>
                     <div id="live-overlay-box"></div>
-                    <div style="width: 100%; height: 600px; background: #000; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--card-border); position: relative;">
-                        <iframe id="n01-iframe" src="https://n01darts.com/n01/tournament/comp.php?id=t_30JY_2230&tab=live" style="width:100%; height:100%; border:none; pointer-events: none;"></iframe>
-                    </div>
                 </div>
             </div>
 
@@ -5508,6 +5505,28 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
             if (e.win) h += `<div class="lv-event lv-ev-win" style="animation-delay:${d0 - el}s">${e.win === 'draw' ? '<span class="lv-wn">REMIS</span>' : `<span class="lv-wn">${nwEsc(nm(e.win.uid))}</span><small>wygrywa mecz</small>`}</div>`;
             return h;
         }
+        // Zapisuje dane z n01 jako protokół meczu (trafia do zatwierdzenia przez admina; ręczna edycja nadal możliwa)
+        const liveApplied = new Set();
+        async function liveApplySummary(matchId, s) {
+            const m = globalUpcomingMatchesMap[matchId];
+            if (!m || !s || !s.ended || !s.byUid || m.reportData || liveApplied.has(matchId)) return;
+            liveApplied.add(matchId);
+            const rd = {};
+            [[1, m.p1Uid], [2, m.p2Uid]].forEach(([q, uid]) => {
+                const d = s.byUid[uid] || {};
+                rd['s' + q] = d.legs || 0; rd['avg' + q] = d.avg || 0; rd['hf' + q] = d.hf || 0;
+                rd['s80_' + q] = d.c80 || 0; rd['s100_' + q] = d.c100 || 0; rd['s140_' + q] = d.c140 || 0; rd['s180_' + q] = d.c180 || 0;
+            });
+            try {
+                await update(dbRef(db, 'upcomingMatches/' + matchId), { reportData: rd, reported: true, reportAuto: true });
+                notifyUser(m.p1Uid, 'report_filled', 'Protokół uzupełniony automatycznie', `Wynik meczu ${m.p1Name} vs ${m.p2Name} pobrano z n01 i wysłano do zatwierdzenia.`, matchId);
+                notifyUser(m.p2Uid, 'report_filled', 'Protokół uzupełniony automatycznie', `Wynik meczu ${m.p2Name} vs ${m.p1Name} pobrano z n01 i wysłano do zatwierdzenia.`, matchId);
+            } catch (e) { liveApplied.delete(matchId); console.warn(e.message); }
+        }
+        function applyLiveSummaries() {
+            if (!isAdminUser() || !liveState.summaries) return;
+            Object.entries(liveState.summaries).forEach(([id, s]) => liveApplySummary(id, s));
+        }
         function liveName(p) { const u = globalUsersData[p.uid]; return u ? `${u.firstName || ''} ${u.lastName || ''}`.trim() : (p.name || 'Gracz'); }
         function liveOverlayHtml(d) {
             if (!d || !d.players || d.status === 'idle') return '';
@@ -5525,7 +5544,7 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
         function renderLive() {
             const html = liveOverlayHtml(liveState.data) + (liveState.data ? liveEventHtml(liveState.data) : '');
             const a = nwEl('live-overlay-box'), b = nwEl('overlay-root');
-            if (a) a.innerHTML = html;
+            if (a) a.innerHTML = html || '<p style="color:var(--text-muted)">Aktualnie nie trwa żadna transmisja. Wynik pojawi się tutaj, gdy rozpocznie się mecz.</p>';
             if (b) b.innerHTML = html;
         }
         function liveSetStatus(msg, ok) { const e = nwEl('live-status'); if (e) { e.className = 'msg ' + (ok ? 'success' : 'error'); e.innerText = msg; } }
@@ -5600,6 +5619,7 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
                 liveSetStatus(out.ended ? 'Mecz zakończony - dane do protokołu zapisane.' : 'Wynik przesłany na żywo.' + dbg, true);
                 if (out.ended) {
                     await set(dbRef(db, 'liveScore/summaries/' + cur.matchId), out.summary);
+                    await liveApplySummary(cur.matchId, out.summary);
                     await update(dbRef(db, 'liveScore/current'), { active: false });
                     liveStopWorker();
                 }
@@ -5628,6 +5648,7 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
             if (keep) sel.value = keep;
             nwEl('live-link').value = location.href.split('#')[0] + '#overlay';
             if (isAdminUser() && liveState.current && liveState.current.active) liveStartWorker();
+            applyLiveSummaries();
         }
         nwEl('btn-live-save-prefix').onclick = async () => {
             if (!isAdminUser()) return;
@@ -5682,11 +5703,11 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
                 const f = (k, v) => { const e = nwEl('aer-' + k); if (e) e.value = v; };
                 f('s' + p, d.legs); f('avg' + p, d.avg); f('hf' + p, d.hf); f('s80_' + p, d.c80); f('s100_' + p, d.c100); f('s140_' + p, d.c140); f('s180_' + p, d.c180);
             });
-            msg.className = 'msg success'; msg.innerText = 'Wypełniono danymi z n01 - sprawdź, uzupełnij 9-darter i zapisz.';
+            msg.className = 'msg success'; msg.innerText = 'Wypełniono danymi z n01 - sprawdź, uzupełnij 9-darter lub inny finisz i zapisz.';
         };
         onValue(dbRef(db, 'liveScore'), snap => {
             liveState = snap.val() || {};
-            renderLive(); renderAdminLive();
+            renderLive(); renderAdminLive(); applyLiveSummaries();
             if (isAdminUser() && liveState.current && liveState.current.active) liveStartWorker(); else liveStopWorker();
         });
 
