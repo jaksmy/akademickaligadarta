@@ -1051,9 +1051,25 @@ body[data-theme="stormcloud"]{--bg-color:#0b1020;--card-bg:#141c33;--card-border
 .pv2-btn{display:inline-block;margin-top:.7em;padding:.35em 1.1em;border-radius:.6em;background:var(--accent-blue);color:#0b0f19;font-weight:800}
 .pv2-cap{position:absolute;left:0;right:0;bottom:0;padding:.4em 1em;background:rgba(0,0,0,.6);color:#fff}
 .pv-fxbox{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+#overlay-root{display:none}
+body.overlay-mode{background:transparent!important;background-image:none!important;animation:none!important}
+body.overlay-mode > *:not(#overlay-root){display:none!important}
+body.overlay-mode #overlay-root{display:flex;position:fixed;inset:0;align-items:flex-end;padding:3vw}
+body.overlay-mode .lv-card{font-size:max(18px,1.2vw);margin:0}
+.lv-card{width:30em;max-width:100%;font-size:16px;background:linear-gradient(135deg,rgba(10,14,26,.94),rgba(20,28,52,.94));border:1px solid rgba(255,255,255,.14);border-radius:.9em;overflow:hidden;color:#fff;box-shadow:0 .6em 2em rgba(0,0,0,.5);position:relative;margin:0 0 14px 0}
+.lv-head{display:flex;justify-content:space-between;gap:.8em;padding:.45em .9em;font-size:.72em;text-transform:uppercase;letter-spacing:.05em;background:rgba(255,255,255,.07);color:#cbd5e1}
+.lv-live{color:#f87171;font-weight:800;animation:lvblink 1.4s infinite}@keyframes lvblink{50%{opacity:.35}}
+.lv-row{display:grid;grid-template-columns:auto 1fr auto auto;align-items:center;gap:.8em;padding:.55em .9em;border-top:1px solid rgba(255,255,255,.08)}
+.lv-row.on{background:linear-gradient(90deg,rgba(250,204,21,.22),transparent)}.lv-row.win{background:linear-gradient(90deg,rgba(52,211,153,.3),transparent)}
+.lv-name{font-weight:800;font-size:1.15em;line-height:1.1}.lv-name small{display:block;font-weight:500;font-size:.62em;color:#94a3b8;margin-top:.2em}
+.lv-legs{min-width:1.8em;text-align:center;font-size:1.7em;font-weight:900;background:rgba(255,255,255,.1);border-radius:.4em;padding:0 .3em}
+.lv-left{min-width:2.4em;text-align:right;font-size:2.2em;font-weight:900;color:#facc15;font-variant-numeric:tabular-nums}
+.lv-burst{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:3.2em;font-weight:900;color:#facc15;text-shadow:0 0 .4em #f97316;background:rgba(0,0,0,.55);animation:lvpop 3.5s forwards;pointer-events:none}
+@keyframes lvpop{0%{opacity:0;transform:scale(.4)}12%{opacity:1;transform:scale(1.1)}20%{transform:scale(1)}80%{opacity:1}100%{opacity:0}}
 </style>
 </head>
 <body>
+<div id="overlay-root"></div>
 
     <!-- AUTHENTICATION VIEWS (Modals nałożone na aplikację) -->
     <div id="view-login" class="modal hidden">
@@ -1225,6 +1241,7 @@ body[data-theme="stormcloud"]{--bg-color:#0b1020;--card-bg:#141c33;--card-border
                     <p style="margin-bottom: 14px;">
                         <a id="live-external-link" href="https://n01darts.com/n01/tournament/comp.php?id=t_30JY_2230&tab=live" target="_blank" style="color: var(--accent-blue); font-weight: 600; text-decoration: none;">Otwórz w nowej karcie ↗</a>
                     </p>
+                    <div id="live-overlay-box"></div>
                     <div style="width: 100%; height: 600px; background: #000; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--card-border); position: relative;">
                         <iframe id="n01-iframe" src="https://n01darts.com/n01/tournament/comp.php?id=t_30JY_2230&tab=live" style="width:100%; height:100%; border:none; pointer-events: none;"></iframe>
                     </div>
@@ -1323,6 +1340,23 @@ body[data-theme="stormcloud"]{--bg-color:#0b1020;--card-bg:#141c33;--card-border
                         <button class="btn-success" id="btn-admin-restore-season">🔄 Przywróć Sezon</button>
                     </div>
                     <div id="admin-season-msg" class="msg"></div>
+                </div>
+
+                <div class="card">
+                    <h2>📡 Transmisja n01</h2>
+                    <div class="form-group"><label>Prefiks identyfikatora meczu w n01 (wszystko przed kodami graczy)</label><input type="text" id="live-prefix" placeholder="t_30JY_2230_rr_0_"></div>
+                    <button class="btn-primary btn-sm" id="btn-live-save-prefix">Zapisz prefiks</button>
+                    <h3 style="margin:16px 0 6px;font-size:.95rem">Kody graczy w n01</h3>
+                    <p style="color:var(--text-muted);font-size:.8rem;margin-bottom:8px">Kod to 4 znaki z końca identyfikatora meczu (np. 3JKZ i AgoK z ...3JKZ_AgoK).</p>
+                    <div id="live-codes" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px"></div>
+                    <button class="btn-primary btn-sm" id="btn-live-save-codes" style="margin-top:8px">Zapisz kody</button>
+                    <h3 style="margin:16px 0 6px;font-size:.95rem">Mecz na żywo</h3>
+                    <select id="live-match"></select>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button class="btn-primary" id="btn-live-start">▶ Start transmisji</button><button class="btn-danger btn-sm" id="btn-live-stop">■ Zakończ i ukryj overlay</button></div>
+                    <div id="live-status" class="msg"></div>
+                    <p style="margin-top:10px;font-size:.8rem;color:var(--text-muted)">Adres overlayu do OBS (Browser Source, tło przezroczyste):</p>
+                    <input type="text" id="live-link" readonly onclick="this.select()">
+                    <p style="font-size:.75rem;color:var(--text-muted);margin-top:6px">Ta karta musi być otwarta w przeglądarce admina przez cały mecz - to ona pobiera wynik z n01.</p>
                 </div>
 
                 <div class="card">
@@ -3883,7 +3917,7 @@ ${board}</svg>`;
             nwEl('aer-match-id').value = matchId;
             nwEl('aer-title').innerText = `${m.reportData ? 'Edycja' : 'Wypełnienie'} protokołu: ${m.p1Name} vs ${m.p2Name}`;
             nwEl('aer-msg').innerText = '';
-            let html = '';
+            let html = `<button type="button" class="btn-primary btn-sm" style="margin-bottom:12px" onclick="aerFillFromN01('${matchId}')">📡 Wypełnij danymi z n01</button>`;
             [[1, m.p1Name], [2, m.p2Name]].forEach(([p, name]) => {
                 html += `<h3 style="color: var(--accent-blue); font-size: 0.95rem; margin: ${p === 1 ? 0 : 16}px 0 8px;">${nwEsc(name)}</h3><div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">`;
                 AER_KEYS(p).forEach(([key, label, type]) => {
@@ -4440,7 +4474,7 @@ ${board}</svg>`;
         // --- PANEL ADMINA ---
 
         function renderAdminPanelData() {
-            setTimeout(renderPlayoffAdmin, 0);
+            setTimeout(renderPlayoffAdmin, 0); setTimeout(renderAdminLive, 0);
             const listContainer = document.getElementById('admin-players-list');
             const selectP1 = document.getElementById('admin-create-p1');
             const selectP2 = document.getElementById('admin-create-p2');
@@ -5341,7 +5375,7 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
         (function groupAdminPanel() {
             const page = nwEl('page-admin');
             const cards = [...page.querySelectorAll(':scope > .card')];
-            const cats = [['⚙️ Sezon i playoff', ['Zarządzanie Sezonem', '🏆 Playoff']], ['📰 Aktualności', ['📰 Generator aktualności']], ['👥 Zawodnicy i portfele', ['Zarządzanie Zawodnikami i Portfelami (Dart Kasa)']], ['🎁 Nagrody', ['🎁 Nagrody graczy']], ['🎯 Mecze', ['Tworzenie Nadchodzącego Meczu', 'Oczekujące Protokoły Meczowe', 'Zarządzanie Nadchodzącymi Meczami', 'Zarządzanie Historią Meczów']]];
+            const cats = [['⚙️ Sezon i playoff', ['Zarządzanie Sezonem', '🏆 Playoff']], ['📰 Aktualności', ['📰 Generator aktualności']], ['👥 Zawodnicy i portfele', ['Zarządzanie Zawodnikami i Portfelami (Dart Kasa)']], ['📡 Na żywo', ['📡 Transmisja n01']], ['🎁 Nagrody', ['🎁 Nagrody graczy']], ['🎯 Mecze', ['Tworzenie Nadchodzącego Meczu', 'Oczekujące Protokoły Meczowe', 'Zarządzanie Nadchodzącymi Meczami', 'Zarządzanie Historią Meczów']]];
             const anchor = cards[0];
             cats.forEach(([title, names]) => {
                 const d = document.createElement('details'); d.className = 'adm-cat';
@@ -5441,6 +5475,165 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
             window.addEventListener('resize', hide);
         })();
 
+        // ===== NA ŻYWO: overlay wyników zasilany z n01 =====
+        if (location.hash === '#overlay') document.body.classList.add('overlay-mode');
+        window.addEventListener('hashchange', () => location.reload());
+        let liveState = {}, lvBurstKey = '', lvBurstUntil = 0, liveWorker = null, liveBusy = false, liveLastKey = '', liveGoodTmid = null;
+        const N01_URL = 'https://lbc.n01darts.com/n01/online/n01_user.php?cmd=match_view';
+
+        function liveName(p) { const u = globalUsersData[p.uid]; return u ? `${u.firstName || ''} ${u.lastName || ''}`.trim() : (p.name || 'Gracz'); }
+        function liveOverlayHtml(d) {
+            if (!d || !d.players || d.status === 'idle') return '';
+            const ended = d.status === 'ended', maxLegs = Math.max(...d.players.map(p => p.legs));
+            const burst = d.players.some(p => p.last === 180);
+            if (burst && lvBurstKey !== String(d.updatedAt)) { lvBurstKey = String(d.updatedAt); lvBurstUntil = Date.now() + 3500; }
+            const rows = d.players.map(p => {
+                const u = globalUsersData[p.uid];
+                const av = avatarHtml((u && u.photoUrl) || PRESET_AVATARS[0], u ? frameKeyFor(u) : null, 56, '', 'width:56px;height:56px;border-radius:50%;object-fit:cover');
+                const win = ended && p.legs === maxLegs && d.players.filter(x => x.legs === maxLegs).length === 1;
+                return `<div class="lv-row ${p.thrower && !ended ? 'on' : ''} ${win ? 'win' : ''}"><div>${av}</div><div class="lv-name">${nwEsc(liveName(p))}${p.thrower && !ended ? ' 🎯' : ''}<small>śr. ${Number(p.avg || 0).toFixed(2)}${p.last !== null && p.last !== undefined ? ` · ostatni ${p.last}` : ''}</small></div><div class="lv-legs">${p.legs}</div><div class="lv-left">${ended ? '' : p.left}</div></div>`;
+            }).join('');
+            return `<div class="lv-card"><div class="lv-head"><span>${nwEsc(d.title || 'Mecz')}</span><span>do ${d.target} legów</span>${ended ? '<b>KONIEC</b>' : '<b class="lv-live">● NA ŻYWO</b>'}</div>${rows}${Date.now() < lvBurstUntil ? '<div class="lv-burst">180!</div>' : ''}</div>`;
+        }
+        function renderLive() {
+            const html = liveOverlayHtml(liveState.data);
+            const a = nwEl('live-overlay-box'), b = nwEl('overlay-root');
+            if (a) a.innerHTML = html;
+            if (b) b.innerHTML = html;
+        }
+        function liveSetStatus(msg, ok) { const e = nwEl('live-status'); if (e) { e.className = 'msg ' + (ok ? 'success' : 'error'); e.innerText = msg; } }
+
+        // --- parsowanie odpowiedzi n01 ---
+        function parseN01(j, cur) {
+            const sd = j.statsData || [], legs = j.legData || [];
+            const idxOf = (code, uid, fb) => {
+                let k = sd.findIndex(s => s.tpid === code);
+                if (k < 0) { const u = globalUsersData[uid], nm = u ? `${u.firstName} ${u.lastName}`.toLowerCase() : ''; k = sd.findIndex(s => (s.name || '').toLowerCase() === nm); }
+                return k < 0 ? fb : k;
+            };
+            let k1 = idxOf(cur.c1, cur.p1Uid, 0), k2 = idxOf(cur.c2, cur.p2Uid, 1);
+            if (k1 === k2) { k1 = 0; k2 = 1; }
+            const P = [0, 1].map(() => ({ legs: 0, score: 0, rounds: 0, c80: 0, c100: 0, c140: 0, c180: 0, hf: 0, left: j.startScore || 301, last: null }));
+            legs.forEach((leg, li) => {
+                const isLast = li === legs.length - 1;
+                [0, 1].forEach(k => {
+                    const arr = (leg.playerData && leg.playerData[k]) || [];
+                    arr.slice(1).forEach((r, ri) => {
+                        const pending = isLast && leg.endFlag !== 1 && k === leg.currentPlayer && ri + 1 === leg.currentRound && !(r.score > 0);
+                        if (pending) return;
+                        const s = r.score || 0;
+                        P[k].score += s; P[k].rounds++; P[k].last = s; P[k].left = r.left;
+                        if (s >= 180) P[k].c180++; else if (s >= 140) P[k].c140++; else if (s >= 100) P[k].c100++; else if (s >= 80) P[k].c80++;
+                    });
+                    const lr = arr[arr.length - 1];
+                    if (arr.length > 1 && lr && lr.left === 0) { P[k].legs++; P[k].hf = Math.max(P[k].hf, arr[arr.length - 2].left); }
+                });
+            });
+            const target = j.limitLeg || 3, maxLegs = target + 1;
+            if (P[0].legs + P[1].legs === 0 && sd.some(s => s.winLegs > 0)) { P[0].legs = sd[0].winLegs || 0; P[1].legs = sd[1].winLegs || 0; }
+            const ended = j.endMatch === 1 || P[0].legs >= target || P[1].legs >= target || P[0].legs + P[1].legs >= maxLegs;
+            const lastLeg = legs[legs.length - 1] || {};
+            const mk = (k, uid) => ({ uid, name: (sd[k] && sd[k].name) || '', legs: P[k].legs, left: P[k].left, avg: P[k].rounds ? +(P[k].score / P[k].rounds).toFixed(2) : 0, last: P[k].last, thrower: lastLeg.currentPlayer === k });
+            return {
+                ended,
+                data: { status: ended ? 'ended' : 'live', matchId: cur.matchId, title: j.title || '', target, startScore: j.startScore || 301, players: [mk(k1, cur.p1Uid), mk(k2, cur.p2Uid)], updatedAt: Date.now() },
+                summary: { ended, at: Date.now(), byUid: { [cur.p1Uid]: { legs: P[k1].legs, avg: P[k1].rounds ? +(P[k1].score / P[k1].rounds).toFixed(2) : 0, hf: P[k1].hf, c80: P[k1].c80, c100: P[k1].c100, c140: P[k1].c140, c180: P[k1].c180 }, [cur.p2Uid]: { legs: P[k2].legs, avg: P[k2].rounds ? +(P[k2].score / P[k2].rounds).toFixed(2) : 0, hf: P[k2].hf, c80: P[k2].c80, c100: P[k2].c100, c140: P[k2].c140, c180: P[k2].c180 } } }
+            };
+        }
+        async function livePoll() {
+            const cur = liveState.current;
+            if (liveBusy || !isAdminUser() || !cur || !cur.active) return;
+            liveBusy = true;
+            try {
+                let j = null;
+                for (const tm of (liveGoodTmid ? [liveGoodTmid] : cur.tmids)) {
+                    const r = await fetch(N01_URL, { method: 'POST', body: JSON.stringify({ tmid: tm }) });
+                    const x = await r.json();
+                    if (x && x.legData) { j = x; liveGoodTmid = tm; break; }
+                }
+                if (!j) { liveGoodTmid = null; liveSetStatus('Brak danych z n01 - sprawdź prefiks i kody graczy.', false); return; }
+                const key = `${j.updateTime}_${j.rev_p}_${j.endMatch}`;
+                if (key === liveLastKey) { liveSetStatus('Połączono z n01 - czekam na zmiany wyniku.', true); return; }
+                liveLastKey = key;
+                const out = parseN01(j, cur);
+                await set(dbRef(db, 'liveScore/data'), out.data);
+                liveSetStatus(out.ended ? 'Mecz zakończony - dane do protokołu zapisane.' : 'Wynik przesłany na żywo.', true);
+                if (out.ended) {
+                    await set(dbRef(db, 'liveScore/summaries/' + cur.matchId), out.summary);
+                    await update(dbRef(db, 'liveScore/current'), { active: false });
+                    liveStopWorker();
+                }
+            } catch (e) { liveSetStatus('Błąd pobierania z n01: ' + e.message, false); }
+            finally { liveBusy = false; }
+        }
+        function liveStartWorker() {
+            if (liveWorker) return;
+            liveWorker = new Worker(URL.createObjectURL(new Blob(['setInterval(()=>postMessage(1),3000)'], { type: 'text/javascript' })));
+            liveWorker.onmessage = livePoll; livePoll();
+        }
+        function liveStopWorker() { if (liveWorker) { liveWorker.terminate(); liveWorker = null; } }
+
+        // --- panel admina ---
+        function renderAdminLive() {
+            const box = nwEl('live-codes'); if (!box) return;
+            const prev = {}; box.querySelectorAll('input').forEach(i => { prev[i.dataset.uid] = i.value; });
+            const uids = Object.keys(globalUsersData).filter(u => globalUsersData[u].signedUpForSeason1 && globalUsersData[u].statusSeason1 === 'approved');
+            box.innerHTML = uids.map(u => { const d = globalUsersData[u]; return `<div class="form-group" style="margin:0"><label style="font-size:.75rem">${nwEsc(`${d.firstName} ${d.lastName}`)}</label><input type="text" data-uid="${u}" maxlength="8" value="${nwEsc(prev[u] !== undefined ? prev[u] : (d.n01Code || ''))}" placeholder="kod n01"></div>`; }).join('');
+            const pre = nwEl('live-prefix'); if (pre && document.activeElement !== pre && !pre.value) pre.value = (liveState.config && liveState.config.prefix) || 't_30JY_2230_rr_0_';
+            const sel = nwEl('live-match'), keep = sel.value;
+            sel.innerHTML = Object.entries(globalUpcomingMatchesMap).map(([id, m]) => {
+                const ok = (globalUsersData[m.p1Uid] || {}).n01Code && (globalUsersData[m.p2Uid] || {}).n01Code;
+                return `<option value="${id}" ${ok ? '' : 'disabled'}>${nwEsc(m.p1Name)} vs ${nwEsc(m.p2Name)}${ok ? '' : ' (brak kodów n01)'}</option>`;
+            }).join('') || '<option value="">Brak nadchodzących meczów</option>';
+            if (keep) sel.value = keep;
+            nwEl('live-link').value = location.href.split('#')[0] + '#overlay';
+            if (isAdminUser() && liveState.current && liveState.current.active) liveStartWorker();
+        }
+        nwEl('btn-live-save-prefix').onclick = async () => {
+            if (!isAdminUser()) return;
+            try { await set(dbRef(db, 'liveScore/config/prefix'), nwEl('live-prefix').value.trim()); liveSetStatus('Zapisano prefiks.', true); } catch (e) { liveSetStatus(e.message, false); }
+        };
+        nwEl('btn-live-save-codes').onclick = async () => {
+            if (!isAdminUser()) return;
+            const upd = {}; let bad = false;
+            nwEl('live-codes').querySelectorAll('input').forEach(i => { const v = i.value.trim(); if (v && !/^[A-Za-z0-9]{2,8}$/.test(v)) bad = true; upd[`users/${i.dataset.uid}/n01Code`] = v || null; });
+            if (bad) { liveSetStatus('Kod może zawierać tylko litery i cyfry (2-8 znaków).', false); return; }
+            try { await update(dbRef(db), upd); liveSetStatus('Zapisano kody graczy.', true); } catch (e) { liveSetStatus(e.message, false); }
+        };
+        nwEl('btn-live-start').onclick = async () => {
+            if (!isAdminUser()) return;
+            const id = nwEl('live-match').value, m = globalUpcomingMatchesMap[id], prefix = nwEl('live-prefix').value.trim();
+            if (!m || !prefix) { liveSetStatus('Wybierz mecz i uzupełnij prefiks.', false); return; }
+            const c1 = globalUsersData[m.p1Uid].n01Code, c2 = globalUsersData[m.p2Uid].n01Code;
+            try {
+                await set(dbRef(db, 'liveScore/config/prefix'), prefix);
+                liveLastKey = ''; liveGoodTmid = null;
+                await set(dbRef(db, 'liveScore/current'), { active: true, matchId: id, p1Uid: m.p1Uid, p2Uid: m.p2Uid, c1, c2, tmids: [`${prefix}${c1}_${c2}`, `${prefix}${c2}_${c1}`], startedAt: Date.now() });
+                await set(dbRef(db, 'liveScore/data'), { status: 'idle' });
+                liveSetStatus('Transmisja uruchomiona - łączę z n01...', true);
+            } catch (e) { liveSetStatus(e.message, false); }
+        };
+        nwEl('btn-live-stop').onclick = async () => {
+            if (!isAdminUser()) return;
+            try { liveStopWorker(); await update(dbRef(db, 'liveScore/current'), { active: false }); await set(dbRef(db, 'liveScore/data'), { status: 'idle' }); liveSetStatus('Transmisja zatrzymana, overlay ukryty.', true); } catch (e) { liveSetStatus(e.message, false); }
+        };
+        window.aerFillFromN01 = async (matchId) => {
+            const m = globalUpcomingMatchesMap[matchId], msg = nwEl('aer-msg');
+            const s = (await get(dbRef(db, 'liveScore/summaries/' + matchId))).val();
+            if (!m || !s || !s.byUid) { msg.className = 'msg error'; msg.innerText = 'Brak zapisanych danych z n01 dla tego meczu.'; return; }
+            [[1, m.p1Uid], [2, m.p2Uid]].forEach(([p, uid]) => {
+                const d = s.byUid[uid]; if (!d) return;
+                const f = (k, v) => { const e = nwEl('aer-' + k); if (e) e.value = v; };
+                f('s' + p, d.legs); f('avg' + p, d.avg); f('hf' + p, d.hf); f('s80_' + p, d.c80); f('s100_' + p, d.c100); f('s140_' + p, d.c140); f('s180_' + p, d.c180);
+            });
+            msg.className = 'msg success'; msg.innerText = 'Wypełniono danymi z n01 - sprawdź, uzupełnij 9-darter i zapisz.';
+        };
+        onValue(dbRef(db, 'liveScore'), snap => {
+            liveState = snap.val() || {};
+            renderLive(); renderAdminLive();
+            if (isAdminUser() && liveState.current && liveState.current.active) liveStartWorker(); else liveStopWorker();
+        });
+
         // Firebase Listeners
         onValue(dbRef(db, 'users'), (snapshot) => {
             globalUsersData = snapshot.val() || {};
@@ -5492,6 +5685,7 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
             }
             if (typeof renderApprovedPlayers === 'function') renderApprovedPlayers();
             renderPlayoffHome();
+            renderLive();
         }
 
         onValue(dbRef(db, 'upcomingMatches'), (snapshot) => {
