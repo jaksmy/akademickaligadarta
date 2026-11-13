@@ -1349,6 +1349,7 @@ body.overlay-mode .lv-card{font-size:max(18px,1.2vw);margin:0}
                     <h3 style="margin:16px 0 6px;font-size:.95rem">Kody graczy w n01</h3>
                     <p style="color:var(--text-muted);font-size:.8rem;margin-bottom:8px">Kod to 4 znaki z końca identyfikatora meczu (np. 3JKZ i AgoK z ...3JKZ_AgoK).</p>
                     <div id="live-codes" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px"></div>
+                    <div style="display:flex;gap:8px;margin:10px 0"><input type="text" id="live-detect" placeholder="Wklej identyfikator meczu, np. t_30JY_2230_rr_0_3JKZ_AgoK"><button type="button" class="btn-primary btn-sm" id="btn-live-detect" style="white-space:nowrap">Wykryj kody z meczu</button></div>
                     <button class="btn-primary btn-sm" id="btn-live-save-codes" style="margin-top:8px">Zapisz kody</button>
                     <h3 style="margin:16px 0 6px;font-size:.95rem">Mecz na żywo</h3>
                     <select id="live-match"></select>
@@ -5552,12 +5553,14 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
                     if (x && x.legData) { j = x; liveGoodTmid = tm; break; }
                 }
                 if (!j) { liveGoodTmid = null; liveSetStatus('Brak danych z n01 - sprawdź prefiks i kody graczy.', false); return; }
+                const lg = j.legData[j.legData.length - 1] || {};
+                const dbg = ` [n01: leg ${j.legData.length}, wpisane rundy ${((lg.playerData || [])[0] || []).length - 1}/${((lg.playerData || [])[1] || []).length - 1}, ostatnia zmiana ${new Date(j.updateTime).toLocaleTimeString('pl-PL')}]`;
                 const key = `${j.updateTime}_${j.rev_p}_${j.endMatch}`;
-                if (key === liveLastKey) { liveSetStatus('Połączono z n01 - czekam na zmiany wyniku.', true); return; }
+                if (key === liveLastKey) { liveSetStatus('Połączono z n01 - czekam na zmiany wyniku.' + dbg, true); return; }
                 liveLastKey = key;
                 const out = parseN01(j, cur);
                 await set(dbRef(db, 'liveScore/data'), out.data);
-                liveSetStatus(out.ended ? 'Mecz zakończony - dane do protokołu zapisane.' : 'Wynik przesłany na żywo.', true);
+                liveSetStatus(out.ended ? 'Mecz zakończony - dane do protokołu zapisane.' : 'Wynik przesłany na żywo.' + dbg, true);
                 if (out.ended) {
                     await set(dbRef(db, 'liveScore/summaries/' + cur.matchId), out.summary);
                     await update(dbRef(db, 'liveScore/current'), { active: false });
@@ -5592,6 +5595,22 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
         nwEl('btn-live-save-prefix').onclick = async () => {
             if (!isAdminUser()) return;
             try { await set(dbRef(db, 'liveScore/config/prefix'), nwEl('live-prefix').value.trim()); liveSetStatus('Zapisano prefiks.', true); } catch (e) { liveSetStatus(e.message, false); }
+        };
+        const normName = s => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/ł/g, 'l').replace(/\s+/g, ' ').trim();
+        nwEl('btn-live-detect').onclick = async () => {
+            if (!isAdminUser()) return;
+            const tm = nwEl('live-detect').value.trim(); if (!tm) return;
+            try {
+                const j = await (await fetch(N01_URL, { method: 'POST', body: JSON.stringify({ tmid: tm }) })).json();
+                if (!j || !j.statsData) { liveSetStatus('n01 nie zwrócił meczu o tym identyfikatorze.', false); return; }
+                const out = [];
+                j.statsData.forEach(s => {
+                    const uid = Object.keys(globalUsersData).find(u => normName(`${globalUsersData[u].firstName} ${globalUsersData[u].lastName}`) === normName(s.name));
+                    const inp = uid && nwEl('live-codes').querySelector(`input[data-uid="${uid}"]`);
+                    if (inp) { inp.value = s.tpid; out.push(`${s.name} → ${s.tpid}`); } else out.push(`${s.name} (kod ${s.tpid}) - brak pasującego gracza na stronie, wpisz ręcznie`);
+                });
+                liveSetStatus(out.join(' | ') + '. Kliknij „Zapisz kody”.', true);
+            } catch (e) { liveSetStatus('Błąd: ' + e.message, false); }
         };
         nwEl('btn-live-save-codes').onclick = async () => {
             if (!isAdminUser()) return;
