@@ -1074,10 +1074,15 @@ body.overlay-mode .lv-event{position:fixed;font-size:max(40px,5vw);background:ra
 .lv-ev-fin span{font-size:1.3em;letter-spacing:.12em}
 .lv-ev-win small{font-size:.8em;font-weight:700;color:#cbd5e1;letter-spacing:.08em;text-transform:uppercase}.lv-ev-win .lv-wn{font-size:1.9em;line-height:1.1;color:#34d399;text-shadow:0 0 .4em #059669}
 @keyframes lvev{0%{opacity:0;transform:scale(.5)}9%{opacity:1;transform:scale(1.08)}15%{transform:scale(1)}85%{opacity:1}100%{opacity:0;transform:scale(1.1)}}
+#live-frame{position:fixed;inset:0;border:6px solid #ef4444;pointer-events:none;z-index:10099;box-shadow:inset 0 0 40px rgba(239,68,68,.45)}
+#live-warn{position:fixed;top:0;left:0;right:0;z-index:10100;background:#b91c1c;color:#fff;padding:10px 14px;text-align:center;font-weight:800;border-bottom:3px solid #fecaca}
+#live-frame.hidden,#live-warn.hidden{display:none}
 </style>
 </head>
 <body>
 <div id="overlay-root"></div>
+<div id="live-frame" class="hidden"></div>
+<div id="live-warn" class="hidden"></div>
 
     <!-- AUTHENTICATION VIEWS (Modals nałożone na aplikację) -->
     <div id="view-login" class="modal hidden">
@@ -1360,6 +1365,7 @@ body.overlay-mode .lv-event{position:fixed;font-size:max(40px,5vw);background:ra
                     <select id="live-match"></select>
                     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button class="btn-primary" id="btn-live-start">▶ Start transmisji</button><button class="btn-danger btn-sm" id="btn-live-stop">■ Zakończ i ukryj overlay</button></div>
                     <div id="live-status" class="msg"></div>
+                    <p id="live-wake" style="font-size:.78rem;color:var(--text-muted);margin-top:6px"></p>
                     <p style="margin-top:10px;font-size:.8rem;color:var(--text-muted)">Adres overlayu do OBS (Browser Source, tło przezroczyste):</p>
                     <input type="text" id="live-link" readonly onclick="this.select()">
                     <p style="font-size:.75rem;color:var(--text-muted);margin-top:6px">Ta karta musi być otwarta w przeglądarce admina przez cały mecz - to ona pobiera wynik z n01.</p>
@@ -5587,6 +5593,7 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
             };
         }
         async function livePoll() {
+            liveCheckStale();
             const cur = liveState.current;
             if (liveBusy || !isAdminUser() || !cur || !cur.active) return;
             if (!liveGoodTmid && liveMiss > 0 && liveMiss % 4 !== 0) { liveMiss++; return; }
@@ -5599,7 +5606,7 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
                     if (x && x.legData) { j = x; liveGoodTmid = tm; break; }
                 }
                 if (!j) { liveGoodTmid = null; liveMiss++; liveSetStatus('Brak danych z n01 - sprawdź identyfikator turnieju i kody graczy.', false); return; }
-                liveMiss = 0;
+                liveMiss = 0; liveLastOk = Date.now();
                 const lg = j.legData[j.legData.length - 1] || {};
                 const dbg = ` [mecz ${liveGoodTmid}; n01: leg ${j.legData.length}, wpisane rundy ${((lg.playerData || [])[0] || []).length - 1}/${((lg.playerData || [])[1] || []).length - 1}, ostatnia zmiana ${new Date(j.updateTime).toLocaleTimeString('pl-PL')}]`;
                 const key = `${j.updateTime}_${j.rev_p}_${j.endMatch}`;
@@ -5626,12 +5633,32 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
             } catch (e) { liveSetStatus('Błąd pobierania z n01: ' + e.message, false); }
             finally { liveBusy = false; }
         }
+        let liveLastOk = 0, liveWakeLock = null;
+        function liveSetWakeInfo(msg) { const e = nwEl('live-wake'); if (e) e.innerText = msg; }
+        async function liveAcquireWake() {
+            if (!('wakeLock' in navigator)) { liveSetWakeInfo('⚠️ Ta przeglądarka nie pozwala zablokować wygaszania ekranu - wyłącz wygaszanie w ustawieniach urządzenia.'); return; }
+            try {
+                if (!liveWakeLock) { liveWakeLock = await navigator.wakeLock.request('screen'); liveWakeLock.addEventListener('release', () => { liveWakeLock = null; }); }
+                liveSetWakeInfo('🔒 Ekran nie wygaśnie, dopóki trwa transmisja (karta musi być widoczna).');
+            } catch (e) { liveSetWakeInfo('⚠️ Nie udało się zablokować wygaszania ekranu - wyłącz je w ustawieniach urządzenia.'); }
+        }
+        function liveReleaseWake() { if (liveWakeLock) { liveWakeLock.release().catch(() => {}); liveWakeLock = null; } liveSetWakeInfo(''); }
+        function liveCheckStale() {
+            const w = nwEl('live-warn'), f = nwEl('live-frame'); if (!w || !f) return;
+            const cur = liveState.current, sec = Math.round((Date.now() - liveLastOk) / 1000);
+            const stale = isAdminUser() && cur && cur.active && liveWorker && liveLastOk && sec > 20;
+            w.classList.toggle('hidden', !stale); f.classList.toggle('hidden', !stale);
+            if (stale) w.innerText = `⚠️ Brak odpowiedzi z n01 od ${sec} s - transmisja mogła zostać uśpiona. Zostaw tę kartę otwartą i widoczną.`;
+        }
         function liveStartWorker() {
             if (liveWorker) return;
+            liveLastOk = Date.now();
             liveWorker = new Worker(URL.createObjectURL(new Blob(['setInterval(()=>postMessage(1),3000)'], { type: 'text/javascript' })));
-            liveWorker.onmessage = livePoll; livePoll();
+            liveWorker.onmessage = livePoll; livePoll(); liveAcquireWake();
         }
-        function liveStopWorker() { if (liveWorker) { liveWorker.terminate(); liveWorker = null; } }
+        function liveStopWorker() { if (liveWorker) { liveWorker.terminate(); liveWorker = null; } liveReleaseWake(); liveCheckStale(); }
+        setInterval(liveCheckStale, 5000);
+        document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && liveWorker) { liveAcquireWake(); livePoll(); } liveCheckStale(); });
 
         // --- panel admina ---
         function renderAdminLive() {
