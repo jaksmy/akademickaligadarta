@@ -1066,6 +1066,16 @@ body.overlay-mode .lv-card{font-size:max(18px,1.2vw);margin:0}
 .lv-left{min-width:2.4em;text-align:right;font-size:2.2em;font-weight:900;color:#facc15;font-variant-numeric:tabular-nums}
 .lv-burst{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:3.2em;font-weight:900;color:#facc15;text-shadow:0 0 .4em #f97316;background:rgba(0,0,0,.55);animation:lvpop 3.5s forwards;pointer-events:none}
 @keyframes lvpop{0%{opacity:0;transform:scale(.4)}12%{opacity:1;transform:scale(1.1)}20%{transform:scale(1)}80%{opacity:1}100%{opacity:0}}
+#live-overlay-box{position:relative}
+.lv-event{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.1em;pointer-events:none;opacity:0;text-align:center;color:#fff;font-weight:900;text-shadow:0 .1em .4em rgba(0,0,0,.85);background:radial-gradient(circle,rgba(0,0,0,.55),rgba(0,0,0,.15) 75%);font-size:20px;z-index:5}
+body.overlay-mode .lv-event{position:fixed;font-size:max(40px,5vw);background:radial-gradient(circle,rgba(0,0,0,.45),transparent 70%)}
+.lv-ev-fin{animation:lvev 3.2s both}.lv-ev-win{animation:lvev 5s both}
+.lv-ev-fin b{font-size:2.6em;line-height:1;color:#facc15;text-shadow:0 0 .35em #f97316,0 0 .9em #ef4444}
+.lv-ev-fin span{font-size:1.3em;letter-spacing:.12em}
+.lv-bull{width:2.4em;height:2.4em;border-radius:50%;background:radial-gradient(circle,#ef4444 0 12%,#16a34a 12% 24%,#111 24% 40%,#fafafa 40% 54%,#ef4444 54% 70%,#111 70% 100%);box-shadow:0 0 .7em rgba(239,68,68,.9);animation:lvspin 5s both}
+.lv-ev-win small{font-size:.55em;font-weight:700;color:#cbd5e1}.lv-ev-win .lv-wn{font-size:1.1em;color:#34d399;text-shadow:0 0 .4em #059669}
+@keyframes lvev{0%{opacity:0;transform:scale(.5)}9%{opacity:1;transform:scale(1.08)}15%{transform:scale(1)}85%{opacity:1}100%{opacity:0;transform:scale(1.1)}}
+@keyframes lvspin{0%{transform:rotate(-540deg) scale(.1)}22%{transform:rotate(0) scale(1.15)}30%,100%{transform:rotate(0) scale(1)}}
 </style>
 </head>
 <body>
@@ -1344,7 +1354,7 @@ body.overlay-mode .lv-card{font-size:max(18px,1.2vw);margin:0}
 
                 <div class="card">
                     <h2>📡 Transmisja n01</h2>
-                    <div class="form-group"><label>Prefiks identyfikatora meczu w n01 (wszystko przed kodami graczy)</label><input type="text" id="live-prefix" placeholder="t_30JY_2230_rr_0_"></div>
+                    <div class="form-group"><label>Identyfikator turnieju n01 (zostaw puste - zostanie wykryty automatycznie z linku turnieju)</label><input type="text" id="live-prefix" placeholder="automatycznie"></div>
                     <button class="btn-primary btn-sm" id="btn-live-save-prefix">Zapisz prefiks</button>
                     <h3 style="margin:16px 0 6px;font-size:.95rem">Kody graczy w n01</h3>
                     <p style="color:var(--text-muted);font-size:.8rem;margin-bottom:8px">Kod to 4 znaki z końca identyfikatora meczu (np. 3JKZ i AgoK z ...3JKZ_AgoK).</p>
@@ -5479,9 +5489,27 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
         // ===== NA ŻYWO: overlay wyników zasilany z n01 =====
         if (location.hash === '#overlay') document.body.classList.add('overlay-mode');
         window.addEventListener('hashchange', () => location.reload());
+        let livePrevLegs = null, livePrevEnded = false, liveMiss = 0, lvEv = { id: null, start: 0 };
         let liveState = {}, lvBurstKey = '', lvBurstUntil = 0, liveWorker = null, liveBusy = false, liveLastKey = '', liveGoodTmid = null;
         const N01_URL = 'https://lbc.n01darts.com/n01/online/n01_user.php?cmd=match_view';
 
+        function liveTdid() { return ((nwEl('live-external-link').href.match(/[?&]id=([^&]+)/) || [])[1]) || 't_30JY_2230'; }
+        function liveCandidates(base, c1, c2) { // bez prefiksu próbuje rund rr_0..rr_5 i obu kolejności graczy
+            const pre = /_rr_\d+_$/.test(base) ? [base] : [0, 1, 2, 3, 4, 5].map(n => `${base}_rr_${n}_`);
+            const out = []; pre.forEach(x => out.push(x + c1 + '_' + c2, x + c2 + '_' + c1)); return out;
+        }
+        function liveEventHtml(d) {
+            const e = d && d.event; if (!e || !e.id) return '';
+            if (lvEv.id !== e.id) lvEv = { id: e.id, start: Math.abs(Date.now() - e.at) < 20000 ? Date.now() : 0 };
+            if (!lvEv.start) return '';
+            const el = (Date.now() - lvEv.start) / 1000, d0 = e.fin ? 3.2 : 0;
+            if (el > d0 + (e.win ? 5 : 0) + 0.3) return '';
+            const nm = uid => liveName({ uid, name: ((d.players || []).find(p => p.uid === uid) || {}).name });
+            let h = '';
+            if (e.fin && el < 3.4) h += `<div class="lv-event lv-ev-fin" style="animation-delay:${-el}s"><b>${e.fin.value}</b><span>FINISH!</span></div>`;
+            if (e.win) h += `<div class="lv-event lv-ev-win" style="animation-delay:${d0 - el}s"><div class="lv-bull"></div>${e.win === 'draw' ? '<span class="lv-wn">REMIS</span>' : `<span>BULL!</span><span class="lv-wn">${nwEsc(nm(e.win.uid))}</span><small>wygrywa mecz</small>`}</div>`;
+            return h;
+        }
         function liveName(p) { const u = globalUsersData[p.uid]; return u ? `${u.firstName || ''} ${u.lastName || ''}`.trim() : (p.name || 'Gracz'); }
         function liveOverlayHtml(d) {
             if (!d || !d.players || d.status === 'idle') return '';
@@ -5497,7 +5525,7 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
             return `<div class="lv-card"><div class="lv-head"><span>${nwEsc(d.title || 'Mecz')}</span><span>do ${d.target} legów</span>${ended ? '<b>KONIEC</b>' : '<b class="lv-live">● NA ŻYWO</b>'}</div>${rows}${Date.now() < lvBurstUntil ? '<div class="lv-burst">180!</div>' : ''}</div>`;
         }
         function renderLive() {
-            const html = liveOverlayHtml(liveState.data);
+            const html = liveOverlayHtml(liveState.data) + (liveState.data ? liveEventHtml(liveState.data) : '');
             const a = nwEl('live-overlay-box'), b = nwEl('overlay-root');
             if (a) a.innerHTML = html;
             if (b) b.innerHTML = html;
@@ -5514,7 +5542,7 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
             };
             let k1 = idxOf(cur.c1, cur.p1Uid, 0), k2 = idxOf(cur.c2, cur.p2Uid, 1);
             if (k1 === k2) { k1 = 0; k2 = 1; }
-            const P = [0, 1].map(() => ({ legs: 0, score: 0, rounds: 0, c80: 0, c100: 0, c140: 0, c180: 0, hf: 0, left: j.startScore || 301, last: null }));
+            const P = [0, 1].map(() => ({ legs: 0, score: 0, rounds: 0, c80: 0, c100: 0, c140: 0, c180: 0, hf: 0, left: j.startScore || 301, last: null, lastFin: null }));
             legs.forEach((leg, li) => {
                 const isLast = li === legs.length - 1;
                 [0, 1].forEach(k => {
@@ -5527,14 +5555,14 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
                         if (s >= 180) P[k].c180++; else if (s >= 140) P[k].c140++; else if (s >= 100) P[k].c100++; else if (s >= 80) P[k].c80++;
                     });
                     const lr = arr[arr.length - 1];
-                    if (arr.length > 1 && lr && lr.left === 0) { P[k].legs++; P[k].hf = Math.max(P[k].hf, arr[arr.length - 2].left); }
+                    if (arr.length > 1 && lr && lr.left === 0) { P[k].legs++; P[k].lastFin = arr[arr.length - 2].left; P[k].hf = Math.max(P[k].hf, P[k].lastFin); }
                 });
             });
             const target = j.limitLeg || 3, maxLegs = target + 1;
             if (P[0].legs + P[1].legs === 0 && sd.some(s => s.winLegs > 0)) { P[0].legs = sd[0].winLegs || 0; P[1].legs = sd[1].winLegs || 0; }
             const ended = j.endMatch === 1 || P[0].legs >= target || P[1].legs >= target || P[0].legs + P[1].legs >= maxLegs;
             const lastLeg = legs[legs.length - 1] || {};
-            const mk = (k, uid) => ({ uid, name: (sd[k] && sd[k].name) || '', legs: P[k].legs, left: P[k].left, avg: P[k].rounds ? +(P[k].score / P[k].rounds).toFixed(2) : 0, last: P[k].last, thrower: lastLeg.currentPlayer === k });
+            const mk = (k, uid) => ({ uid, name: (sd[k] && sd[k].name) || '', legs: P[k].legs, left: P[k].left, avg: P[k].rounds ? +(P[k].score / P[k].rounds).toFixed(2) : 0, last: P[k].last, lastFin: P[k].lastFin, thrower: lastLeg.currentPlayer === k });
             return {
                 ended,
                 data: { status: ended ? 'ended' : 'live', matchId: cur.matchId, title: j.title || '', target, startScore: j.startScore || 301, players: [mk(k1, cur.p1Uid), mk(k2, cur.p2Uid)], updatedAt: Date.now() },
@@ -5544,6 +5572,7 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
         async function livePoll() {
             const cur = liveState.current;
             if (liveBusy || !isAdminUser() || !cur || !cur.active) return;
+            if (!liveGoodTmid && liveMiss > 0 && liveMiss % 4 !== 0) { liveMiss++; return; }
             liveBusy = true;
             try {
                 let j = null;
@@ -5552,13 +5581,23 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
                     const x = await r.json();
                     if (x && x.legData) { j = x; liveGoodTmid = tm; break; }
                 }
-                if (!j) { liveGoodTmid = null; liveSetStatus('Brak danych z n01 - sprawdź prefiks i kody graczy.', false); return; }
+                if (!j) { liveGoodTmid = null; liveMiss++; liveSetStatus('Brak danych z n01 - sprawdź identyfikator turnieju i kody graczy.', false); return; }
+                liveMiss = 0;
                 const lg = j.legData[j.legData.length - 1] || {};
-                const dbg = ` [n01: leg ${j.legData.length}, wpisane rundy ${((lg.playerData || [])[0] || []).length - 1}/${((lg.playerData || [])[1] || []).length - 1}, ostatnia zmiana ${new Date(j.updateTime).toLocaleTimeString('pl-PL')}]`;
+                const dbg = ` [mecz ${liveGoodTmid}; n01: leg ${j.legData.length}, wpisane rundy ${((lg.playerData || [])[0] || []).length - 1}/${((lg.playerData || [])[1] || []).length - 1}, ostatnia zmiana ${new Date(j.updateTime).toLocaleTimeString('pl-PL')}]`;
                 const key = `${j.updateTime}_${j.rev_p}_${j.endMatch}`;
                 if (key === liveLastKey) { liveSetStatus('Połączono z n01 - czekam na zmiany wyniku.' + dbg, true); return; }
                 liveLastKey = key;
                 const out = parseN01(j, cur);
+                const lg2 = out.data.players.map(q => q.legs); let ev = null;
+                if (livePrevLegs) {
+                    const i = [0, 1].find(x => lg2[x] > livePrevLegs[x]);
+                    const fin = i !== undefined ? { uid: out.data.players[i].uid, value: out.data.players[i].lastFin } : null;
+                    const winNow = out.ended && !livePrevEnded;
+                    if (fin || winNow) ev = { id: String(Date.now()), at: Date.now(), fin, win: winNow ? (lg2[0] === lg2[1] ? 'draw' : { uid: out.data.players[lg2[0] > lg2[1] ? 0 : 1].uid }) : null };
+                }
+                livePrevLegs = lg2; livePrevEnded = out.ended;
+                out.data.event = ev || (liveState.data && liveState.data.event) || null;
                 await set(dbRef(db, 'liveScore/data'), out.data);
                 liveSetStatus(out.ended ? 'Mecz zakończony - dane do protokołu zapisane.' : 'Wynik przesłany na żywo.' + dbg, true);
                 if (out.ended) {
@@ -5582,7 +5621,7 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
             const prev = {}; box.querySelectorAll('input').forEach(i => { prev[i.dataset.uid] = i.value; });
             const uids = Object.keys(globalUsersData).filter(u => globalUsersData[u].signedUpForSeason1 && globalUsersData[u].statusSeason1 === 'approved');
             box.innerHTML = uids.map(u => { const d = globalUsersData[u]; return `<div class="form-group" style="margin:0"><label style="font-size:.75rem">${nwEsc(`${d.firstName} ${d.lastName}`)}</label><input type="text" data-uid="${u}" maxlength="8" value="${nwEsc(prev[u] !== undefined ? prev[u] : (d.n01Code || ''))}" placeholder="kod n01"></div>`; }).join('');
-            const pre = nwEl('live-prefix'); if (pre && document.activeElement !== pre && !pre.value) pre.value = (liveState.config && liveState.config.prefix) || 't_30JY_2230_rr_0_';
+            const pre = nwEl('live-prefix'); if (pre && document.activeElement !== pre && !pre.value) pre.value = (liveState.config && liveState.config.prefix) || '';
             const sel = nwEl('live-match'), keep = sel.value;
             sel.innerHTML = Object.entries(globalUpcomingMatchesMap).map(([id, m]) => {
                 const ok = (globalUsersData[m.p1Uid] || {}).n01Code && (globalUsersData[m.p2Uid] || {}).n01Code;
@@ -5621,13 +5660,13 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
         };
         nwEl('btn-live-start').onclick = async () => {
             if (!isAdminUser()) return;
-            const id = nwEl('live-match').value, m = globalUpcomingMatchesMap[id], prefix = nwEl('live-prefix').value.trim();
-            if (!m || !prefix) { liveSetStatus('Wybierz mecz i uzupełnij prefiks.', false); return; }
+            const id = nwEl('live-match').value, m = globalUpcomingMatchesMap[id], prefix = nwEl('live-prefix').value.trim() || liveTdid();
+            if (!m) { liveSetStatus('Wybierz mecz.', false); return; }
             const c1 = globalUsersData[m.p1Uid].n01Code, c2 = globalUsersData[m.p2Uid].n01Code;
             try {
                 await set(dbRef(db, 'liveScore/config/prefix'), prefix);
-                liveLastKey = ''; liveGoodTmid = null;
-                await set(dbRef(db, 'liveScore/current'), { active: true, matchId: id, p1Uid: m.p1Uid, p2Uid: m.p2Uid, c1, c2, tmids: [`${prefix}${c1}_${c2}`, `${prefix}${c2}_${c1}`], startedAt: Date.now() });
+                liveLastKey = ''; liveGoodTmid = null; livePrevLegs = null; livePrevEnded = false; liveMiss = 0;
+                await set(dbRef(db, 'liveScore/current'), { active: true, matchId: id, p1Uid: m.p1Uid, p2Uid: m.p2Uid, c1, c2, tmids: liveCandidates(prefix, c1, c2), startedAt: Date.now() });
                 await set(dbRef(db, 'liveScore/data'), { status: 'idle' });
                 liveSetStatus('Transmisja uruchomiona - łączę z n01...', true);
             } catch (e) { liveSetStatus(e.message, false); }
