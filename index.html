@@ -1072,10 +1072,8 @@ body.overlay-mode .lv-event{position:fixed;font-size:max(40px,5vw);background:ra
 .lv-ev-fin{animation:lvev 3.2s both}.lv-ev-win{animation:lvev 5s both}
 .lv-ev-fin b{font-size:2.6em;line-height:1;color:#facc15;text-shadow:0 0 .35em #f97316,0 0 .9em #ef4444}
 .lv-ev-fin span{font-size:1.3em;letter-spacing:.12em}
-.lv-bull{width:2.4em;height:2.4em;border-radius:50%;background:radial-gradient(circle,#ef4444 0 12%,#16a34a 12% 24%,#111 24% 40%,#fafafa 40% 54%,#ef4444 54% 70%,#111 70% 100%);box-shadow:0 0 .7em rgba(239,68,68,.9);animation:lvspin 5s both}
-.lv-ev-win small{font-size:.55em;font-weight:700;color:#cbd5e1}.lv-ev-win .lv-wn{font-size:1.1em;color:#34d399;text-shadow:0 0 .4em #059669}
+.lv-ev-win small{font-size:.8em;font-weight:700;color:#cbd5e1;letter-spacing:.08em;text-transform:uppercase}.lv-ev-win .lv-wn{font-size:1.9em;line-height:1.1;color:#34d399;text-shadow:0 0 .4em #059669}
 @keyframes lvev{0%{opacity:0;transform:scale(.5)}9%{opacity:1;transform:scale(1.08)}15%{transform:scale(1)}85%{opacity:1}100%{opacity:0;transform:scale(1.1)}}
-@keyframes lvspin{0%{transform:rotate(-540deg) scale(.1)}22%{transform:rotate(0) scale(1.15)}30%,100%{transform:rotate(0) scale(1)}}
 </style>
 </head>
 <body>
@@ -5507,7 +5505,7 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
             const nm = uid => liveName({ uid, name: ((d.players || []).find(p => p.uid === uid) || {}).name });
             let h = '';
             if (e.fin && el < 3.4) h += `<div class="lv-event lv-ev-fin" style="animation-delay:${-el}s"><b>${e.fin.value}</b><span>FINISH!</span></div>`;
-            if (e.win) h += `<div class="lv-event lv-ev-win" style="animation-delay:${d0 - el}s"><div class="lv-bull"></div>${e.win === 'draw' ? '<span class="lv-wn">REMIS</span>' : `<span>BULL!</span><span class="lv-wn">${nwEsc(nm(e.win.uid))}</span><small>wygrywa mecz</small>`}</div>`;
+            if (e.win) h += `<div class="lv-event lv-ev-win" style="animation-delay:${d0 - el}s">${e.win === 'draw' ? '<span class="lv-wn">REMIS</span>' : `<span class="lv-wn">${nwEsc(nm(e.win.uid))}</span><small>wygrywa mecz</small>`}</div>`;
             return h;
         }
         function liveName(p) { const u = globalUsersData[p.uid]; return u ? `${u.firstName || ''} ${u.lastName || ''}`.trim() : (p.name || 'Gracz'); }
