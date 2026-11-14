@@ -1353,6 +1353,20 @@ body.overlay-mode .lv-event{position:fixed;font-size:max(40px,5vw);background:ra
                 </div>
 
                 <div class="card">
+                    <h2>📤 Udostępnianie</h2>
+                    <p style="color:var(--text-muted);font-size:.85rem;margin-bottom:10px">Generuje grafikę gotową na Instagram lub TikTok: wynik meczu, tabelę, profil gracza albo artykuł.</p>
+                    <div class="form-group"><label>Co udostępnić?</label><select id="share-type"><option value="match">🎯 Wynik meczu</option><option value="table">📊 Tabela ligi</option><option value="player">👤 Profil gracza</option><option value="news">📰 Artykuł</option></select></div>
+                    <div class="form-group"><label>Wybierz</label><select id="share-item"></select></div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                        <div class="form-group"><label>Format</label><select id="share-format"><option value="post">Post 4:5 (1080×1350)</option><option value="story">Story / TikTok 9:16 (1080×1920)</option><option value="square">Kwadrat 1:1 (1080×1080)</option></select></div>
+                        <div class="form-group"><label>Styl</label><select id="share-style"><option value="night">Granatowy</option><option value="gold">Złoty</option><option value="neon">Neonowy</option></select></div>
+                    </div>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn-primary" id="btn-share-gen">✨ Generuj</button><button class="btn-success btn-sm hidden" id="btn-share-dl">⬇ Pobierz PNG</button><button class="btn-success btn-sm hidden" id="btn-share-share">📲 Udostępnij</button></div>
+                    <div id="share-msg" class="msg"></div>
+                    <canvas id="share-canvas" width="540" height="675" style="width:100%;max-width:360px;border-radius:12px;margin-top:10px;background:#0b0f19"></canvas>
+                </div>
+
+                <div class="card">
                     <h2>📡 Transmisja n01</h2>
                     <div class="form-group"><label>Identyfikator turnieju n01 (zostaw puste - zostanie wykryty automatycznie z linku turnieju)</label><input type="text" id="live-prefix" placeholder="automatycznie"></div>
                     <button class="btn-primary btn-sm" id="btn-live-save-prefix">Zapisz prefiks</button>
@@ -1408,6 +1422,7 @@ body.overlay-mode .lv-event{position:fixed;font-size:max(40px,5vw);background:ra
                     <h3 id="news-editor-heading" style="margin-bottom: 14px;">Edytor posta</h3>
                     <div class="form-group"><label>Tytuł</label><input type="text" id="news-edit-title" maxlength="160"></div>
                     <div class="form-group"><label>Treść (akapity oddziel pustą linią)</label><textarea id="news-edit-body" rows="12"></textarea></div>
+                    <div class="form-group"><label>👥 Odbiorcy artykułu (możesz zmienić w każdej chwili)</label><select id="news-edit-audience"><option value="all">Wszyscy (także goście)</option><option value="league">Tylko gracze ligowi (zalogowani)</option></select></div>
                     <div class="form-group">
                         <label>Zdjęcie (adres URL lub plik z dysku)</label>
                         <input type="text" id="news-edit-image-url" placeholder="https://...">
@@ -3404,7 +3419,7 @@ ${board}</svg>`;
 
         function nwClearEditor() {
             newsEditor = { id: null, source: null, kind: '', image: '', customImage: false, createdAt: null };
-            nwEl('news-edit-title').value = ''; nwEl('news-edit-body').value = '';
+            nwEl('news-edit-title').value = ''; nwEl('news-edit-body').value = ''; nwEl('news-edit-audience').value = 'all';
             nwEl('news-edit-image-url').value = ''; nwEl('news-edit-image-file').value = '';
             nwRefreshEditorUI();
         }
@@ -3414,7 +3429,8 @@ ${board}</svg>`;
                 title: nwEl('news-edit-title').value.trim(),
                 body: nwEl('news-edit-body').value.trim(),
                 image: newsEditor.image || nwCover(newsEditor.kind || 'generic'),
-                kind: newsEditor.kind || 'custom'
+                kind: newsEditor.kind || 'custom',
+                audience: nwEl('news-edit-audience').value || 'all'
             };
         }
 
@@ -3491,7 +3507,7 @@ ${board}</svg>`;
             if (!d) return;
             newsEditor = { id, source, kind: d.kind || '', image: d.image || '', customImage: !String(d.image || '').startsWith('data:image/svg+xml'), createdAt: d.createdAt || null };
             nwEl('news-edit-title').value = d.title || '';
-            nwEl('news-edit-body').value = d.body || '';
+            nwEl('news-edit-body').value = d.body || ''; nwEl('news-edit-audience').value = d.audience || 'all';
             nwEl('news-edit-image-url').value = /^https?:/i.test(d.image || '') ? d.image : '';
             nwRefreshEditorUI();
             if (currentTabKey !== 'admin') switchTab('admin');
@@ -3513,13 +3529,19 @@ ${board}</svg>`;
             if (!d) return;
             try {
                 const updates = {};
-                updates[`news/${id}`] = { title: d.title, body: d.body, image: d.image || nwCover(d.kind || 'generic'), kind: d.kind || 'custom', createdAt: Date.now() };
+                updates[`news/${id}`] = { title: d.title, body: d.body, image: d.image || nwCover(d.kind || 'generic'), kind: d.kind || 'custom', audience: d.audience || 'all', createdAt: Date.now() };
                 updates[`newsDrafts/${id}`] = null;
                 await update(dbRef(db), updates);
                 if (newsEditor.id === id) nwClearEditor();
             } catch (err) { alert(err.message); }
         };
 
+        // Odbiorcy: 'all' - każdy, 'league' - zalogowani gracze (i admin). Filtr działa w przeglądarce.
+        function nwCanSee(p) { return (p.audience || 'all') !== 'league' || isAdminUser() || !!auth.currentUser; }
+        window.nwSetAudience = async (id, source, v) => {
+            if (!isAdminUser()) return;
+            try { await update(dbRef(db, `${source === 'draft' ? 'newsDrafts' : 'news'}/${id}`), { audience: v === 'league' ? 'league' : 'all' }); } catch (e) { alert(e.message); }
+        };
         function renderNewsAdminList() {
             const box = nwEl('news-admin-list');
             if (!box || !isAdminUser()) return;
@@ -3536,6 +3558,8 @@ ${board}</svg>`;
                         <div style="font-size: 0.8rem; color: var(--text-muted);">${r.source === 'draft' ? '📝 Szkic' : '✅ Opublikowany'} · ${nwFmtDate(r.ts)}</div>
                     </div>
                     <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <select onchange="nwSetAudience('${r.id}', '${r.source}', this.value)" style="width:auto;padding:6px 8px;font-size:.8rem"><option value="all" ${(r.d.audience || 'all') === 'all' ? 'selected' : ''}>👥 Wszyscy</option><option value="league" ${r.d.audience === 'league' ? 'selected' : ''}>🔒 Tylko ligowi</option></select>
+                        ${r.source === 'news' ? `<button class="btn-primary btn-sm" onclick="shareOpen('news', '${r.id}')">📤 Udostępnij</button>` : ''}
                         <button class="btn-primary btn-sm" onclick="nwEdit('${r.id}', '${r.source}')">✏️ Edytuj</button>
                         ${r.source === 'draft' ? `<button class="btn-success btn-sm" onclick="nwPublishDraft('${r.id}')">📢 Opublikuj</button>` : ''}
                         <button class="btn-danger btn-sm" onclick="nwDelete('${r.id}', '${r.source}')">🗑️ Usuń</button>
@@ -3599,7 +3623,7 @@ ${board}</svg>`;
             if (!list || !detail) return;
             const admin = isAdminUser();
 
-            if (currentNewsId && globalNews[currentNewsId]) {
+            if (currentNewsId && globalNews[currentNewsId] && nwCanSee(globalNews[currentNewsId])) {
                 const p = { id: currentNewsId, ...globalNews[currentNewsId] };
                 list.classList.add('hidden');
                 detail.classList.remove('hidden');
@@ -3619,7 +3643,7 @@ ${board}</svg>`;
             detail.classList.add('hidden');
             detail.innerHTML = '';
             list.classList.remove('hidden');
-            const items = Object.entries(globalNews || {}).map(([id, d]) => ({ id, ...d })).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+            const items = Object.entries(globalNews || {}).map(([id, d]) => ({ id, ...d })).filter(nwCanSee).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
             if (!items.length) { list.innerHTML = '<div class="card" style="text-align: center; color: var(--text-muted); grid-column: 1 / -1;">Na razie brak aktualności. Zajrzyj tu wkrótce!</div>'; return; }
             list.innerHTML = items.map(p => `
                 <article class="card news-card" onclick="openNewsPost('${p.id}')">
@@ -3637,7 +3661,7 @@ ${board}</svg>`;
         function renderHomeNews() {
             const box = nwEl('home-news-latest');
             if (!box) return;
-            const latest = Object.entries(globalNews || {}).map(([id, d]) => ({ id, ...d })).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))[0];
+            const latest = Object.entries(globalNews || {}).map(([id, d]) => ({ id, ...d })).filter(nwCanSee).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))[0];
             if (!latest) { box.innerHTML = '<p style="line-height: 1.6; color: var(--text-muted);">Witamy w Akademickiej Lidze Darta!</p>'; return; }
             box.innerHTML = `<div class="news-teaser" onclick="openHomeNews('${latest.id}')">
                 ${latest.image ? `<img src="${nwEsc(latest.image)}" alt="">` : ''}
@@ -4486,7 +4510,7 @@ ${board}</svg>`;
         // --- PANEL ADMINA ---
 
         function renderAdminPanelData() {
-            setTimeout(renderPlayoffAdmin, 0); setTimeout(renderAdminLive, 0);
+            setTimeout(renderPlayoffAdmin, 0); setTimeout(renderAdminLive, 0); setTimeout(shRefresh, 0);
             const listContainer = document.getElementById('admin-players-list');
             const selectP1 = document.getElementById('admin-create-p1');
             const selectP2 = document.getElementById('admin-create-p2');
@@ -4582,7 +4606,7 @@ ${board}</svg>`;
                 item.className = 'admin-match-item';
                 item.innerHTML = `
                     <div>${roundBadge(m)}<b>${m.p1Name}</b> [śr: ${m.avg1 || 0}] <b style="color:var(--accent-blue);">${m.s1}:${m.s2}</b> <b>${m.p2Name}</b> [śr: ${m.avg2 || 0}]</div>
-                    <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><select id="rnd-matches-${matchId}" style="width:auto;padding:6px 8px;font-size:.8rem">${roundOptions(m)}</select><button class="btn-sm btn-primary" onclick="adminSetRound('matches','${matchId}')">Zapisz kolejkę</button><button class="btn-sm btn-danger" onclick="deleteMatch('${matchId}')">Usuń</button></div>
+                    <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><select id="rnd-matches-${matchId}" style="width:auto;padding:6px 8px;font-size:.8rem">${roundOptions(m)}</select><button class="btn-sm btn-primary" onclick="adminSetRound('matches','${matchId}')">Zapisz kolejkę</button><button class="btn-sm btn-primary" onclick="shareOpen('match','${matchId}')">📤</button><button class="btn-sm btn-danger" onclick="deleteMatch('${matchId}')">Usuń</button></div>
                 `;
                 matchesContainer.appendChild(item);
             });
@@ -5387,7 +5411,7 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
         (function groupAdminPanel() {
             const page = nwEl('page-admin');
             const cards = [...page.querySelectorAll(':scope > .card')];
-            const cats = [['⚙️ Sezon i playoff', ['Zarządzanie Sezonem', '🏆 Playoff']], ['📰 Aktualności', ['📰 Generator aktualności']], ['👥 Zawodnicy i portfele', ['Zarządzanie Zawodnikami i Portfelami (Dart Kasa)']], ['📡 Na żywo', ['📡 Transmisja n01']], ['🎁 Nagrody', ['🎁 Nagrody graczy']], ['🎯 Mecze', ['Tworzenie Nadchodzącego Meczu', 'Oczekujące Protokoły Meczowe', 'Zarządzanie Nadchodzącymi Meczami', 'Zarządzanie Historią Meczów']]];
+            const cats = [['⚙️ Sezon i playoff', ['Zarządzanie Sezonem', '🏆 Playoff']], ['📰 Aktualności', ['📰 Generator aktualności']], ['👥 Zawodnicy i portfele', ['Zarządzanie Zawodnikami i Portfelami (Dart Kasa)']], ['📤 Udostępnianie', ['📤 Udostępnianie']], ['📡 Na żywo', ['📡 Transmisja n01']], ['🎁 Nagrody', ['🎁 Nagrody graczy']], ['🎯 Mecze', ['Tworzenie Nadchodzącego Meczu', 'Oczekujące Protokoły Meczowe', 'Zarządzanie Nadchodzącymi Meczami', 'Zarządzanie Historią Meczów']]];
             const anchor = cards[0];
             cats.forEach(([title, names]) => {
                 const d = document.createElement('details'); d.className = 'adm-cat';
@@ -5737,6 +5761,178 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
             renderLive(); renderAdminLive(); applyLiveSummaries();
             if (isAdminUser() && liveState.current && liveState.current.active) liveStartWorker(); else liveStopWorker();
         });
+
+        // ===== UDOSTĘPNIANIE: grafiki na Instagram / TikTok (rysowane na canvasie) =====
+        onAuthStateChanged(auth, () => { renderHomeNews(); if (currentTabKey === 'news') renderNews(); });
+        const SH_FORMATS = { post: [1080, 1350], story: [1080, 1920], square: [1080, 1080] };
+        const SH_FONT = "'Segoe UI', Roboto, Arial, sans-serif";
+        const SH_STYLES = {
+            night: { bg1: '#070b16', bg2: '#16264d', accent: '#38bdf8', accent2: '#818cf8', text: '#ffffff', muted: '#94a3b8', gold: '#facc15', win: '#34d399' },
+            gold: { bg1: '#120d02', bg2: '#33250a', accent: '#facc15', accent2: '#f59e0b', text: '#fff8e1', muted: '#c9b26b', gold: '#fde68a', win: '#facc15' },
+            neon: { bg1: '#0d0221', bg2: '#35105f', accent: '#ff2a6d', accent2: '#05d9e8', text: '#ffffff', muted: '#b79ad6', gold: '#ff2a6d', win: '#05d9e8' }
+        };
+        const shImg = src => new Promise(res => { if (!src) return res(null); const im = new Image(); im.crossOrigin = 'anonymous'; im.onload = () => res(im); im.onerror = () => res(null); im.src = src; });
+        const shAv = uid => { const u = globalUsersData[uid]; return shImg((u && u.photoUrl) || PRESET_AVATARS[0]); };
+        const shName = uid => { const u = globalUsersData[uid]; return u ? `${u.firstName || ''} ${u.lastName || ''}`.trim() : 'Gracz'; };
+        function shRR(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
+        function shT(c, txt, x, y, size, color, o = {}) { c.font = `${o.weight || 800} ${size}px ${SH_FONT}`; c.fillStyle = color; c.textAlign = o.align || 'center'; c.textBaseline = 'alphabetic'; if (o.max) c.fillText(String(txt), x, y, o.max); else c.fillText(String(txt), x, y); }
+        function shWrap(c, txt, x, y, maxW, lh, maxLines, size, color, o = {}) {
+            c.font = `${o.weight || 700} ${size}px ${SH_FONT}`; c.fillStyle = color; c.textAlign = o.align || 'left';
+            const words = String(txt).split(/\s+/); let line = '', n = 0;
+            for (let i = 0; i < words.length; i++) {
+                const test = line ? line + ' ' + words[i] : words[i];
+                if (c.measureText(test).width > maxW && line) {
+                    n++; if (n >= maxLines) { c.fillText(line + '…', x, y); return y + lh; }
+                    c.fillText(line, x, y); y += lh; line = words[i];
+                } else line = test;
+            }
+            if (line) { c.fillText(line, x, y); y += lh; }
+            return y;
+        }
+        function shAvatar(c, img, name, cx, cy, r, ring, alpha, glow) {
+            c.save(); if (glow) { c.shadowColor = glow; c.shadowBlur = r * .5; }
+            c.beginPath(); c.arc(cx, cy, r + 10, 0, Math.PI * 2); c.fillStyle = ring; c.fill(); c.restore();
+            c.save(); c.globalAlpha = alpha; c.beginPath(); c.arc(cx, cy, r, 0, Math.PI * 2); c.clip();
+            if (img) { const s = Math.max(2 * r / img.width, 2 * r / img.height); c.drawImage(img, cx - img.width * s / 2, cy - img.height * s / 2, img.width * s, img.height * s); }
+            else { const g = c.createLinearGradient(cx - r, cy - r, cx + r, cy + r); g.addColorStop(0, '#3b82f6'); g.addColorStop(1, '#8b5cf6'); c.fillStyle = g; c.fillRect(cx - r, cy - r, 2 * r, 2 * r); shT(c, (name || '?').split(' ').map(x => x[0]).join('').slice(0, 2).toUpperCase(), cx, cy + r * .3, r * .9, '#fff'); }
+            c.restore();
+        }
+        function shBg(c, W, H, st) {
+            const g = c.createLinearGradient(0, 0, W, H); g.addColorStop(0, st.bg1); g.addColorStop(1, st.bg2); c.fillStyle = g; c.fillRect(0, 0, W, H);
+            [[W * .9, H * .08, W * .5, st.accent], [W * .05, H * .95, W * .55, st.accent2]].forEach(([x, y, r, col]) => { const rg = c.createRadialGradient(x, y, 0, x, y, r); rg.addColorStop(0, col + '55'); rg.addColorStop(1, col + '00'); c.fillStyle = rg; c.fillRect(0, 0, W, H); });
+            c.save(); c.strokeStyle = 'rgba(255,255,255,.035)'; c.lineWidth = 2; for (let x = -H; x < W; x += 60) { c.beginPath(); c.moveTo(x, H); c.lineTo(x + H, 0); c.stroke(); } c.restore();
+            c.fillStyle = st.accent; c.fillRect(0, 0, W, 10);
+        }
+        function shHead(c, W, st, pill) {
+            if ('letterSpacing' in c) c.letterSpacing = '4px';
+            shT(c, 'AKADEMICKA LIGA DARTA RZESZÓW', W / 2, 92, 28, st.muted, { weight: 700 });
+            if ('letterSpacing' in c) c.letterSpacing = '0px';
+            if (pill) { c.font = `800 34px ${SH_FONT}`; const w = c.measureText(pill).width + 70; shRR(c, W / 2 - w / 2, 125, w, 64, 32); c.fillStyle = st.accent; c.fill(); shT(c, pill, W / 2, 170, 34, '#0b0f19'); }
+        }
+        function shFoot(c, W, H, st, left) {
+            shT(c, left || '', 70, H - 52, 28, st.muted, { weight: 600, align: 'left' });
+            shT(c, `${location.host || 'ADL'}  ·  #ADL`, W - 70, H - 52, 28, st.accent, { weight: 700, align: 'right' });
+        }
+        async function shMatch(c, W, H, st, id) {
+            const m = globalMatchesMap[id]; if (!m) throw new Error('Nie znaleziono meczu.');
+            const [i1, i2] = await Promise.all([shAv(m.p1Uid), shAv(m.p2Uid)]);
+            const k = H / 1350, s1 = parseInt(m.s1) || 0, s2 = parseInt(m.s2) || 0, w = s1 > s2 ? 1 : (s2 > s1 ? 2 : 0), R = 170, cy = 470 * k;
+            shBg(c, W, H, st); shHead(c, W, st, (roundLabel(m) || 'WYNIK MECZU').toUpperCase());
+            [[W * .23, i1, m.p1Name, 1], [W * .77, i2, m.p2Name, 2]].forEach(([x, img, name, n]) => {
+                const win = w === n, dim = w && !win;
+                shAvatar(c, img, name, x, cy, R, win ? st.gold : 'rgba(255,255,255,.25)', dim ? .55 : 1, win ? st.gold : null);
+                c.save(); c.globalAlpha = dim ? .65 : 1; shT(c, name, x, cy + R + 85, 44, st.text, { max: W * .42 }); c.restore();
+                if (win) { shRR(c, x - 125, cy + R + 115, 250, 56, 28); c.fillStyle = st.gold; c.fill(); shT(c, '🏆 ZWYCIĘZCA', x, cy + R + 153, 28, '#0b0f19'); }
+            });
+            shT(c, `${s1}:${s2}`, W / 2, cy + 50, 140, st.text);
+            if (!w) shT(c, 'REMIS', W / 2, cy + 105, 34, st.accent);
+            const rows = [['Średnia', Number(m.avg1 || 0).toFixed(2), Number(m.avg2 || 0).toFixed(2), 1], ['Najwyższy finish', m.hf1 || 0, m.hf2 || 0, 1], ['180-tki', m.s180_1 || 0, m.s180_2 || 0, 1], ['Rzuty 140+', m.s140_1 || 0, m.s140_2 || 0, 1]];
+            const y0 = cy + R + 250 * k, rh = 112 * Math.min(1, .8 + k * .2);
+            rows.forEach(([lab, a, b], i) => {
+                const y = y0 + i * (rh + 12);
+                shRR(c, 60, y, W - 120, rh, 24); c.fillStyle = 'rgba(255,255,255,.07)'; c.fill();
+                const na = parseFloat(a), nb = parseFloat(b), ca = na > nb ? st.accent : st.text, cb = nb > na ? st.accent : st.text;
+                shT(c, a, W * .2, y + rh * .66, 54, ca); shT(c, b, W * .8, y + rh * .66, 54, cb); shT(c, lab, W / 2, y + rh * .62, 28, st.muted, { weight: 700 });
+            });
+            shFoot(c, W, H, st, m.date ? String(m.date).split(',')[0] : '');
+        }
+        async function shTable(c, W, H, st) {
+            const all = currentSeasonTable(), n = Math.min(all.length, Math.floor((H - 460) / 96), 12), rows = all.slice(0, n);
+            const imgs = await Promise.all(rows.map(r => shAv(r.uid)));
+            shBg(c, W, H, st); shHead(c, W, st, `${seasonStateData.seasonNumber || 1}. SEZON`);
+            shT(c, 'TABELA LIGI', W / 2, 290, 92, st.text);
+            const top = 360, rh = Math.min(108, (H - top - 150) / Math.max(n, 1));
+            [['M', 650], ['+/-', 760], ['ŚR.', 880], ['PKT', 990]].forEach(([l, x]) => shT(c, l, x, top + 10, 26, st.muted, { weight: 700 }));
+            rows.forEach((r, i) => {
+                const y = top + 30 + i * rh, medal = [st.gold, '#cbd5e1', '#d6925a'][i];
+                shRR(c, 50, y, W - 100, rh - 10, 22); c.fillStyle = i < 3 ? 'rgba(255,255,255,.1)' : 'rgba(255,255,255,.05)'; c.fill();
+                if (medal) { c.fillStyle = medal; shRR(c, 50, y, 12, rh - 10, 6); c.fill(); }
+                shT(c, i + 1, 108, y + rh / 2 + 14, 42, medal || st.text);
+                shAvatar(c, imgs[i], r.name, 195, y + (rh - 10) / 2, Math.min(36, rh * .33), 'rgba(255,255,255,.3)', 1, null);
+                shT(c, r.name, 250, y + rh / 2 + 12, 36, st.text, { align: 'left', max: 340 });
+                shT(c, r.played, 650, y + rh / 2 + 12, 34, st.text, { weight: 600 });
+                shT(c, r.diff > 0 ? '+' + r.diff : r.diff, 760, y + rh / 2 + 12, 34, r.diff > 0 ? st.win : (r.diff < 0 ? '#f87171' : st.text), { weight: 600 });
+                shT(c, r.avg.toFixed(1), 880, y + rh / 2 + 12, 34, st.text, { weight: 600 });
+                shT(c, r.points, 990, y + rh / 2 + 14, 46, st.accent);
+            });
+            shFoot(c, W, H, st, 'M - mecze · +/- bilans legów · ŚR. - średnia');
+        }
+        async function shPlayer(c, W, H, st, uid) {
+            const u = globalUsersData[uid]; if (!u) throw new Error('Nie znaleziono gracza.');
+            const img = await shAv(uid), k = H / 1350, d = globalPlayerDetailsStats[uid] || {}, cs = globalCalculatedStats[uid] || {}, avg = globalCalculatedAverages[uid];
+            shBg(c, W, H, st); shHead(c, W, st, 'PROFIL ZAWODNIKA');
+            const R = 200, cy = 420 * k;
+            shAvatar(c, img, shName(uid), W / 2, cy, R, st.accent, 1, st.accent);
+            shT(c, shName(uid), W / 2, cy + R + 95, 72, st.text, { max: W - 120 });
+            if (u.city) shT(c, '📍 ' + u.city, W / 2, cy + R + 150, 36, st.muted, { weight: 600 });
+            const stats = [['Mecze', d.matches || 0], ['Wygrane', d.wins || 0], ['Średnia', avg !== undefined ? avg.toFixed(2) : '-'], ['Najwyższy finish', cs.hf || 0], ['180-tki', d.s180 || 0], ['Achievementy', calculatePlayerUnlockedBadges(uid).length]];
+            const bw = (W - 180) / 2, bh = 150 * Math.min(1, .75 + k * .25), y0 = cy + R + 205 * k;
+            stats.forEach(([l, v], i) => {
+                const x = 60 + (i % 2) * (bw + 60), y = y0 + Math.floor(i / 2) * (bh + 24);
+                shRR(c, x, y, bw, bh, 26); c.fillStyle = 'rgba(255,255,255,.08)'; c.fill();
+                shT(c, v, x + bw / 2, y + bh * .52, 64, st.accent); shT(c, l, x + bw / 2, y + bh * .83, 26, st.muted, { weight: 700 });
+            });
+            const sc = (u.showcase || []).filter(x => ALL_BADGES[x]).slice(0, 3);
+            if (sc.length) {
+                const by = y0 + 3 * (bh + 24) + 20;
+                sc.forEach((x, i) => { const cx = W / 2 + (i - (sc.length - 1) / 2) * 300; shT(c, ALL_BADGES[x].emoji, cx, by + 60, 70, st.text); shT(c, ALL_BADGES[x].name, cx, by + 110, 26, st.muted, { weight: 700, max: 280 }); });
+            }
+            shFoot(c, W, H, st, 'Statystyki wszechczasów');
+        }
+        async function shNews(c, W, H, st, id) {
+            const p = globalNews[id]; if (!p) throw new Error('Nie znaleziono artykułu.');
+            const img = await shImg(p.image), ch = H * .38;
+            shBg(c, W, H, st);
+            if (img) { c.save(); c.beginPath(); c.rect(0, 0, W, ch); c.clip(); const s = Math.max(W / img.width, ch / img.height); c.drawImage(img, (W - img.width * s) / 2, (ch - img.height * s) / 2, img.width * s, img.height * s); const g = c.createLinearGradient(0, ch * .4, 0, ch); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, st.bg1); c.fillStyle = g; c.fillRect(0, 0, W, ch); c.restore(); }
+            shHead(c, W, st, 'AKTUALNOŚCI');
+            let y = ch + 40;
+            y = shWrap(c, p.title, 70, y + 60, W - 140, 84, 4, 70, st.text, { weight: 900 });
+            c.fillStyle = st.accent; c.fillRect(70, y - 30, 140, 8);
+            y = shWrap(c, String(p.body || '').replace(/\s+/g, ' ').slice(0, 420), 70, y + 40, W - 140, 52, Math.max(2, Math.floor((H - y - 330) / 52)), 36, st.muted, { weight: 500 });
+            shRR(c, 70, H - 190, 440, 70, 35); c.fillStyle = st.accent; c.fill(); shT(c, 'Czytaj całość na stronie →', 290, H - 144, 26, '#0b0f19');
+            shFoot(c, W, H, st, nwFmtDate(p.createdAt || 0));
+        }
+        const SH_MSG = (m, ok) => { const e = nwEl('share-msg'); e.className = 'msg ' + (ok ? 'success' : 'error'); e.innerText = m; };
+        function shRefresh() {
+            const type = nwEl('share-type'), sel = nwEl('share-item'); if (!type || !sel) return;
+            const keep = sel.value; let opts = [];
+            if (type.value === 'match') opts = Object.entries(globalMatchesMap).reverse().sort((a, b) => roundKeyOf(b[1]) - roundKeyOf(a[1])).map(([id, m]) => [id, `${m.p1Name} ${m.s1}:${m.s2} ${m.p2Name}${roundLabel(m) ? ' (' + roundLabel(m) + ')' : ''}`]);
+            else if (type.value === 'table') opts = [['season', 'Bieżący sezon']];
+            else if (type.value === 'player') opts = Object.keys(globalUsersData).map(u => [u, shName(u)]).sort((a, b) => a[1].localeCompare(b[1]));
+            else opts = Object.entries(globalNews).sort((a, b) => (b[1].createdAt || 0) - (a[1].createdAt || 0)).map(([id, p]) => [id, p.title]);
+            sel.innerHTML = opts.map(([v, l]) => `<option value="${v}">${nwEsc(l)}</option>`).join('') || '<option value="">Brak pozycji</option>';
+            if (keep && opts.some(o => o[0] === keep)) sel.value = keep;
+        }
+        async function shGenerate() {
+            const type = nwEl('share-type').value, id = nwEl('share-item').value, [W, H] = SH_FORMATS[nwEl('share-format').value], st = SH_STYLES[nwEl('share-style').value];
+            const cv = nwEl('share-canvas'); cv.width = W; cv.height = H; const c = cv.getContext('2d');
+            try {
+                if (type !== 'table' && !id) throw new Error('Brak pozycji do udostępnienia.');
+                if (type === 'match') await shMatch(c, W, H, st, id); else if (type === 'table') await shTable(c, W, H, st); else if (type === 'player') await shPlayer(c, W, H, st, id); else await shNews(c, W, H, st, id);
+                nwEl('btn-share-dl').classList.remove('hidden');
+                nwEl('btn-share-share').classList.toggle('hidden', !(navigator.canShare && navigator.share));
+                SH_MSG('Gotowe! Pobierz grafikę albo udostępnij ją od razu.', true);
+            } catch (e) { SH_MSG('Nie udało się wygenerować: ' + e.message, false); }
+        }
+        const shBlob = () => new Promise(r => nwEl('share-canvas').toBlob(r, 'image/png'));
+        nwEl('share-type').onchange = shRefresh;
+        nwEl('btn-share-gen').onclick = shGenerate;
+        nwEl('btn-share-dl').onclick = async () => {
+            const b = await shBlob(); if (!b) { SH_MSG('Nie udało się zapisać obrazu (zdjęcie z innej domeny blokuje eksport).', false); return; }
+            const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `adl-${nwEl('share-type').value}-${Date.now()}.png`; a.click();
+        };
+        nwEl('btn-share-share').onclick = async () => {
+            const b = await shBlob(); if (!b) { SH_MSG('Nie udało się przygotować obrazu.', false); return; }
+            const f = new File([b], 'adl.png', { type: 'image/png' });
+            try { if (navigator.canShare({ files: [f] })) await navigator.share({ files: [f], title: 'Akademicka Liga Darta' }); else SH_MSG('Ta przeglądarka nie udostępnia plików - użyj „Pobierz PNG”.', false); } catch (e) { /* anulowano */ }
+        };
+        window.shareOpen = (type, id) => {
+            if (!isAdminUser()) return;
+            if (currentTabKey !== 'admin') switchTab('admin');
+            nwEl('share-type').value = type; shRefresh(); nwEl('share-item').value = id;
+            let d = nwEl('share-canvas').closest('details'); while (d) { d.open = true; d = d.parentElement.closest('details'); }
+            nwEl('share-canvas').scrollIntoView({ behavior: 'smooth', block: 'center' }); shGenerate();
+        };
 
         // Firebase Listeners
         onValue(dbRef(db, 'users'), (snapshot) => {
