@@ -1422,7 +1422,7 @@ body.overlay-mode .lv-event{position:fixed;font-size:max(40px,5vw);background:ra
                     <h3 id="news-editor-heading" style="margin-bottom: 14px;">Edytor posta</h3>
                     <div class="form-group"><label>Tytuł</label><input type="text" id="news-edit-title" maxlength="160"></div>
                     <div class="form-group"><label>Treść (akapity oddziel pustą linią)</label><textarea id="news-edit-body" rows="12"></textarea></div>
-                    <div class="form-group"><label>👥 Odbiorcy artykułu (możesz zmienić w każdej chwili)</label><select id="news-edit-audience"><option value="all">Wszyscy (także goście)</option><option value="league">Tylko gracze ligowi (zalogowani)</option></select></div>
+                    <div class="form-group"><label>👥 Odbiorcy artykułu (możesz zmienić w każdej chwili)</label><select id="news-edit-audience"><option value="all">Wszyscy (także goście)</option><option value="league">Tylko gracze zatwierdzeni w sezonie</option></select></div>
                     <div class="form-group">
                         <label>Zdjęcie (adres URL lub plik z dysku)</label>
                         <input type="text" id="news-edit-image-url" placeholder="https://...">
@@ -3537,7 +3537,11 @@ ${board}</svg>`;
         };
 
         // Odbiorcy: 'all' - każdy, 'league' - zalogowani gracze (i admin). Filtr działa w przeglądarce.
-        function nwCanSee(p) { return (p.audience || 'all') !== 'league' || isAdminUser() || !!auth.currentUser; }
+        function nwCanSee(p) {
+            if ((p.audience || 'all') !== 'league' || isAdminUser()) return true;
+            const u = auth.currentUser && globalUsersData[auth.currentUser.uid];
+            return !!(u && u.signedUpForSeason1 && u.statusSeason1 === 'approved');
+        }
         window.nwSetAudience = async (id, source, v) => {
             if (!isAdminUser()) return;
             try { await update(dbRef(db, `${source === 'draft' ? 'newsDrafts' : 'news'}/${id}`), { audience: v === 'league' ? 'league' : 'all' }); } catch (e) { alert(e.message); }
@@ -3558,7 +3562,7 @@ ${board}</svg>`;
                         <div style="font-size: 0.8rem; color: var(--text-muted);">${r.source === 'draft' ? '📝 Szkic' : '✅ Opublikowany'} · ${nwFmtDate(r.ts)}</div>
                     </div>
                     <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                        <select onchange="nwSetAudience('${r.id}', '${r.source}', this.value)" style="width:auto;padding:6px 8px;font-size:.8rem"><option value="all" ${(r.d.audience || 'all') === 'all' ? 'selected' : ''}>👥 Wszyscy</option><option value="league" ${r.d.audience === 'league' ? 'selected' : ''}>🔒 Tylko ligowi</option></select>
+                        <select onchange="nwSetAudience('${r.id}', '${r.source}', this.value)" style="width:auto;padding:6px 8px;font-size:.8rem"><option value="all" ${(r.d.audience || 'all') === 'all' ? 'selected' : ''}>👥 Wszyscy</option><option value="league" ${r.d.audience === 'league' ? 'selected' : ''}>🔒 Tylko zatwierdzeni</option></select>
                         ${r.source === 'news' ? `<button class="btn-primary btn-sm" onclick="shareOpen('news', '${r.id}')">📤 Udostępnij</button>` : ''}
                         <button class="btn-primary btn-sm" onclick="nwEdit('${r.id}', '${r.source}')">✏️ Edytuj</button>
                         ${r.source === 'draft' ? `<button class="btn-success btn-sm" onclick="nwPublishDraft('${r.id}')">📢 Opublikuj</button>` : ''}
@@ -5803,94 +5807,108 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
             c.save(); c.strokeStyle = 'rgba(255,255,255,.035)'; c.lineWidth = 2; for (let x = -H; x < W; x += 60) { c.beginPath(); c.moveTo(x, H); c.lineTo(x + H, 0); c.stroke(); } c.restore();
             c.fillStyle = st.accent; c.fillRect(0, 0, W, 10);
         }
+        const SH_TOP = 210, SH_BOT = 110; // stałe pasy: nagłówek u góry i stopka na dole - treść nigdy ich nie zasłania
         function shHead(c, W, st, pill) {
+            c.fillStyle = 'rgba(0,0,0,.45)'; c.fillRect(0, 0, W, SH_TOP);
+            c.fillStyle = st.accent; c.fillRect(0, SH_TOP - 5, W, 5);
             if ('letterSpacing' in c) c.letterSpacing = '4px';
-            shT(c, 'AKADEMICKA LIGA DARTA RZESZÓW', W / 2, 92, 28, st.muted, { weight: 700 });
+            shT(c, 'AKADEMICKA LIGA DARTA RZESZÓW', W / 2, 86, 30, st.text, { weight: 800, max: W - 80 });
             if ('letterSpacing' in c) c.letterSpacing = '0px';
-            if (pill) { c.font = `800 34px ${SH_FONT}`; const w = c.measureText(pill).width + 70; shRR(c, W / 2 - w / 2, 125, w, 64, 32); c.fillStyle = st.accent; c.fill(); shT(c, pill, W / 2, 170, 34, '#0b0f19'); }
+            if (pill) { c.font = `800 34px ${SH_FONT}`; const w = c.measureText(pill).width + 70; shRR(c, W / 2 - w / 2, 114, w, 64, 32); c.fillStyle = st.accent; c.fill(); shT(c, pill, W / 2, 158, 34, '#0b0f19'); }
         }
-        function shFoot(c, W, H, st, left) {
-            shT(c, left || '', 70, H - 52, 28, st.muted, { weight: 600, align: 'left' });
-            shT(c, `${location.host || 'ADL'}  ·  #ADL`, W - 70, H - 52, 28, st.accent, { weight: 700, align: 'right' });
+        function shFoot(c, W, H, st, left, right) {
+            c.fillStyle = 'rgba(0,0,0,.45)'; c.fillRect(0, H - SH_BOT, W, SH_BOT);
+            c.fillStyle = st.accent; c.fillRect(0, H - SH_BOT, W, 4);
+            shT(c, left || '', 60, H - 42, 28, st.muted, { weight: 600, align: 'left', max: W * .55 });
+            shT(c, right || `${location.host || 'ADL'}  ·  #ADL`, W - 60, H - 42, 28, st.accent, { weight: 700, align: 'right', max: W * .4 });
         }
+        const shScale = H => Math.min(1.25, (H - SH_TOP - SH_BOT) / 1030);
         async function shMatch(c, W, H, st, id) {
             const m = globalMatchesMap[id]; if (!m) throw new Error('Nie znaleziono meczu.');
             const [i1, i2] = await Promise.all([shAv(m.p1Uid), shAv(m.p2Uid)]);
-            const k = H / 1350, s1 = parseInt(m.s1) || 0, s2 = parseInt(m.s2) || 0, w = s1 > s2 ? 1 : (s2 > s1 ? 2 : 0), R = 170, cy = 470 * k;
+            const s1 = parseInt(m.s1) || 0, s2 = parseInt(m.s2) || 0, w = s1 > s2 ? 1 : (s2 > s1 ? 2 : 0);
+            const f = shScale(H), avail = H - SH_TOP - SH_BOT, R = Math.round(140 * f), rh = Math.round(96 * f);
+            const ab = 2 * (R + 10) + (58 + 16 + 54) * f, gap = 44 * f, used = ab + gap + 4 * rh + 3 * 14, top = SH_TOP + Math.max(20, (avail - used) / 2);
+            const cy = top + R + 10;
             shBg(c, W, H, st); shHead(c, W, st, (roundLabel(m) || 'WYNIK MECZU').toUpperCase());
             [[W * .23, i1, m.p1Name, 1], [W * .77, i2, m.p2Name, 2]].forEach(([x, img, name, n]) => {
-                const win = w === n, dim = w && !win;
+                const win = w === n, dim = w && !win, nb = cy + R + 10 + 58 * f;
                 shAvatar(c, img, name, x, cy, R, win ? st.gold : 'rgba(255,255,255,.25)', dim ? .55 : 1, win ? st.gold : null);
-                c.save(); c.globalAlpha = dim ? .65 : 1; shT(c, name, x, cy + R + 85, 44, st.text, { max: W * .42 }); c.restore();
-                if (win) { shRR(c, x - 125, cy + R + 115, 250, 56, 28); c.fillStyle = st.gold; c.fill(); shT(c, '🏆 ZWYCIĘZCA', x, cy + R + 153, 28, '#0b0f19'); }
+                c.save(); c.globalAlpha = dim ? .65 : 1; shT(c, name, x, nb, 42 * f, st.text, { max: W * .42 }); c.restore();
+                if (win) { shRR(c, x - 120 * f, nb + 16 * f, 240 * f, 54 * f, 27 * f); c.fillStyle = st.gold; c.fill(); shT(c, '🏆 ZWYCIĘZCA', x, nb + 16 * f + 37 * f, 26 * f, '#0b0f19'); }
             });
-            shT(c, `${s1}:${s2}`, W / 2, cy + 50, 140, st.text);
-            if (!w) shT(c, 'REMIS', W / 2, cy + 105, 34, st.accent);
-            const rows = [['Średnia', Number(m.avg1 || 0).toFixed(2), Number(m.avg2 || 0).toFixed(2), 1], ['Najwyższy finish', m.hf1 || 0, m.hf2 || 0, 1], ['180-tki', m.s180_1 || 0, m.s180_2 || 0, 1], ['Rzuty 140+', m.s140_1 || 0, m.s140_2 || 0, 1]];
-            const y0 = cy + R + 250 * k, rh = 112 * Math.min(1, .8 + k * .2);
-            rows.forEach(([lab, a, b], i) => {
-                const y = y0 + i * (rh + 12);
-                shRR(c, 60, y, W - 120, rh, 24); c.fillStyle = 'rgba(255,255,255,.07)'; c.fill();
-                const na = parseFloat(a), nb = parseFloat(b), ca = na > nb ? st.accent : st.text, cb = nb > na ? st.accent : st.text;
-                shT(c, a, W * .2, y + rh * .66, 54, ca); shT(c, b, W * .8, y + rh * .66, 54, cb); shT(c, lab, W / 2, y + rh * .62, 28, st.muted, { weight: 700 });
+            shT(c, `${s1}:${s2}`, W / 2, cy + 45 * f, 130 * f, st.text);
+            if (!w) shT(c, 'REMIS', W / 2, cy + 100 * f, 32 * f, st.accent);
+            const rows = [['Średnia', Number(m.avg1 || 0).toFixed(2), Number(m.avg2 || 0).toFixed(2)], ['Najwyższy finish', m.hf1 || 0, m.hf2 || 0], ['180-tki', m.s180_1 || 0, m.s180_2 || 0], ['Rzuty 140+', m.s140_1 || 0, m.s140_2 || 0]];
+            const y0 = top + ab + gap;
+            rows.forEach(([lab, a, b2], i) => {
+                const y = y0 + i * (rh + 14), na = parseFloat(a), nb2 = parseFloat(b2);
+                shRR(c, 60, y, W - 120, rh, 24); c.fillStyle = 'rgba(255,255,255,.08)'; c.fill();
+                shT(c, a, W * .2, y + rh * .67, 50 * f, na > nb2 ? st.accent : st.text); shT(c, b2, W * .8, y + rh * .67, 50 * f, nb2 > na ? st.accent : st.text);
+                shT(c, lab, W / 2, y + rh * .62, 26 * f, st.muted, { weight: 700, max: W * .34 });
             });
             shFoot(c, W, H, st, m.date ? String(m.date).split(',')[0] : '');
         }
         async function shTable(c, W, H, st) {
-            const all = currentSeasonTable(), n = Math.min(all.length, Math.floor((H - 460) / 96), 12), rows = all.slice(0, n);
+            const all = currentSeasonTable(), avail = H - SH_TOP - SH_BOT, head = 150;
+            const n = Math.max(1, Math.min(all.length, Math.floor((avail - head - 40) / 80), 12)), rows = all.slice(0, n);
             const imgs = await Promise.all(rows.map(r => shAv(r.uid)));
+            const rh = Math.min(108, (avail - head - 40) / n), top = SH_TOP + Math.max(20, (avail - head - n * rh) / 2);
             shBg(c, W, H, st); shHead(c, W, st, `${seasonStateData.seasonNumber || 1}. SEZON`);
-            shT(c, 'TABELA LIGI', W / 2, 290, 92, st.text);
-            const top = 360, rh = Math.min(108, (H - top - 150) / Math.max(n, 1));
-            [['M', 650], ['+/-', 760], ['ŚR.', 880], ['PKT', 990]].forEach(([l, x]) => shT(c, l, x, top + 10, 26, st.muted, { weight: 700 }));
+            shT(c, 'TABELA LIGI', W / 2, top + 78, 80, st.text);
+            [['M', 650], ['+/-', 760], ['ŚR.', 880], ['PKT', 990]].forEach(([l, x]) => shT(c, l, x, top + 132, 26, st.muted, { weight: 700 }));
             rows.forEach((r, i) => {
-                const y = top + 30 + i * rh, medal = [st.gold, '#cbd5e1', '#d6925a'][i];
+                const y = top + head + i * rh, medal = [st.gold, '#cbd5e1', '#d6925a'][i], cyy = y + (rh - 10) / 2;
                 shRR(c, 50, y, W - 100, rh - 10, 22); c.fillStyle = i < 3 ? 'rgba(255,255,255,.1)' : 'rgba(255,255,255,.05)'; c.fill();
                 if (medal) { c.fillStyle = medal; shRR(c, 50, y, 12, rh - 10, 6); c.fill(); }
-                shT(c, i + 1, 108, y + rh / 2 + 14, 42, medal || st.text);
-                shAvatar(c, imgs[i], r.name, 195, y + (rh - 10) / 2, Math.min(36, rh * .33), 'rgba(255,255,255,.3)', 1, null);
-                shT(c, r.name, 250, y + rh / 2 + 12, 36, st.text, { align: 'left', max: 340 });
-                shT(c, r.played, 650, y + rh / 2 + 12, 34, st.text, { weight: 600 });
-                shT(c, r.diff > 0 ? '+' + r.diff : r.diff, 760, y + rh / 2 + 12, 34, r.diff > 0 ? st.win : (r.diff < 0 ? '#f87171' : st.text), { weight: 600 });
-                shT(c, r.avg.toFixed(1), 880, y + rh / 2 + 12, 34, st.text, { weight: 600 });
-                shT(c, r.points, 990, y + rh / 2 + 14, 46, st.accent);
+                shT(c, i + 1, 108, cyy + 14, 42, medal || st.text);
+                shAvatar(c, imgs[i], r.name, 195, cyy, Math.min(36, rh * .33), 'rgba(255,255,255,.3)', 1, null);
+                shT(c, r.name, 250, cyy + 12, 36, st.text, { align: 'left', max: 340 });
+                shT(c, r.played, 650, cyy + 12, 34, st.text, { weight: 600 });
+                shT(c, r.diff > 0 ? '+' + r.diff : r.diff, 760, cyy + 12, 34, r.diff > 0 ? st.win : (r.diff < 0 ? '#f87171' : st.text), { weight: 600 });
+                shT(c, r.avg.toFixed(1), 880, cyy + 12, 34, st.text, { weight: 600 });
+                shT(c, r.points, 990, cyy + 14, 46, st.accent);
             });
             shFoot(c, W, H, st, 'M - mecze · +/- bilans legów · ŚR. - średnia');
         }
         async function shPlayer(c, W, H, st, uid) {
             const u = globalUsersData[uid]; if (!u) throw new Error('Nie znaleziono gracza.');
-            const img = await shAv(uid), k = H / 1350, d = globalPlayerDetailsStats[uid] || {}, cs = globalCalculatedStats[uid] || {}, avg = globalCalculatedAverages[uid];
-            shBg(c, W, H, st); shHead(c, W, st, 'PROFIL ZAWODNIKA');
-            const R = 200, cy = 420 * k;
-            shAvatar(c, img, shName(uid), W / 2, cy, R, st.accent, 1, st.accent);
-            shT(c, shName(uid), W / 2, cy + R + 95, 72, st.text, { max: W - 120 });
-            if (u.city) shT(c, '📍 ' + u.city, W / 2, cy + R + 150, 36, st.muted, { weight: 600 });
-            const stats = [['Mecze', d.matches || 0], ['Wygrane', d.wins || 0], ['Średnia', avg !== undefined ? avg.toFixed(2) : '-'], ['Najwyższy finish', cs.hf || 0], ['180-tki', d.s180 || 0], ['Achievementy', calculatePlayerUnlockedBadges(uid).length]];
-            const bw = (W - 180) / 2, bh = 150 * Math.min(1, .75 + k * .25), y0 = cy + R + 205 * k;
-            stats.forEach(([l, v], i) => {
-                const x = 60 + (i % 2) * (bw + 60), y = y0 + Math.floor(i / 2) * (bh + 24);
-                shRR(c, x, y, bw, bh, 26); c.fillStyle = 'rgba(255,255,255,.08)'; c.fill();
-                shT(c, v, x + bw / 2, y + bh * .52, 64, st.accent); shT(c, l, x + bw / 2, y + bh * .83, 26, st.muted, { weight: 700 });
-            });
+            const img = await shAv(uid), d = globalPlayerDetailsStats[uid] || {}, cs = globalCalculatedStats[uid] || {}, avg = globalCalculatedAverages[uid];
             const sc = (u.showcase || []).filter(x => ALL_BADGES[x]).slice(0, 3);
+            const f = shScale(H), avail = H - SH_TOP - SH_BOT, R = Math.round(145 * f), bh = Math.round(140 * f), bw = (W - 120 - 40) / 3;
+            const used = 2 * (R + 10) + (70 + 52) * f + 36 + 2 * bh + 20 + (sc.length ? 36 + 110 * f : 0) + 40, top = SH_TOP + Math.max(14, (avail - used) / 2);
+            shBg(c, W, H, st); shHead(c, W, st, 'PROFIL ZAWODNIKA');
+            const cy = top + R + 10;
+            shAvatar(c, img, shName(uid), W / 2, cy, R, st.accent, 1, st.accent);
+            const nb = cy + R + 10 + 62 * f;
+            shT(c, shName(uid), W / 2, nb, 64 * f, st.text, { max: W - 120 });
+            if (u.city) shT(c, '📍 ' + u.city, W / 2, nb + 50 * f, 34 * f, st.muted, { weight: 600 });
+            const stats = [['Mecze', d.matches || 0], ['Wygrane', d.wins || 0], ['Średnia', avg !== undefined ? avg.toFixed(2) : '-'], ['Najwyższy finish', cs.hf || 0], ['180-tki', d.s180 || 0], ['Achievementy', calculatePlayerUnlockedBadges(uid).length]];
+            const y0 = top + 2 * (R + 10) + (70 + 52) * f + 36;
+            stats.forEach(([l, v, ], i) => {
+                const x = 60 + (i % 3) * (bw + 20), y = y0 + Math.floor(i / 3) * (bh + 20);
+                shRR(c, x, y, bw, bh, 26); c.fillStyle = 'rgba(255,255,255,.08)'; c.fill();
+                shT(c, v, x + bw / 2, y + bh * .55, 56 * f, st.accent, { max: bw - 30 }); shT(c, l, x + bw / 2, y + bh * .84, 24 * f, st.muted, { weight: 700, max: bw - 20 });
+            });
             if (sc.length) {
-                const by = y0 + 3 * (bh + 24) + 20;
-                sc.forEach((x, i) => { const cx = W / 2 + (i - (sc.length - 1) / 2) * 300; shT(c, ALL_BADGES[x].emoji, cx, by + 60, 70, st.text); shT(c, ALL_BADGES[x].name, cx, by + 110, 26, st.muted, { weight: 700, max: 280 }); });
+                const by = y0 + 2 * (bh + 20) + 36;
+                sc.forEach((x, i) => { const cx = W / 2 + (i - (sc.length - 1) / 2) * 300; shT(c, ALL_BADGES[x].emoji, cx, by + 62 * f, 62 * f, st.text); shT(c, ALL_BADGES[x].name, cx, by + 104 * f, 24 * f, st.muted, { weight: 700, max: 280 }); });
             }
             shFoot(c, W, H, st, 'Statystyki wszechczasów');
         }
         async function shNews(c, W, H, st, id) {
             const p = globalNews[id]; if (!p) throw new Error('Nie znaleziono artykułu.');
-            const img = await shImg(p.image), ch = H * .38;
+            const img = await shImg(p.image), avail = H - SH_TOP - SH_BOT, ch = Math.round(avail * .34), f = Math.min(1.2, avail / 1030);
             shBg(c, W, H, st);
-            if (img) { c.save(); c.beginPath(); c.rect(0, 0, W, ch); c.clip(); const s = Math.max(W / img.width, ch / img.height); c.drawImage(img, (W - img.width * s) / 2, (ch - img.height * s) / 2, img.width * s, img.height * s); const g = c.createLinearGradient(0, ch * .4, 0, ch); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, st.bg1); c.fillStyle = g; c.fillRect(0, 0, W, ch); c.restore(); }
+            if (img) { c.save(); c.beginPath(); c.rect(0, SH_TOP, W, ch); c.clip(); const s = Math.max(W / img.width, ch / img.height); c.drawImage(img, (W - img.width * s) / 2, SH_TOP + (ch - img.height * s) / 2, img.width * s, img.height * s); const g = c.createLinearGradient(0, SH_TOP + ch * .55, 0, SH_TOP + ch); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, st.bg1); c.fillStyle = g; c.fillRect(0, SH_TOP, W, ch); c.restore(); }
             shHead(c, W, st, 'AKTUALNOŚCI');
-            let y = ch + 40;
-            y = shWrap(c, p.title, 70, y + 60, W - 140, 84, 4, 70, st.text, { weight: 900 });
-            c.fillStyle = st.accent; c.fillRect(70, y - 30, 140, 8);
-            y = shWrap(c, String(p.body || '').replace(/\s+/g, ' ').slice(0, 420), 70, y + 40, W - 140, 52, Math.max(2, Math.floor((H - y - 330) / 52)), 36, st.muted, { weight: 500 });
-            shRR(c, 70, H - 190, 440, 70, 35); c.fillStyle = st.accent; c.fill(); shT(c, 'Czytaj całość na stronie →', 290, H - 144, 26, '#0b0f19');
-            shFoot(c, W, H, st, nwFmtDate(p.createdAt || 0));
+            const limit = H - SH_BOT - 30, tsz = Math.round(62 * f), lh = Math.round(76 * f);
+            let y = SH_TOP + ch + 40 * f + tsz;
+            y = shWrap(c, p.title, 60, y, W - 120, lh, 3, tsz, st.text, { weight: 900 });
+            c.fillStyle = st.accent; c.fillRect(60, y - lh * .4, 130, 8); y += 38 * f;
+            const bsz = Math.round(34 * f), blh = Math.round(50 * f), lines = Math.floor((limit - y) / blh);
+            if (lines >= 1) shWrap(c, String(p.body || '').replace(/\s+/g, ' ').slice(0, 600), 60, y + bsz * .6, W - 120, blh, lines, bsz, st.muted, { weight: 500 });
+            shFoot(c, W, H, st, nwFmtDate(p.createdAt || 0), `Czytaj całość: ${location.host || 'ADL'}`);
         }
         const SH_MSG = (m, ok) => { const e = nwEl('share-msg'); e.className = 'msg ' + (ok ? 'success' : 'error'); e.innerText = m; };
         function shRefresh() {
@@ -5937,6 +5955,7 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
         // Firebase Listeners
         onValue(dbRef(db, 'users'), (snapshot) => {
             globalUsersData = snapshot.val() || {};
+            if (typeof renderHomeNews === 'function') { renderHomeNews(); if (currentTabKey === 'news') renderNews(); }
             if (auth.currentUser && globalUsersData[auth.currentUser.uid]) {
                 updateProfileUI(globalUsersData[auth.currentUser.uid]);
             }
