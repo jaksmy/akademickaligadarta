@@ -3964,7 +3964,7 @@ ${board}</svg>`;
                     const v = rd[key] !== undefined ? rd[key] : 0;
                     html += `<div class="form-group"><label style="font-size: 0.75rem;">${label}</label><input type="number" id="aer-${key}" min="0" ${type === 'float' ? 'step="0.01"' : ''} value="${nwEsc(v)}"></div>`;
                 });
-                html += `</div><div style="margin-top:10px;display:flex;flex-direction:column;gap:6px;font-size:.85rem"><label><input type="checkbox" id="aer-nd${p}" ${rd['nd' + p] ? 'checked' : ''}> 9️⃣ Leg zakończony 9-darterem (achievement 9 Darter, 200 DK)</label><label><input type="checkbox" id="aer-ofc${p}" ${rd['of' + p] ? 'checked' : ''} onchange="document.getElementById('aer-of${p}').disabled = !this.checked"> 🎯 Skończył leg innym finiszem</label><input type="number" id="aer-of${p}" min="2" max="170" placeholder="Jaki finisz? (np. 121)" value="${rd['of' + p] || ''}" ${rd['of' + p] ? '' : 'disabled'}></div>`;
+                html += `</div><div style="margin-top:10px;display:flex;flex-direction:column;gap:6px;font-size:.85rem"><label><input type="checkbox" id="aer-nd${p}" ${rd['nd' + p] ? 'checked' : ''}> 9️⃣ Leg zakończony 9-darterem (achievement 9 Darter, 200 DK)</label><label><input type="checkbox" id="aer-ofc${p}" ${rd['of' + p] ? 'checked' : ''} onchange="document.getElementById('aer-of${p}').disabled = !this.checked"> 🎯 Skończył legi innymi finiszami (można wpisać kilka)</label><input type="text" id="aer-of${p}" placeholder="Jakie finishe? np. 121, 87, 64" value="${nwEsc(String(rd['of' + p] || ''))}" ${rd['of' + p] ? '' : 'disabled'}></div>`;
             });
             nwEl('aer-fields').innerHTML = html;
             nwEl('modal-admin-edit-report').classList.remove('hidden');
@@ -3989,12 +3989,13 @@ ${board}</svg>`;
             try {
                 for (const p of [1, 2]) {
                     data['nd' + p] = nwEl('aer-nd' + p).checked ? 1 : 0;
-                    let of = 0;
+                    let of = '';
                     if (nwEl('aer-ofc' + p).checked) {
-                        of = parseInt(nwEl('aer-of' + p).value) || 0;
-                        if (of < 2 || of > 170 || BOGEY.includes(of)) throw new Error('Podaj poprawny finisz (2-170, bez liczb niemożliwych do zagrania).');
+                        const arr = nwEl('aer-of' + p).value.split(/[^0-9]+/).filter(Boolean).map(Number);
+                        if (!arr.length || arr.length > 4 || arr.some(f => f < 2 || f > 170 || BOGEY.includes(f))) throw new Error('Podaj poprawne finishe (2-170, bez liczb niemożliwych do zagrania), oddzielone przecinkami - maksymalnie 4.');
+                        of = arr.join(',');
                     }
-                    data['of' + p] = of;
+                    data['of' + p] = of || 0;
                 }
                 const upd = {
                     [`upcomingMatches/${matchId}/reportData`]: data,
@@ -5549,7 +5550,7 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
             [[1, m.p1Uid], [2, m.p2Uid]].forEach(([q, uid]) => {
                 const d = s.byUid[uid] || {};
                 rd['s' + q] = d.legs || 0; rd['avg' + q] = d.avg || 0; rd['hf' + q] = d.hf || 0;
-                rd['s80_' + q] = d.c80 || 0; rd['s100_' + q] = d.c100 || 0; rd['s140_' + q] = d.c140 || 0; rd['s180_' + q] = d.c180 || 0;
+                rd['of' + q] = (d.others || []).join(',') || 0; rd['s80_' + q] = d.c80 || 0; rd['s100_' + q] = d.c100 || 0; rd['s140_' + q] = d.c140 || 0; rd['s180_' + q] = d.c180 || 0;
             });
             try {
                 await update(dbRef(db, 'upcomingMatches/' + matchId), { reportData: rd, reported: true, reportAuto: true });
@@ -5593,7 +5594,7 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
             };
             let k1 = idxOf(cur.c1, cur.p1Uid, 0), k2 = idxOf(cur.c2, cur.p2Uid, 1);
             if (k1 === k2) { k1 = 0; k2 = 1; }
-            const P = [0, 1].map(() => ({ legs: 0, score: 0, rounds: 0, c80: 0, c100: 0, c140: 0, c180: 0, hf: 0, left: j.startScore || 301, last: null, lastFin: null }));
+            const P = [0, 1].map(() => ({ legs: 0, score: 0, rounds: 0, c80: 0, c100: 0, c140: 0, c180: 0, hf: 0, left: j.startScore || 301, last: null, lastFin: null, fins: [] }));
             legs.forEach((leg, li) => {
                 const isLast = li === legs.length - 1;
                 [0, 1].forEach(k => {
@@ -5606,9 +5607,10 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
                         if (s >= 180) P[k].c180++; else if (s >= 140) P[k].c140++; else if (s >= 100) P[k].c100++; else if (s >= 80) P[k].c80++;
                     });
                     const lr = arr[arr.length - 1];
-                    if (arr.length > 1 && lr && lr.left === 0) { P[k].legs++; P[k].lastFin = arr[arr.length - 2].left; P[k].hf = Math.max(P[k].hf, P[k].lastFin); }
+                    if (arr.length > 1 && lr && lr.left === 0) { P[k].legs++; P[k].lastFin = arr[arr.length - 2].left; P[k].fins.push(P[k].lastFin); P[k].hf = Math.max(P[k].hf, P[k].lastFin); }
                 });
             });
+            const others = k => { const a = P[k].fins.slice(), i = a.indexOf(P[k].hf); if (i >= 0) a.splice(i, 1); return a; };
             const target = j.limitLeg || 3, maxLegs = target + 1;
             if (P[0].legs + P[1].legs === 0 && sd.some(s => s.winLegs > 0)) { P[0].legs = sd[0].winLegs || 0; P[1].legs = sd[1].winLegs || 0; }
             const ended = j.endMatch === 1 || P[0].legs >= target || P[1].legs >= target || P[0].legs + P[1].legs >= maxLegs;
@@ -5617,7 +5619,7 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
             return {
                 ended,
                 data: { status: ended ? 'ended' : 'live', matchId: cur.matchId, title: j.title || '', target, startScore: j.startScore || 301, players: [mk(k1, cur.p1Uid), mk(k2, cur.p2Uid)], updatedAt: Date.now() },
-                summary: { ended, at: Date.now(), byUid: { [cur.p1Uid]: { legs: P[k1].legs, avg: P[k1].rounds ? +(P[k1].score / P[k1].rounds).toFixed(2) : 0, hf: P[k1].hf, c80: P[k1].c80, c100: P[k1].c100, c140: P[k1].c140, c180: P[k1].c180 }, [cur.p2Uid]: { legs: P[k2].legs, avg: P[k2].rounds ? +(P[k2].score / P[k2].rounds).toFixed(2) : 0, hf: P[k2].hf, c80: P[k2].c80, c100: P[k2].c100, c140: P[k2].c140, c180: P[k2].c180 } } }
+                summary: { ended, at: Date.now(), byUid: { [cur.p1Uid]: { legs: P[k1].legs, avg: P[k1].rounds ? +(P[k1].score / P[k1].rounds).toFixed(2) : 0, hf: P[k1].hf, others: others(k1), c80: P[k1].c80, c100: P[k1].c100, c140: P[k1].c140, c180: P[k1].c180 }, [cur.p2Uid]: { legs: P[k2].legs, avg: P[k2].rounds ? +(P[k2].score / P[k2].rounds).toFixed(2) : 0, hf: P[k2].hf, others: others(k2), c80: P[k2].c80, c100: P[k2].c100, c140: P[k2].c140, c180: P[k2].c180 } } }
             };
         }
         async function livePoll() {
@@ -5756,7 +5758,8 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
             [[1, m.p1Uid], [2, m.p2Uid]].forEach(([p, uid]) => {
                 const d = s.byUid[uid]; if (!d) return;
                 const f = (k, v) => { const e = nwEl('aer-' + k); if (e) e.value = v; };
-                f('s' + p, d.legs); f('avg' + p, d.avg); f('hf' + p, d.hf); f('s80_' + p, d.c80); f('s100_' + p, d.c100); f('s140_' + p, d.c140); f('s180_' + p, d.c180);
+                f('s' + p, d.legs); f('avg' + p, d.avg); f('hf' + p, d.hf); if (d.others && d.others.length) { nwEl('aer-ofc' + p).checked = true; nwEl('aer-of' + p).disabled = false; f('of' + p, d.others.join(', ')); }
+                f('s80_' + p, d.c80); f('s100_' + p, d.c100); f('s140_' + p, d.c140); f('s180_' + p, d.c180);
             });
             msg.className = 'msg success'; msg.innerText = 'Wypełniono danymi z n01 - sprawdź, uzupełnij 9-darter lub inny finisz i zapisz.';
         };
@@ -5972,6 +5975,8 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
             recomputeStats();
         });
 
+        // Pole "of" w protokole: jeden lub kilka finishów, np. "121,87,64" (stare wpisy - pojedyncza liczba)
+        function parseFins(v) { return String(v == null ? '' : v).split(/[^0-9]+/).filter(Boolean).map(Number).filter(f => f >= 2 && f <= 170 && !BOGEY.includes(f)); }
         function buildDetails(matches) {
             const details = {}, calc = {};
             matches.forEach(m => {
@@ -5984,7 +5989,7 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
                     st.s80 = d.s80; st.s100 = d.s100; st.s140 = d.s140; st.s180 = d.s180;
                     const mine = g('s'), opp = parseInt(m['s' + (idx === 0 ? 2 : 1)]) || 0;
                     if (mine > opp) { d.wins++; if (opp === 0) d.clean++; }
-                    [g('hf'), g('of')].forEach(f => { if (f > 0) { d.finishes[f] = (d.finishes[f] || 0) + 1; if (f > st.hf) st.hf = f; } });
+                    [g('hf'), ...parseFins(m['of' + pf])].forEach(f => { if (f > 0) { d.finishes[f] = (d.finishes[f] || 0) + 1; if (f > st.hf) st.hf = f; } });
                     d.nine += g('nd');
                 });
             });
