@@ -1353,6 +1353,16 @@ body.overlay-mode .lv-event{position:fixed;font-size:max(40px,5vw);background:ra
                 </div>
 
                 <div class="card">
+                    <h2>🎫 Kupony graczy</h2>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                        <div class="form-group"><label>Gracz</label><select id="ac-player"></select></div>
+                        <div class="form-group"><label>Status</label><select id="ac-status"><option value="all">Wszystkie</option><option value="pending">⏳ Oczekujące</option><option value="won">✅ Wygrane</option><option value="lost">❌ Przegrane</option><option value="void">↩ Zwroty</option></select></div>
+                    </div>
+                    <div id="ac-summary" style="margin:6px 0 12px;font-size:.9rem"></div>
+                    <div id="ac-list"></div>
+                </div>
+
+                <div class="card">
                     <h2>📤 Udostępnianie</h2>
                     <p style="color:var(--text-muted);font-size:.85rem;margin-bottom:10px">Generuje grafikę gotową na Instagram lub TikTok: wynik meczu, tabelę, profil gracza albo artykuł.</p>
                     <div class="form-group"><label>Co udostępnić?</label><select id="share-type"><option value="match">🎯 Wynik meczu</option><option value="table">📊 Tabela ligi</option><option value="player">👤 Profil gracza</option><option value="news">📰 Artykuł</option></select></div>
@@ -4093,11 +4103,11 @@ ${board}</svg>`;
         let betSlip = [];
 
         // ---------- Statystyki z ostatnich meczów zawodnika ----------
-        function playerRecentStats(uid, n = 5) {
+        function playerRecentStats(uid, n = 6) {
             const arr = [];
-            Object.values(globalMatchesMap || {}).forEach(m => {
-                if (m.p1Uid === uid) arr.push({ legs: parseInt(m.s1) || 0, avg: parseFloat(m.avg1) || 0 });
-                else if (m.p2Uid === uid) arr.push({ legs: parseInt(m.s2) || 0, avg: parseFloat(m.avg2) || 0 });
+            Object.values(getCombinedCareerMatches()).forEach(m => {
+                if (m.p1Uid === uid) arr.push({ legs: parseInt(m.s1) || 0, avg: parseFloat(m.avg1) || 0, s80: parseInt(m.s80_1) || 0, s100: parseInt(m.s100_1) || 0 });
+                else if (m.p2Uid === uid) arr.push({ legs: parseInt(m.s2) || 0, avg: parseFloat(m.avg2) || 0, s80: parseInt(m.s80_2) || 0, s100: parseInt(m.s100_2) || 0 });
             });
             return arr.slice(-n);
         }
@@ -4111,26 +4121,37 @@ ${board}</svg>`;
         const oddsFromP = (p) => Math.min(8, Math.max(1.1, Number((0.93 / p).toFixed(2))));
 
         // Rynki Over/Under dla zawodnika: wygrane legi i średnia - linia wyznaczona z ostatnich meczów
-        function buildMarkets(m) {
+        const MK_TITLES = { avg: 'średnia z meczu', s80: 'liczba rzutów +80', s100: 'liczba rzutów +100', legs: 'wygrane legi' };
+        const MK_WHAT = { avg: 'średnia', s80: 'rzuty +80', s100: 'rzuty +100', legs: 'wygrane legi' };
+        const MK_LIQUIDITY = 40;   // niższa wartość = kursy dodatkowych rynków reagują szybciej na stawki (DK)
+        const MK_MAX_SHIFT = 0.6;  // maksymalny udział stawek w wyliczeniu prawdopodobieństwa
+        const mkKey = (type, uid, pick) => `${type}_${uid}_${pick}`;
+        // Kursy na żywo: im więcej DK na Over, tym niższy kurs na Over i wyższy na Under (i odwrotnie)
+        function marketLive(matchId, mk) {
+            const pool = (matchId && globalMatchPools && globalMatchPools[matchId]) || {};
+            const so = Number(pool[mkKey(mk.type, mk.uid, 'over')]) || 0, su = Number(pool[mkKey(mk.type, mk.uid, 'under')]) || 0, tot = so + su;
+            let p = 0.93 / mk.overBase;
+            if (tot > 0) { const w = (tot / (tot + MK_LIQUIDITY)) * MK_MAX_SHIFT; p = (1 - w) * p + w * (so / tot); }
+            p = Math.min(0.9, Math.max(0.1, p));
+            return { overOdds: oddsFromP(p), underOdds: oddsFromP(1 - p), overStake: so, underStake: su };
+        }
+        // Rynki Over/Under dla zawodnika: średnia oraz liczba rzutów +80 i +100 (linie z ostatnich meczów)
+        function buildMarkets(m, matchId) {
             const out = [];
             [[m.p1Uid, m.p1Name], [m.p2Uid, m.p2Name]].forEach(([uid, name]) => {
                 const rec = playerRecentStats(uid);
-                if (rec.length < 2) {
-                    out.push({ type: 'legs', uid, name, unavailable: true }, { type: 'avg', uid, name, unavailable: true });
-                    return;
-                }
-                const lv = rec.map(r => r.legs);
-                const lMean = lv.reduce((a, b) => a + b, 0) / lv.length;
-                const lLine = Math.floor(lMean) + 0.5;
-                const pOverL = clampP((lv.filter(v => v > lLine).length + 1) / (lv.length + 2));
-                out.push({ type: 'legs', uid, name, line: lLine, overOdds: oddsFromP(pOverL), underOdds: oddsFromP(1 - pOverL), sample: lv });
-
-                const av = rec.map(r => r.avg);
-                const mu = av.reduce((a, b) => a + b, 0) / av.length;
-                const sd = Math.sqrt(av.reduce((s, v) => s + (v - mu) * (v - mu), 0) / av.length);
-                const aLine = Math.floor(mu) + 0.5;
-                const pOverA = clampP(1 - normCdf((aLine - mu) / Math.max(sd, 3)));
-                out.push({ type: 'avg', uid, name, line: aLine, overOdds: oddsFromP(pOverA), underOdds: oddsFromP(1 - pOverA), sample: av.map(v => v.toFixed(1)) });
+                if (rec.length < 2) { ['avg', 's80', 's100'].forEach(type => out.push({ type, uid, name, unavailable: true })); return; }
+                const add = (type, line, pOver, sample) => {
+                    const mk = { type, uid, name, line, overBase: oddsFromP(pOver), underBase: oddsFromP(1 - pOver), sample };
+                    Object.assign(mk, marketLive(matchId, mk)); out.push(mk);
+                };
+                const av = rec.map(r => r.avg), mu = av.reduce((a, b) => a + b, 0) / av.length;
+                const sd = Math.sqrt(av.reduce((s, v) => s + (v - mu) * (v - mu), 0) / av.length), aLine = Math.floor(mu) + 0.5;
+                add('avg', aLine, clampP(1 - normCdf((aLine - mu) / Math.max(sd, 3))), av.map(v => v.toFixed(1)));
+                ['s80', 's100'].forEach(type => {
+                    const v = rec.map(r => r[type]), mean = v.reduce((a, b) => a + b, 0) / v.length, line = Math.floor(mean) + 0.5;
+                    add(type, line, clampP((v.filter(x => x > line).length + 1) / (v.length + 2)), v);
+                });
             });
             return out;
         }
@@ -4146,10 +4167,10 @@ ${board}</svg>`;
                 const label = pick === 'draw' ? 'Remis' : `${pick === m.p1Uid ? m.p1Name : m.p2Name} wygra`;
                 return { ...base, line: 0, odds, label, status: 'pending' };
             }
-            const mk = buildMarkets(m).find(x => x.type === kind && x.uid === uid);
+            const mk = buildMarkets(m, matchId).find(x => x.type === kind && x.uid === uid);
             if (!mk || mk.unavailable) return null;
             const odds = pick === 'over' ? mk.overOdds : mk.underOdds;
-            const what = kind === 'legs' ? 'wygrane legi' : 'średnia';
+            const what = MK_WHAT[kind] || kind;
             return { ...base, line: mk.line, odds, label: `${mk.name} – ${what} ${pick === 'over' ? 'Over' : 'Under'} ${mk.line}`, status: 'pending' };
         }
 
@@ -4205,21 +4226,21 @@ ${board}</svg>`;
             if (matchStarted(m)) { nwEl('markets-body').innerHTML = '<p style="color: var(--text-muted);">🔒 Zakłady zamknięte – mecz się rozpoczął.</p>'; return; }
             const isOn = (kind, pick, uid) => betSlip.some(c => c.matchId === matchId && c.kind === kind && c.pick === pick && (c.uid || '') === (uid || ''));
             const o = getLiveOdds(matchId, m);
-            const btn = (kind, pick, uid, label, odds) =>
-                `<button class="mk-btn ${isOn(kind, pick, uid) ? 'on' : ''}" onclick="toggleSelection('${matchId}', '${kind}', '${pick}', '${uid || ''}')"><span>${label}</span><b>${odds}${kind === '1x2' ? mkTrend(matchId, m, o, pick, odds) : ''}</b></button>`;
+            const btn = (kind, pick, uid, label, odds, tr) =>
+                `<button class="mk-btn ${isOn(kind, pick, uid) ? 'on' : ''}" onclick="toggleSelection('${matchId}', '${kind}', '${pick}', '${uid || ''}')"><span>${label}</span><b>${odds}${kind === '1x2' ? mkTrend(matchId, m, o, pick, odds) : (tr || '')}</b></button>`;
 
             let html = `<div class="mk-section"><div class="mk-title">Zwycięzca meczu</div><div class="mk-grid">
                 ${btn('1x2', m.p1Uid, '', nwEsc(m.p1Name), o.odds1)}${btn('1x2', 'draw', '', 'Remis', o.oddsDraw)}${btn('1x2', m.p2Uid, '', nwEsc(m.p2Name), o.odds2)}
                 </div></div>`;
-            buildMarkets(m).forEach(mk => {
-                const title = mk.type === 'legs' ? `${nwEsc(mk.name)} – wygrane legi` : `${nwEsc(mk.name)} – średnia z meczu`;
+            buildMarkets(m, matchId).forEach(mk => {
+                const title = `${nwEsc(mk.name)} – ${MK_TITLES[mk.type]}`;
                 if (mk.unavailable) {
                     html += `<div class="mk-section"><div class="mk-title">${title}</div><div class="mk-na">Za mało rozegranych meczów, aby wystawić linię (min. 2).</div></div>`;
                     return;
                 }
                 html += `<div class="mk-section"><div class="mk-title">${title}</div>
-                    <div class="mk-sub">Linia z ostatnich ${mk.sample.length} meczów (${mk.sample.join(' · ')})</div>
-                    <div class="mk-grid">${btn(mk.type, 'under', mk.uid, `Under ${mk.line}`, mk.underOdds)}${btn(mk.type, 'over', mk.uid, `Over ${mk.line}`, mk.overOdds)}</div></div>`;
+                    <div class="mk-sub">Linia z ostatnich ${mk.sample.length} meczów (${mk.sample.join(' · ')}) · kursy zmieniają się wraz ze stawkami graczy</div>
+                    <div class="mk-grid">${btn(mk.type, 'under', mk.uid, `Under ${mk.line}`, mk.underOdds, oddsTrend(matchId, mkKey(mk.type, mk.uid, 'u'), mk.underOdds, mk.underBase))}${btn(mk.type, 'over', mk.uid, `Over ${mk.line}`, mk.overOdds, oddsTrend(matchId, mkKey(mk.type, mk.uid, 'o'), mk.overOdds, mk.overBase))}</div></div>`;
             });
             nwEl('markets-body').innerHTML = html;
         }
@@ -4347,9 +4368,9 @@ ${board}</svg>`;
                 updates[`users/${user.uid}/inventory`] = inventory;
                 updates[`users/${user.uid}/coupons/${slipId}`] = { type: 'slip', id: slipId, legs: betSlip.map(s => ({ ...s })), totalOdds: total, amount, bonus, placedAt: Date.now(), status: 'pending' };
                 betSlip.forEach(s => { updates[`slipIndex/${s.matchId}/${slipId}`] = user.uid; });
-                // Stawka (po równo na każdy typ) wpływa na dynamiczne kursy 1X2
+                // Stawka (po równo na każdy typ) wpływa na dynamiczne kursy (1X2 i rynki Over/Under)
                 const share = Math.round(amount / betSlip.length * 100) / 100;
-                betSlip.forEach(sel => { if (sel.kind === '1x2') updates[`matchPools/${sel.matchId}/${sel.pick}`] = increment(share); });
+                betSlip.forEach(sel => { updates[`matchPools/${sel.matchId}/${sel.kind === '1x2' ? sel.pick : mkKey(sel.kind, sel.uid, sel.pick)}`] = increment(share); });
 
                 await update(dbRef(db), updates);
                 betSlip = [];
@@ -4375,9 +4396,9 @@ ${board}</svg>`;
                 return { status: l.pick === w ? 'won' : 'lost', result: `${s1}:${s2}` };
             }
             const isP1 = l.uid === m.p1Uid;
-            const val = l.kind === 'legs' ? (isP1 ? s1 : s2) : (isP1 ? (parseFloat(rd.avg1) || 0) : (parseFloat(rd.avg2) || 0));
+            const val = l.kind === 'legs' ? (isP1 ? s1 : s2) : (l.kind === 'avg' ? (isP1 ? (parseFloat(rd.avg1) || 0) : (parseFloat(rd.avg2) || 0)) : (parseInt(rd[`${l.kind}_${isP1 ? 1 : 2}`]) || 0));
             const status = val === l.line ? 'void' : (((l.pick === 'over') === (val > l.line)) ? 'won' : 'lost');
-            return { status, result: l.kind === 'legs' ? `${val} ${nwPlural(val, 'leg', 'legi', 'legów')}` : `śr. ${val.toFixed(2)}` };
+            return { status, result: l.kind === 'legs' ? `${val} ${nwPlural(val, 'leg', 'legi', 'legów')}` : (l.kind === 'avg' ? `śr. ${val.toFixed(2)}` : `${val} ${nwPlural(val, 'rzut', 'rzuty', 'rzutów')}`) };
         }
 
         function resolveSlip(c, legs) {
@@ -4515,7 +4536,7 @@ ${board}</svg>`;
         // --- PANEL ADMINA ---
 
         function renderAdminPanelData() {
-            setTimeout(renderPlayoffAdmin, 0); setTimeout(renderAdminLive, 0); setTimeout(shRefresh, 0);
+            setTimeout(renderPlayoffAdmin, 0); setTimeout(renderAdminLive, 0); setTimeout(renderAdminCoupons, 0); setTimeout(shRefresh, 0);
             const listContainer = document.getElementById('admin-players-list');
             const selectP1 = document.getElementById('admin-create-p1');
             const selectP2 = document.getElementById('admin-create-p2');
@@ -5416,7 +5437,7 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
         (function groupAdminPanel() {
             const page = nwEl('page-admin');
             const cards = [...page.querySelectorAll(':scope > .card')];
-            const cats = [['⚙️ Sezon i playoff', ['Zarządzanie Sezonem', '🏆 Playoff']], ['📰 Aktualności', ['📰 Generator aktualności']], ['👥 Zawodnicy i portfele', ['Zarządzanie Zawodnikami i Portfelami (Dart Kasa)']], ['📤 Udostępnianie', ['📤 Udostępnianie']], ['📡 Na żywo', ['📡 Transmisja n01']], ['🎁 Nagrody', ['🎁 Nagrody graczy']], ['🎯 Mecze', ['Tworzenie Nadchodzącego Meczu', 'Oczekujące Protokoły Meczowe', 'Zarządzanie Nadchodzącymi Meczami', 'Zarządzanie Historią Meczów']]];
+            const cats = [['⚙️ Sezon i playoff', ['Zarządzanie Sezonem', '🏆 Playoff']], ['📰 Aktualności', ['📰 Generator aktualności']], ['👥 Zawodnicy i portfele', ['Zarządzanie Zawodnikami i Portfelami (Dart Kasa)']], ['🎫 Kupony', ['🎫 Kupony graczy']], ['📤 Udostępnianie', ['📤 Udostępnianie']], ['📡 Na żywo', ['📡 Transmisja n01']], ['🎁 Nagrody', ['🎁 Nagrody graczy']], ['🎯 Mecze', ['Tworzenie Nadchodzącego Meczu', 'Oczekujące Protokoły Meczowe', 'Zarządzanie Nadchodzącymi Meczami', 'Zarządzanie Historią Meczów']]];
             const anchor = cards[0];
             cats.forEach(([title, names]) => {
                 const d = document.createElement('details'); d.className = 'adm-cat';
@@ -5954,6 +5975,35 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
             let d = nwEl('share-canvas').closest('details'); while (d) { d.open = true; d = d.parentElement.closest('details'); }
             nwEl('share-canvas').scrollIntoView({ behavior: 'smooth', block: 'center' }); shGenerate();
         };
+
+        // ===== Admin: kupony wszystkich graczy =====
+        const AC_STATUS = { pending: '⏳ oczekuje', won: '✅ wygrany', lost: '❌ przegrany', void: '↩ zwrot' };
+        function renderAdminCoupons() {
+            const list = nwEl('ac-list'); if (!list) return;
+            const sel = nwEl('ac-player'), keep = sel.value || 'all';
+            const withC = Object.keys(globalUsersData).filter(u => globalUsersData[u].coupons && Object.keys(globalUsersData[u].coupons).length);
+            sel.innerHTML = '<option value="all">Wszyscy gracze</option>' + withC.map(u => `<option value="${u}">${nwEsc(shName(u))}</option>`).join('');
+            sel.value = withC.includes(keep) ? keep : 'all';
+            const st = nwEl('ac-status').value;
+            const rows = [];
+            withC.forEach(u => {
+                if (sel.value !== 'all' && sel.value !== u) return;
+                Object.entries(globalUsersData[u].coupons).forEach(([id, c]) => { if (st === 'all' || c.status === st) rows.push({ u, id, c }); });
+            });
+            rows.sort((a, b) => (b.c.placedAt || b.c.settledAt || 0) - (a.c.placedAt || a.c.settledAt || 0));
+            const sum = rows.reduce((s, r) => { s.stake += Number(r.c.amount) || 0; if (r.c.status === 'pending') { s.pend += Number(r.c.amount) || 0; const odds = r.c.type === 'slip' ? r.c.totalOdds : r.c.odds; s.pot += calcPayout(r.c.amount, odds, r.c.bonus, true) || 0; } s.pay += Number(r.c.payout) || 0; return s; }, { stake: 0, pend: 0, pot: 0, pay: 0 });
+            nwEl('ac-summary').innerHTML = `Kuponów: <b>${rows.length}</b> · postawiono <b>${sum.stake} DK</b> · w grze <b>${sum.pend} DK</b> (możliwa wypłata <b>${sum.pot} DK</b>) · wypłacono <b>${sum.pay} DK</b>`;
+            list.innerHTML = rows.slice(0, 60).map(({ u, id, c }) => {
+                const legs = c.type === 'slip' ? (Array.isArray(c.legs) ? c.legs : Object.values(c.legs || {})) : [{ label: `${c.playerName || ''} (zakład pojedynczy)`, odds: c.odds, status: c.status }];
+                const total = c.type === 'slip' ? c.totalOdds : c.odds;
+                return `<div class="match-card" style="display:block;margin-bottom:10px"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><b>${nwEsc(shName(u))}</b><span>${AC_STATUS[c.status] || c.status}</span></div>
+                    <div style="font-size:.78rem;color:var(--text-muted);margin:2px 0 6px">${c.placedAt ? new Date(c.placedAt).toLocaleString('pl-PL') : ''}${c.bonus && c.bonus !== 'none' ? ' · ' + bonusLabel(c.bonus) : ''}</div>
+                    ${legs.map(l => `<div style="font-size:.85rem">• ${nwEsc(l.label || '')} <b>@${l.odds}</b> ${l.status && l.status !== 'pending' ? `<span style="color:var(--text-muted)">[${AC_STATUS[l.status] || l.status}${l.result ? ', ' + nwEsc(String(l.result)) : ''}]</span>` : ''}</div>`).join('')}
+                    <div style="margin-top:6px;font-size:.85rem">Stawka <b>${c.amount} DK</b> · kurs <b>${total}</b> · ${c.status === 'pending' ? `możliwa wypłata <b>${calcPayout(c.amount, total, c.bonus, true)} DK</b>` : `wypłata <b>${c.payout || 0} DK</b>`}</div></div>`;
+            }).join('') + (rows.length > 60 ? `<p style="color:var(--text-muted);font-size:.8rem">Pokazano 60 najnowszych z ${rows.length}.</p>` : '') || '<p style="color:var(--text-muted)">Brak kuponów dla wybranych filtrów.</p>';
+        }
+        nwEl('ac-player').onchange = renderAdminCoupons;
+        nwEl('ac-status').onchange = renderAdminCoupons;
 
         // Firebase Listeners
         onValue(dbRef(db, 'users'), (snapshot) => {
