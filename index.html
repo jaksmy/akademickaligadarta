@@ -2625,6 +2625,7 @@ Akademicka Liga Darta © 2026`;
             tabs.admin.btn.classList.add('hidden');
         }
 
+        onAdminStateChanged();
         attachNotificationsListener(user.uid);
         
         // Załaduj odświeżenie danych jeśli już były
@@ -2640,6 +2641,7 @@ Akademicka Liga Darta © 2026`;
         betSlip = []; renderSlipBar();
         if (window.hideBonusBanner) window.hideBonusBanner();
         detachNotifications();
+        onAdminStateChanged();
         
         document.getElementById('wallet-widget-container').classList.add('hidden');
         const accountTabBtn = document.getElementById('tab-account');
@@ -3050,7 +3052,7 @@ Akademicka Liga Darta © 2026`;
                     const t1 = trend(oddsData.odds1, oddsData.baseOdds1, 'o1'), t2 = trend(oddsData.odds2, oddsData.baseOdds2, 'o2'), tD = trend(oddsData.oddsDraw, oddsData.baseOddsDraw, 'od');
 
                     let adminPowerInfo = "";
-                    if (isAdmin) {
+                    if (isAdminUser()) {
                         adminPowerInfo = `<div style="font-size: 11px; color: var(--warning-color); margin-top: 4px; text-align: center;">[Admin Power] ${m.p1Name}: ${oddsData.p1Power} | ${m.p2Name}: ${oddsData.p2Power}<br>Kursy bazowe: ${oddsData.baseOdds1} / ${oddsData.baseOddsDraw} / ${oddsData.baseOdds2} · Pula stawek: ${oddsData.stake1} / ${oddsData.stakeDraw} / ${oddsData.stake2} DK</div>`;
                     }
 
@@ -3119,8 +3121,17 @@ Akademicka Liga Darta © 2026`;
         let newsDraftsAttached = false;
         let newsEditor = { id: null, source: null, kind: '', image: '', customImage: false, createdAt: null };
         
-        let isAdmin = false; 
-        const isAdminUser = () => isAdmin;
+        const isAdminUser = () => currentUserIsAdmin; // jedyne źródło prawdy: custom claim "admin" odczytany z tokena po zalogowaniu
+        // Po zmianie uprawnień (claim wczytuje się asynchronicznie, już po pierwszych renderach) odświeża widoki zależne od admina
+        function onAdminStateChanged() {
+            const run = f => { try { f(); } catch (e) { console.warn(e.message); } };
+            run(() => renderHomePageUpcoming());
+            run(() => renderHomeNews());
+            run(() => { if (currentTabKey === 'news') renderNews(); });
+            run(() => { if (!document.getElementById('page-admin').classList.contains('hidden')) { renderAdminPanelData(); renderNewsAdminList(); } });
+            run(() => { renderAdminLive(); applyLiveSummaries(); });
+            if (!currentUserIsAdmin) run(() => liveStopWorker());
+        }
         
         const nwEl = (id) => document.getElementById(id);
         const nwEsc = (t) => String(t == null ? '' : t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -6105,7 +6116,7 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
             if (auth.currentUser && globalUsersData[auth.currentUser.uid]) {
                 updateProfileUI(globalUsersData[auth.currentUser.uid]);
             }
-        });
+        }, (err) => console.error('seasonState: brak dostępu do odczytu (sprawdź reguły):', err.message));
 
     </script>
 </body>
