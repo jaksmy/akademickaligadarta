@@ -3047,8 +3047,8 @@ Akademicka Liga Darta © 2026`;
                     const oddsData = getLiveOdds(matchId, m);
                     const trend = (live, base, k) => oddsTrend(matchId, k, live, base);
                     const t1 = trend(oddsData.odds1, oddsData.baseOdds1, 'o1'), t2 = trend(oddsData.odds2, oddsData.baseOdds2, 'o2'), tD = trend(oddsData.oddsDraw, oddsData.baseOddsDraw, 'od');
-                    const idTokenResult = auth.currentUser ? await auth.currentUser.getIdTokenResult() : null;
-                    const isAdmin = idTokenResult?.claims?.admin === true;
+                    const idTokenResult2 = auth.currentUser ? await auth.currentUser.getIdTokenResult() : null;
+                    const isAdmin = idTokenResult2?.claims?.admin === true;
 
                     let adminPowerInfo = "";
                     if (isAdmin) {
