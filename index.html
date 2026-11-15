@@ -1741,6 +1741,7 @@ body.overlay-mode .lv-event{position:fixed;font-size:max(40px,5vw);background:ra
         
         let isGuest = true; // Zmienna sterująca widokiem gościa
         let pendingBonus = null; // Bonus wybrany w ekwipunku przyciskiem "Wykorzystaj"
+        let currentUserIsAdmin = false;
 
         // Zamykanie okienek Auth
         document.getElementById('btn-close-login-modal').onclick = () => document.getElementById('view-login').classList.add('hidden');
@@ -2611,13 +2612,13 @@ Akademicka Liga Darta © 2026`;
         // Odczyt Custom Claims i zapisanie do zmiennej globalnej
         try {
             const idTokenResult = await user.getIdTokenResult();
-            isAdmin = idTokenResult.claims.admin === true;
+            currentUserIsAdmin = idTokenResult.claims.admin === true;
         } catch (error) {
             console.error("Błąd weryfikacji uprawnień:", error);
-            isAdmin = false;
+            currentUserIsAdmin = false;
         }
 
-        if (isAdminUser()) { 
+        if (currentUserIsAdmin) { 
             tabs.admin.btn.classList.remove('hidden'); 
             attachNewsDraftsListener(); 
         } else {
@@ -2632,7 +2633,7 @@ Akademicka Liga Darta © 2026`;
         }
     } else {
         isGuest = true;
-        isAdmin = false; // Zerowanie uprawnień przy wylogowaniu
+        currentUserIsAdmin = false; // Zerowanie uprawnień przy wylogowaniu
         currentUserProfileData = null;
         document.body.removeAttribute('data-theme');
         applyThemeFx(null);
@@ -3047,8 +3048,6 @@ Akademicka Liga Darta © 2026`;
                     const oddsData = getLiveOdds(matchId, m);
                     const trend = (live, base, k) => oddsTrend(matchId, k, live, base);
                     const t1 = trend(oddsData.odds1, oddsData.baseOdds1, 'o1'), t2 = trend(oddsData.odds2, oddsData.baseOdds2, 'o2'), tD = trend(oddsData.oddsDraw, oddsData.baseOddsDraw, 'od');
-                    const idTokenResult2 = auth.currentUser ? await auth.currentUser.getIdTokenResult() : null;
-                    const isAdmin = idTokenResult2?.claims?.admin === true;
 
                     let adminPowerInfo = "";
                     if (isAdmin) {
