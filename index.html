@@ -1909,9 +1909,7 @@ document.getElementById('btn-confirm-bet').onclick = async () => {
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-        const db = getDatabase(app);
-
-        const ADMIN_EMAIL = "smyczkuba@wp.pl"; 
+        const db = getDatabase(app); 
 
         const PRESET_AVATARS = [
             "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=150&auto=format&fit=crop&q=80",
@@ -2598,48 +2596,63 @@ Akademicka Liga Darta © 2026`;
         }
 
         onAuthStateChanged(auth, async (user) => {
-            if (user && user.emailVerified) {
-                isGuest = false;
-                document.getElementById('view-login').classList.add('hidden');
-                document.getElementById('view-register').classList.add('hidden');
-                document.getElementById('view-reset').classList.add('hidden');
-                
-                // Pokaż portfel i zakładki zależne
-                document.getElementById('wallet-widget-container').classList.remove('hidden');
-                const accountTabBtn = document.getElementById('tab-account');
-                accountTabBtn.innerText = "Konto";
-                accountTabBtn.style.color = "var(--text-muted)";
+    if (user && user.emailVerified) {
+        isGuest = false;
+        document.getElementById('view-login').classList.add('hidden');
+        document.getElementById('view-register').classList.add('hidden');
+        document.getElementById('view-reset').classList.add('hidden');
+        
+        // Pokaż portfel i zakładki zależne
+        document.getElementById('wallet-widget-container').classList.remove('hidden');
+        const accountTabBtn = document.getElementById('tab-account');
+        accountTabBtn.innerText = "Konto";
+        accountTabBtn.style.color = "var(--text-muted)";
 
-                if (user.email === ADMIN_EMAIL) { tabs.admin.btn.classList.remove('hidden'); attachNewsDraftsListener(); }
-                else tabs.admin.btn.classList.add('hidden');
-                attachNotificationsListener(user.uid);
-                
-                // Załaduj odświeżenie danych jeśli już były
-                if (globalUsersData[user.uid]) {
-                    updateProfileUI(globalUsersData[user.uid]);
-                }
-            } else {
-                isGuest = true;
-                currentUserProfileData = null;
-                document.body.removeAttribute('data-theme');
-                applyThemeFx(null);
-                betSlip = []; renderSlipBar();
-                if (window.hideBonusBanner) window.hideBonusBanner();
-                detachNotifications();
-                
-                document.getElementById('wallet-widget-container').classList.add('hidden');
-                const accountTabBtn = document.getElementById('tab-account');
-                accountTabBtn.innerText = "🔒 Zaloguj się";
-                accountTabBtn.style.color = "var(--warning-color)";
-                
-                tabs.admin.btn.classList.add('hidden');
-                
-                // Jeśli niezalogowany użytkownik był na ukrytej karcie, cofnij go do strony głównej
-                if (['account', 'shop', 'admin'].includes(currentTabKey)) {
-                    switchTab('home');
-                }
-            }
-        });
+        // Odczyt Custom Claims i zapisanie do zmiennej globalnej
+        try {
+            const idTokenResult = await user.getIdTokenResult();
+            isAdmin = idTokenResult.claims.admin === true;
+        } catch (error) {
+            console.error("Błąd weryfikacji uprawnień:", error);
+            isAdmin = false;
+        }
+
+        if (isAdminUser()) { 
+            tabs.admin.btn.classList.remove('hidden'); 
+            attachNewsDraftsListener(); 
+        } else {
+            tabs.admin.btn.classList.add('hidden');
+        }
+
+        attachNotificationsListener(user.uid);
+        
+        // Załaduj odświeżenie danych jeśli już były
+        if (globalUsersData[user.uid]) {
+            updateProfileUI(globalUsersData[user.uid]);
+        }
+    } else {
+        isGuest = true;
+        isAdmin = false; // Zerowanie uprawnień przy wylogowaniu
+        currentUserProfileData = null;
+        document.body.removeAttribute('data-theme');
+        applyThemeFx(null);
+        betSlip = []; renderSlipBar();
+        if (window.hideBonusBanner) window.hideBonusBanner();
+        detachNotifications();
+        
+        document.getElementById('wallet-widget-container').classList.add('hidden');
+        const accountTabBtn = document.getElementById('tab-account');
+        accountTabBtn.innerText = "🔒 Zaloguj się";
+        accountTabBtn.style.color = "var(--warning-color)";
+        
+        tabs.admin.btn.classList.add('hidden');
+        
+        // Jeśli niezalogowany użytkownik był na ukrytej karcie, cofnij go do strony głównej
+        if (['account', 'shop', 'admin'].includes(currentTabKey)) {
+            switchTab('home');
+        }
+    }
+});
 
         document.getElementById('btn-go-register').onclick = () => { document.getElementById('view-login').classList.add('hidden'); document.getElementById('view-register').classList.remove('hidden'); };
         document.getElementById('btn-go-reset').onclick = () => { document.getElementById('view-login').classList.add('hidden'); document.getElementById('view-reset').classList.remove('hidden'); };
@@ -3034,7 +3047,8 @@ Akademicka Liga Darta © 2026`;
                     const oddsData = getLiveOdds(matchId, m);
                     const trend = (live, base, k) => oddsTrend(matchId, k, live, base);
                     const t1 = trend(oddsData.odds1, oddsData.baseOdds1, 'o1'), t2 = trend(oddsData.odds2, oddsData.baseOdds2, 'o2'), tD = trend(oddsData.oddsDraw, oddsData.baseOddsDraw, 'od');
-                    const isAdmin = auth.currentUser && auth.currentUser.email === ADMIN_EMAIL;
+                    const idTokenResult = auth.currentUser ? await auth.currentUser.getIdTokenResult() : null;
+                    const isAdmin = idTokenResult?.claims?.admin === true;
 
                     let adminPowerInfo = "";
                     if (isAdmin) {
@@ -3105,9 +3119,11 @@ Akademicka Liga Darta © 2026`;
         let globalNewsDrafts = {};
         let newsDraftsAttached = false;
         let newsEditor = { id: null, source: null, kind: '', image: '', customImage: false, createdAt: null };
-
+        
+        let isAdmin = false; 
+        const isAdminUser = () => isAdmin;
+        
         const nwEl = (id) => document.getElementById(id);
-        const isAdminUser = () => !!(auth.currentUser && auth.currentUser.email === ADMIN_EMAIL);
         const nwEsc = (t) => String(t == null ? '' : t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
         const nwPick = (arr) => arr[Math.floor(Math.random() * arr.length)];
         const nwPlural = (n, one, few, many) => {
