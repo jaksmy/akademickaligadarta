@@ -5657,16 +5657,18 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
             };
             let k1 = idxOf(cur.c1, cur.p1Uid, 0), k2 = idxOf(cur.c2, cur.p2Uid, 1);
             if (k1 === k2) { k1 = 0; k2 = 1; }
-            const P = [0, 1].map(() => ({ legs: 0, score: 0, rounds: 0, c80: 0, c100: 0, c140: 0, c180: 0, hf: 0, left: j.startScore || 301, last: null, lastFin: null, fins: [], bull: 0 }));
+            const P = [0, 1].map(() => ({ legs: 0, score: 0, rounds: 0, c80: 0, c100: 0, c140: 0, c180: 0, hf: 0, left: j.startScore || 301, last: null, lastFin: null, fins: [], bull: 0, darts: 0, legLeft: null }));
+            const dartsOf = r => { const d = [r.darts, r.dart, r.dc, r.dn].map(Number).find(x => Number.isFinite(x) && x >= 1 && x <= 3); return d || 3; };
             legs.forEach((leg, li) => {
                 const isLast = li === legs.length - 1;
                 [0, 1].forEach(k => {
+                    if (isLast) P[k].legLeft = null;
                     const arr = (leg.playerData && leg.playerData[k]) || [];
                     arr.slice(1).forEach((r, ri) => {
                         const pending = isLast && leg.endFlag !== 1 && k === leg.currentPlayer && ri + 1 === leg.currentRound && !(r.score > 0);
                         if (pending) return;
                         const s = r.score || 0;
-                        P[k].score += s; P[k].rounds++; P[k].last = s; P[k].left = r.left;
+                        P[k].score += s; P[k].rounds++; P[k].darts += dartsOf(r); P[k].last = s; P[k].left = r.left; if (isLast) P[k].legLeft = r.left;
                         if (s >= 180) P[k].c180++; else if (s >= 140) P[k].c140++; else if (s >= 100) P[k].c100++; else if (s >= 80) P[k].c80++;
                     });
                     const lr = arr[arr.length - 1];
@@ -5689,11 +5691,20 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
             if (P[0].legs + P[1].legs === 0 && sd.some(s => s.winLegs > 0)) { P[0].legs = sd[0].winLegs || 0; P[1].legs = sd[1].winLegs || 0; }
             const ended = j.endMatch === 1 || P[0].legs >= target || P[1].legs >= target || P[0].legs + P[1].legs >= maxLegs;
             const lastLeg = legs[legs.length - 1] || {};
-            const mk = (k, uid) => ({ uid, name: (sd[k] && sd[k].name) || '', legs: P[k].legs, left: P[k].left, avg: P[k].rounds ? +(P[k].score / P[k].rounds).toFixed(2) : 0, last: P[k].last, lastFin: P[k].lastFin, thrower: lastLeg.currentPlayer === k });
+            // Po wygranym legu (nowy leg jeszcze bez rzutów) wynik wraca do punktu startowego; w trakcie lega - wynik z ostatniego lega
+            const sc0 = j.startScore || 301, lastLegDone = !ended && P[0].legs + P[1].legs >= legs.length;
+            [0, 1].forEach(k => { P[k].left = ended ? P[k].left : (lastLegDone || P[k].legLeft === null || P[k].legLeft === undefined ? sc0 : P[k].legLeft); });
+            // Średnia: n01 liczy po faktycznie rzuconych lotkach (ostatnia runda lega bywa krótsza niż 3 lotki) - preferujemy wartość z n01
+            const avgOf = k => {
+                const calc = P[k].darts ? P[k].score / P[k].darts * 3 : 0, s = sd[k] || {};
+                const cand = [s.ppr, s.avg, s.average, Number(s.ppd) * 3].map(Number).find(x => Number.isFinite(x) && x > 0 && x <= 180 && (!calc || (x / calc > 0.7 && x / calc < 1.5)));
+                return +(cand || calc).toFixed(2);
+            };
+            const mk = (k, uid) => ({ uid, name: (sd[k] && sd[k].name) || '', legs: P[k].legs, left: P[k].left, avg: avgOf(k), last: P[k].last, lastFin: P[k].lastFin, thrower: lastLeg.currentPlayer === k });
             return {
                 ended,
                 data: { status: ended ? 'ended' : 'live', matchId: cur.matchId, title: j.title || '', target, startScore: j.startScore || 301, players: [mk(k1, cur.p1Uid), mk(k2, cur.p2Uid)], updatedAt: Date.now() },
-                summary: { ended, at: Date.now(), byUid: { [cur.p1Uid]: { legs: P[k1].legs, avg: P[k1].rounds ? +(P[k1].score / P[k1].rounds).toFixed(2) : 0, hf: P[k1].hf, others: others(k1), c80: P[k1].c80, c100: P[k1].c100, c140: P[k1].c140, c180: P[k1].c180 }, [cur.p2Uid]: { legs: P[k2].legs, avg: P[k2].rounds ? +(P[k2].score / P[k2].rounds).toFixed(2) : 0, hf: P[k2].hf, others: others(k2), c80: P[k2].c80, c100: P[k2].c100, c140: P[k2].c140, c180: P[k2].c180 } } }
+                summary: { ended, at: Date.now(), byUid: { [cur.p1Uid]: { legs: P[k1].legs, avg: avgOf(k1), hf: P[k1].hf, others: others(k1), c80: P[k1].c80, c100: P[k1].c100, c140: P[k1].c140, c180: P[k1].c180 }, [cur.p2Uid]: { legs: P[k2].legs, avg: avgOf(k2), hf: P[k2].hf, others: others(k2), c80: P[k2].c80, c100: P[k2].c100, c140: P[k2].c140, c180: P[k2].c180 } } }
             };
         }
         async function livePoll() {
