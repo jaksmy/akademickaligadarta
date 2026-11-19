@@ -1395,8 +1395,8 @@ body.overlay-mode .lv-event{position:fixed;font-size:max(40px,5vw);background:ra
                     <div style="display:flex;gap:8px;flex-wrap:wrap">
                         <button class="btn-primary btn-sm" id="btn-db-report">📊 Analizuj bazę</button>
                         <button class="btn-success btn-sm" id="btn-db-backup">⬇ Pobierz kopię (JSON)</button>
-                        <button class="btn-primary btn-sm" id="btn-db-shrink-users">🖼 Zmniejsz zdjęcia graczy</button>
-                        <button class="btn-primary btn-sm" id="btn-db-shrink-news">📰 Zmniejsz obrazy artykułów</button>
+                        <button class="btn-primary btn-sm" id="btn-db-shrink-users">🖼 Przenieś zdjęcia graczy</button>
+                        <button class="btn-primary btn-sm" id="btn-db-shrink-news">📰 Przenieś obrazy artykułów</button>
                     </div>
                     <div id="db-msg" class="msg"></div>
                     <div id="db-report" style="margin-top:10px;font-size:.85rem"></div>
@@ -3558,7 +3558,9 @@ ${board}</svg>`;
                 const now = Date.now();
                 const id = (newsEditor.source === 'draft' && newsEditor.id) ? newsEditor.id : push(dbRef(db, 'news')).key;
                 const updates = {};
-                updates[`news/${id}`] = { ...d, createdAt: now };
+                const im = await nwPrepImage(d.image);
+                updates[`news/${id}`] = { ...d, image: im.image, createdAt: now };
+                updates[`newsImages/${id}`] = im.imgs;
                 updates[`newsDrafts/${id}`] = null;
                 await update(dbRef(db), updates);
                 nwClearEditor();
@@ -3571,7 +3573,10 @@ ${board}</svg>`;
             const d = nwReadEditor();
             if (!d.title || !d.body) { nwMsg('Uzupełnij tytuł i treść.', false); return; }
             try {
-                await update(dbRef(db, `news/${newsEditor.id}`), { ...d, editedAt: Date.now() });
+                const im = await nwPrepImage(d.image);
+                await update(dbRef(db, `news/${newsEditor.id}`), { ...d, image: im.image, editedAt: Date.now() });
+                await set(dbRef(db, `newsImages/${newsEditor.id}`), im.imgs);
+                delete nwImgCache[newsEditor.id + 't']; delete nwImgCache[newsEditor.id + 'f'];
                 nwClearEditor();
                 nwMsg('Zmiany zapisane.', true);
             } catch (err) { nwMsg(err.message, false); }
@@ -3581,11 +3586,12 @@ ${board}</svg>`;
             if (!isAdminUser()) return;
             const d = (source === 'draft' ? globalNewsDrafts : globalNews)[id];
             if (!d) return;
-            newsEditor = { id, source, kind: d.kind || '', image: d.image || '', customImage: !String(d.image || '').startsWith('data:image/svg+xml'), createdAt: d.createdAt || null };
+            newsEditor = { id, source, kind: d.kind || '', image: d.image === '@lazy' ? '' : (d.image || ''), customImage: !String(d.image || '').startsWith('data:image/svg+xml'), createdAt: d.createdAt || null };
             nwEl('news-edit-title').value = d.title || '';
             nwEl('news-edit-body').value = d.body || ''; nwEl('news-edit-audience').value = d.audience || 'all';
             nwEl('news-edit-image-url').value = /^https?:/i.test(d.image || '') ? d.image : '';
             nwRefreshEditorUI();
+            if (d.image === '@lazy') nwGetImg(id, 'f').then(f => { if (f && newsEditor.id === id) { newsEditor.image = f; nwRefreshEditorUI(); } });
             if (currentTabKey !== 'admin') switchTab('admin');
             nwEl('news-edit-title').scrollIntoView({ behavior: 'smooth', block: 'center' });
         };
@@ -3604,8 +3610,10 @@ ${board}</svg>`;
             const d = globalNewsDrafts[id];
             if (!d) return;
             try {
+                const im = await nwPrepImage(d.image || nwCover(d.kind || 'generic'));
                 const updates = {};
-                updates[`news/${id}`] = { title: d.title, body: d.body, image: d.image || nwCover(d.kind || 'generic'), kind: d.kind || 'custom', audience: d.audience || 'all', createdAt: Date.now() };
+                updates[`newsImages/${id}`] = im.imgs;
+                updates[`news/${id}`] = { title: d.title, body: d.body, image: im.image, kind: d.kind || 'custom', audience: d.audience || 'all', createdAt: Date.now() };
                 updates[`newsDrafts/${id}`] = null;
                 await update(dbRef(db), updates);
                 if (newsEditor.id === id) nwClearEditor();
@@ -3632,7 +3640,7 @@ ${board}</svg>`;
             if (!rows.length) { box.innerHTML = '<p style="color: var(--text-muted);">Brak szkiców i postów.</p>'; return; }
             box.innerHTML = rows.map(r => `
                 <div class="news-admin-row">
-                    <img src="${nwEsc(r.d.image || '')}" alt="">
+                    <img ${nwImgAttrs({ id: r.id, image: r.d.image || '' }, false)} alt="">
                     <div style="flex: 1; min-width: 180px;">
                         <div style="font-weight: 700;">${nwEsc(r.d.title)}</div>
                         <div style="font-size: 0.8rem; color: var(--text-muted);">${r.source === 'draft' ? '📝 Szkic' : '✅ Opublikowany'} · ${nwFmtDate(r.ts)}</div>
@@ -3709,7 +3717,7 @@ ${board}</svg>`;
                 detail.classList.remove('hidden');
                 detail.innerHTML = `<button class="news-back" onclick="closeNewsPost()">← Wróć do aktualności</button>
                     <article class="card news-post">
-                        ${p.image ? `<img class="news-cover" src="${nwEsc(p.image)}" alt="">` : ''}
+                        ${p.image ? `<img class="news-cover" ${nwImgAttrs(p, true)} alt="">` : ''}
                         <div class="news-meta">🕒 ${nwFmtDate(p.createdAt || 0)}${p.editedAt ? ' · edytowano' : ''}</div>
                         <h3 class="news-title">${nwEsc(p.title)}</h3>
                         <div class="news-body">${nwParagraphs(p.body)}</div>
@@ -3727,7 +3735,7 @@ ${board}</svg>`;
             if (!items.length) { list.innerHTML = '<div class="card" style="text-align: center; color: var(--text-muted); grid-column: 1 / -1;">Na razie brak aktualności. Zajrzyj tu wkrótce!</div>'; return; }
             list.innerHTML = items.map(p => `
                 <article class="card news-card" onclick="openNewsPost('${p.id}')">
-                    ${p.image ? `<img class="news-cover" src="${nwEsc(p.image)}" alt="">` : ''}
+                    ${p.image ? `<img class="news-cover" ${nwImgAttrs(p, false)} alt="">` : ''}
                     <div class="news-card-body">
                         <div class="news-meta">🕒 ${nwFmtDate(p.createdAt || 0)}</div>
                         <h3 class="news-title">${nwEsc(p.title)}</h3>
@@ -3744,7 +3752,7 @@ ${board}</svg>`;
             const latest = Object.entries(globalNews || {}).map(([id, d]) => ({ id, ...d })).filter(nwCanSee).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))[0];
             if (!latest) { box.innerHTML = '<p style="line-height: 1.6; color: var(--text-muted);">Witamy w Akademickiej Lidze Darta!</p>'; return; }
             box.innerHTML = `<div class="news-teaser" onclick="openHomeNews('${latest.id}')">
-                ${latest.image ? `<img src="${nwEsc(latest.image)}" alt="">` : ''}
+                ${latest.image ? `<img ${nwImgAttrs(latest, false)} alt="">` : ''}
                 <div class="news-teaser-body">
                     <div class="news-meta">🕒 ${nwFmtDate(latest.createdAt || 0)}</div>
                     <h3 class="news-title">${nwEsc(latest.title)}</h3>
@@ -4998,6 +5006,12 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
 
         async function saveProfileData(user, avatarUrl) {
             try {
+                // miniatura (96 px, ok. 3 KB) zostaje w profilu, duże zdjęcie (256 px) trafia do osobnego węzła pobieranego na żądanie
+                const cur = currentUserProfileData && currentUserProfileData.photoUrl; let big;
+                if (avatarUrl !== cur) {
+                    if (typeof avatarUrl === 'string' && avatarUrl.startsWith('data:image') && avatarUrl.length > 9000) { big = avatarUrl; avatarUrl = await dbShrink(avatarUrl, 96, 0.7); }
+                    else big = null;
+                }
                 await update(dbRef(db, 'users/' + user.uid), {
                     firstName: document.getElementById('edit-firstname').value.trim(),
                     lastName: document.getElementById('edit-lastname').value.trim(),
@@ -5007,6 +5021,7 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
                     dartCounter: document.getElementById('edit-dartcounter').value.trim(),
                     photoUrl: avatarUrl
                 });
+                if (big !== undefined) { await set(dbRef(db, 'userPhotos/' + user.uid), big); delete bigPhotoCache[user.uid]; }
                 document.getElementById('modal-edit-profile').classList.add('hidden');
             } catch (err) { alert(err.message); }
         }
@@ -5223,6 +5238,7 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
             document.getElementById('view-player-photo-slot').innerHTML = avatarHtml(
                 player.photoUrl || PRESET_AVATARS[0], frameKeyFor(player), 96, '',
                 'width: 96px; height: 96px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-blue); box-shadow: 0 8px 20px rgba(59, 130, 246, 0.25);');
+            loadBigPhoto(uid).then(b => { const im = document.querySelector('#view-player-photo-slot img'); if (b && im) im.src = b; });
             document.getElementById('view-player-age').innerText = calculateAge(player.birthDate);
             document.getElementById('view-player-city').innerText = player.city || 'Brak';
             document.getElementById('view-player-avg').innerText = globalCalculatedAverages[uid] !== undefined ? globalCalculatedAverages[uid].toFixed(2) : "0.00";
@@ -5899,7 +5915,7 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
             neon: { bg1: '#0d0221', bg2: '#35105f', accent: '#ff2a6d', accent2: '#05d9e8', text: '#ffffff', muted: '#b79ad6', gold: '#ff2a6d', win: '#05d9e8' }
         };
         const shImg = src => new Promise(res => { if (!src) return res(null); const im = new Image(); im.crossOrigin = 'anonymous'; im.onload = () => res(im); im.onerror = () => res(null); im.src = src; });
-        const shAv = uid => { const u = globalUsersData[uid]; return shImg((u && u.photoUrl) || PRESET_AVATARS[0]); };
+        const shAv = async uid => { const b = await loadBigPhoto(uid), u = globalUsersData[uid]; return shImg(b || (u && u.photoUrl) || PRESET_AVATARS[0]); };
         const shName = uid => { const u = globalUsersData[uid]; return u ? `${u.firstName || ''} ${u.lastName || ''}`.trim() : 'Gracz'; };
         function shRR(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
         function shT(c, txt, x, y, size, color, o = {}) { c.font = `${o.weight || 800} ${size}px ${SH_FONT}`; c.fillStyle = color; c.textAlign = o.align || 'center'; c.textBaseline = 'alphabetic'; if (o.max) c.fillText(String(txt), x, y, o.max); else c.fillText(String(txt), x, y); }
@@ -6021,7 +6037,7 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
         }
         async function shNews(c, W, H, st, id) {
             const p = globalNews[id]; if (!p) throw new Error('Nie znaleziono artykułu.');
-            const img = await shImg(p.image), avail = H - SH_TOP - SH_BOT, ch = Math.round(avail * .34), f = Math.min(1.2, avail / 1030);
+            const img = await shImg(p.image === '@lazy' ? await nwGetImg(id, 'f') : p.image), avail = H - SH_TOP - SH_BOT, ch = Math.round(avail * .34), f = Math.min(1.2, avail / 1030);
             shBg(c, W, H, st);
             if (img) { c.save(); c.beginPath(); c.rect(0, SH_TOP, W, ch); c.clip(); const s = Math.max(W / img.width, ch / img.height); c.drawImage(img, (W - img.width * s) / 2, SH_TOP + (ch - img.height * s) / 2, img.width * s, img.height * s); const g = c.createLinearGradient(0, SH_TOP + ch * .55, 0, SH_TOP + ch); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, st.bg1); c.fillStyle = g; c.fillRect(0, SH_TOP, W, ch); c.restore(); }
             shHead(c, W, st, 'AKTUALNOŚCI');
@@ -6104,6 +6120,35 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
         nwEl('ac-player').onchange = renderAdminCoupons;
         nwEl('ac-status').onchange = renderAdminCoupons;
 
+        // ===== Obrazy poza głównymi węzłami: pobierane dopiero, gdy są potrzebne =====
+        const NW_PH = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+        const nwImgCache = {}, bigPhotoCache = {};
+        const nwImgAttrs = (p, full) => p.image === '@lazy' ? `src="${NW_PH}" data-news-img="${p.id}" data-news-kind="${full ? 'f' : 't'}"` : `src="${nwEsc(p.image || '')}"`;
+        async function nwGetImg(id, kind) {
+            const k = id + kind; if (nwImgCache[k] !== undefined) return nwImgCache[k];
+            try { nwImgCache[k] = (await get(dbRef(db, `newsImages/${id}/${kind}`))).val() || null; } catch (e) { nwImgCache[k] = null; }
+            return nwImgCache[k];
+        }
+        async function loadBigPhoto(uid) {
+            if (bigPhotoCache[uid] !== undefined) return bigPhotoCache[uid];
+            try { bigPhotoCache[uid] = (await get(dbRef(db, 'userPhotos/' + uid))).val() || null; } catch (e) { bigPhotoCache[uid] = null; }
+            return bigPhotoCache[uid];
+        }
+        // zdjęcie artykułu: w węźle news zostaje znacznik "@lazy", a miniatura (t) i pełny obraz (f) leżą w newsImages
+        async function nwPrepImage(img) {
+            if (typeof img === 'string' && /^data:image\/(jpeg|png|webp)/.test(img) && img.length > 20000) {
+                return { image: '@lazy', imgs: { t: await dbShrink(img, 320, 0.6), f: img.length > 90000 ? await dbShrink(img, 800, 0.72) : img } };
+            }
+            return { image: img, imgs: null };
+        }
+        new MutationObserver(() => {
+            document.querySelectorAll('img[data-news-img]:not([data-ld])').forEach(async im => {
+                im.dataset.ld = '1';
+                const v = await nwGetImg(im.dataset.newsImg, im.dataset.newsKind);
+                if (v) im.src = v;
+            });
+        }).observe(document.body, { childList: true, subtree: true });
+
         // ===== Optymalizacja bazy: analiza rozmiaru, kopia, zmniejszanie zdjęć =====
         const dbBytes = o => new Blob([JSON.stringify(o == null ? null : o)]).size;
         const dbFmt = b => b > 1048576 ? (b / 1048576).toFixed(2) + ' MB' : Math.round(b / 1024) + ' KB';
@@ -6125,12 +6170,15 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
             let photos = 0; const big = [];
             Object.entries(users).forEach(([u, d]) => { const n = (typeof d.photoUrl === 'string' && d.photoUrl.startsWith('data:')) ? d.photoUrl.length : 0; photos += n; if (n) big.push([shName(u), n]); });
             big.sort((a, b) => b[1] - a[1]);
+            const keyBytes = {}; Object.values(users).forEach(d => Object.entries(d || {}).forEach(([k, v]) => { keyBytes[k] = (keyBytes[k] || 0) + dbBytes(v); }));
+            const topKeys = Object.entries(keyBytes).sort((a, b) => b[1] - a[1]).slice(0, 6);
             const imgs = Object.values(news).reduce((s, p) => s + (typeof p.image === 'string' && p.image.startsWith('data:image/jpeg') ? p.image.length : 0), 0);
             const drafts = typeof globalNewsDrafts !== 'undefined' ? globalNewsDrafts : {};
-            const rows = [['users (profile, zdjęcia, kupony)', dbBytes(users), 1], ['&nbsp;&nbsp;↳ zdjęcia graczy', photos, 0], ['news (aktualności)', dbBytes(news), 1], ['&nbsp;&nbsp;↳ obrazy artykułów', imgs, 0], ['matches', dbBytes(globalMatchesMap), 1], ['upcomingMatches', dbBytes(globalUpcomingMatchesMap), 1], ['seasonState (m.in. archiwum sezonów)', dbBytes(seasonStateData), 1], ['newsDrafts (tylko admin)', dbBytes(drafts), 0]];
+            const rows = [['users (profile, zdjęcia, kupony)', dbBytes(users), 1], ['&nbsp;&nbsp;↳ zdjęcia graczy', photos, 0], ['news (aktualności)', dbBytes(news), 1], ['&nbsp;&nbsp;↳ obrazy artykułów', imgs, 0], ['matches', dbBytes(globalMatchesMap), 1], ['upcomingMatches', dbBytes(globalUpcomingMatchesMap), 1], ['seasonState (m.in. archiwum sezonów)', dbBytes(seasonStateData), 1], ['&nbsp;&nbsp;↳ archiwum sezonów', dbBytes(seasonStateData.archiveHistory), 0], ['newsDrafts (tylko admin)', dbBytes(drafts), 0]];
             const visit = rows.filter(r => r[2]).reduce((s, r) => s + r[1], 0);
             nwEl('db-report').innerHTML = `<table style="width:100%">${rows.map(r => `<tr><td>${r[0]}</td><td style="text-align:right"><b>${dbFmt(r[1])}</b></td></tr>`).join('')}</table>
                 <p style="margin-top:8px">Jedno wejście na stronę pobiera około <b>${dbFmt(visit)}</b>. Przy 1000 wejść to <b>${dbFmt(visit * 1000)}</b>.</p>
+                <p style="margin-top:6px">W profilach graczy najwięcej zajmują pola: ${topKeys.map(k => `${nwEsc(k[0])} (${dbFmt(k[1])})`).join(', ')}</p>
                 ${big.length ? `<p style="margin-top:6px">Największe zdjęcia graczy: ${big.slice(0, 5).map(b => `${nwEsc(b[0])} (${dbFmt(b[1])})`).join(', ')}</p>` : ''}`;
         }
         nwEl('btn-db-report').onclick = dbReport;
@@ -6140,32 +6188,31 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
             dbMsg('Kopia pobrana (profile, aktualności, mecze, sezony - bez powiadomień i zakładów).', true);
         };
         nwEl('btn-db-shrink-users').onclick = async () => {
-            if (!isAdminUser() || !confirm('Zmniejszyć zdjęcia graczy większe niż 40 KB do 256 px? Pobierz najpierw kopię.')) return;
+            if (!isAdminUser() || !confirm('Przenieść zdjęcia graczy: w profilu zostanie miniatura 96 px, a duże zdjęcie 256 px trafi do osobnego węzła (pobieranego tylko po otwarciu profilu)? Pobierz najpierw kopię.')) return;
             let n = 0, saved = 0;
             for (const [u, d] of Object.entries(globalUsersData)) {
                 const src = d.photoUrl;
-                if (typeof src !== 'string' || !src.startsWith('data:image') || src.length < 40000) continue;
+                if (typeof src !== 'string' || !src.startsWith('data:image') || src.length < 9000) continue;
                 try {
-                    const out = await dbShrink(src, 256, 0.8);
-                    if (out.length < src.length) { await update(dbRef(db, 'users/' + u), { photoUrl: out }); n++; saved += src.length - out.length; dbMsg(`Zmniejszono ${n} zdjęć (oszczędność ${dbFmt(saved)})...`, true); }
+                    const thumb = await dbShrink(src, 96, 0.7), big = src.length > 40000 ? await dbShrink(src, 256, 0.8) : src;
+                    await update(dbRef(db), { [`users/${u}/photoUrl`]: thumb, [`userPhotos/${u}`]: big });
+                    n++; saved += src.length - thumb.length; dbMsg(`Przeniesiono ${n} zdjęć (oszczędność ${dbFmt(saved)} na wejście)...`, true);
                 } catch (e) { console.warn(u, e.message); }
             }
-            dbMsg(n ? `Gotowe: zmniejszono ${n} zdjęć, oszczędność ${dbFmt(saved)} na każdym wejściu na stronę.` : 'Nie ma zdjęć do zmniejszenia.', true);
+            dbMsg(n ? `Gotowe: ${n} zdjęć, oszczędność ${dbFmt(saved)} na każdym wejściu na stronę.` : 'Nie ma zdjęć do przeniesienia.', true);
         };
         nwEl('btn-db-shrink-news').onclick = async () => {
-            if (!isAdminUser() || !confirm('Zmniejszyć obrazy artykułów i szkiców większe niż 80 KB do 800 px? Pobierz najpierw kopię.')) return;
+            if (!isAdminUser() || !confirm('Przenieść obrazy opublikowanych artykułów do osobnego węzła (miniatura + pełny obraz, pobierane dopiero przy wyświetlaniu)? Pobierz najpierw kopię.')) return;
             let n = 0, saved = 0;
-            for (const [node, obj] of [['news', globalNews || {}], ['newsDrafts', typeof globalNewsDrafts !== 'undefined' ? globalNewsDrafts : {}]]) {
-                for (const [id, p] of Object.entries(obj)) {
-                    const src = p.image;
-                    if (typeof src !== 'string' || !/^data:image\/(jpeg|png|webp)/.test(src) || src.length < 80000) continue;
-                    try {
-                        const out = await dbShrink(src, 800, 0.72);
-                        if (out.length < src.length) { await update(dbRef(db, `${node}/${id}`), { image: out }); n++; saved += src.length - out.length; dbMsg(`Zmniejszono ${n} obrazów (oszczędność ${dbFmt(saved)})...`, true); }
-                    } catch (e) { console.warn(id, e.message); }
-                }
+            for (const [id, p] of Object.entries(globalNews || {})) {
+                if (typeof p.image !== 'string' || !/^data:image\/(jpeg|png|webp)/.test(p.image) || p.image.length < 20000) continue;
+                try {
+                    const im = await nwPrepImage(p.image);
+                    await update(dbRef(db), { [`news/${id}/image`]: im.image, [`newsImages/${id}`]: im.imgs });
+                    n++; saved += p.image.length; dbMsg(`Przeniesiono ${n} obrazów (oszczędność ${dbFmt(saved)} na wejście)...`, true);
+                } catch (e) { console.warn(id, e.message); }
             }
-            dbMsg(n ? `Gotowe: zmniejszono ${n} obrazów, oszczędność ${dbFmt(saved)}.` : 'Nie ma obrazów do zmniejszenia.', true);
+            dbMsg(n ? `Gotowe: ${n} obrazów, oszczędność ${dbFmt(saved)} na każdym wejściu na stronę.` : 'Nie ma obrazów do przeniesienia.', true);
         };
 
         // Firebase Listeners
