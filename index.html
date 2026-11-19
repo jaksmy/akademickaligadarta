@@ -1390,6 +1390,19 @@ body.overlay-mode .lv-event{position:fixed;font-size:max(40px,5vw);background:ra
                 </div>
 
                 <div class="card">
+                    <h2>🧹 Optymalizacja bazy</h2>
+                    <p style="color:var(--text-muted);font-size:.85rem;margin-bottom:10px">Pokazuje, co zajmuje miejsce i jest pobierane przy każdym wejściu na stronę, i zmniejsza zdjęcia zapisane w bazie. Przed zmianami pobierz kopię.</p>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap">
+                        <button class="btn-primary btn-sm" id="btn-db-report">📊 Analizuj bazę</button>
+                        <button class="btn-success btn-sm" id="btn-db-backup">⬇ Pobierz kopię (JSON)</button>
+                        <button class="btn-primary btn-sm" id="btn-db-shrink-users">🖼 Zmniejsz zdjęcia graczy</button>
+                        <button class="btn-primary btn-sm" id="btn-db-shrink-news">📰 Zmniejsz obrazy artykułów</button>
+                    </div>
+                    <div id="db-msg" class="msg"></div>
+                    <div id="db-report" style="margin-top:10px;font-size:.85rem"></div>
+                </div>
+
+                <div class="card">
                     <h2>📤 Udostępnianie</h2>
                     <p style="color:var(--text-muted);font-size:.85rem;margin-bottom:10px">Generuje grafikę gotową na Instagram lub TikTok: wynik meczu, tabelę, profil gracza albo artykuł.</p>
                     <div class="form-group"><label>Co udostępnić?</label><select id="share-type"><option value="match">🎯 Wynik meczu</option><option value="table">📊 Tabela ligi</option><option value="player">👤 Profil gracza</option><option value="news">📰 Artykuł</option></select></div>
@@ -3443,7 +3456,7 @@ ${board}</svg>`;
             return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
         }
 
-        function nwResizeImage(file, maxW = 1200) {
+        function nwResizeImage(file, maxW = 800, quality = 0.72) {
             return new Promise((resolve, reject) => {
                 const fr = new FileReader();
                 fr.onerror = reject;
@@ -3455,7 +3468,7 @@ ${board}</svg>`;
                         const cv = document.createElement('canvas');
                         cv.width = Math.round(img.width * sc); cv.height = Math.round(img.height * sc);
                         cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
-                        resolve(cv.toDataURL('image/jpeg', 0.82));
+                        resolve(cv.toDataURL('image/jpeg', quality));
                     };
                     img.src = e.target.result;
                 };
@@ -4976,14 +4989,8 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
             if (customUrlInput) {
                 finalAvatarUrl = customUrlInput;
             } else if (fileInput.files && fileInput.files[0]) {
-                const file = fileInput.files[0];
-                const reader = new FileReader();
-                reader.onload = async function(e) {
-                    finalAvatarUrl = e.target.result;
-                    await saveProfileData(user, finalAvatarUrl);
-                };
-                reader.readAsDataURL(file);
-                return;
+                try { finalAvatarUrl = await nwResizeImage(fileInput.files[0], 256, 0.8); } // ok. 15-25 KB zamiast kilku MB
+                catch (e) { alert('Nie udało się wczytać zdjęcia.'); return; }
             }
 
             await saveProfileData(user, finalAvatarUrl);
@@ -5490,7 +5497,7 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
         (function groupAdminPanel() {
             const page = nwEl('page-admin');
             const cards = [...page.querySelectorAll(':scope > .card')];
-            const cats = [['⚙️ Sezon i playoff', ['Zarządzanie Sezonem', '🏆 Playoff']], ['📰 Aktualności', ['📰 Generator aktualności']], ['👥 Zawodnicy i portfele', ['Zarządzanie Zawodnikami i Portfelami (Dart Kasa)']], ['🎫 Kupony', ['🎫 Kupony graczy']], ['📤 Udostępnianie', ['📤 Udostępnianie']], ['📡 Na żywo', ['📡 Transmisja n01']], ['🎁 Nagrody', ['🎁 Nagrody graczy']], ['🎯 Mecze', ['Tworzenie Nadchodzącego Meczu', 'Oczekujące Protokoły Meczowe', 'Zarządzanie Nadchodzącymi Meczami', 'Zarządzanie Historią Meczów']]];
+            const cats = [['⚙️ Sezon i playoff', ['Zarządzanie Sezonem', '🏆 Playoff']], ['📰 Aktualności', ['📰 Generator aktualności']], ['👥 Zawodnicy i portfele', ['Zarządzanie Zawodnikami i Portfelami (Dart Kasa)']], ['🎫 Kupony', ['🎫 Kupony graczy']], ['🧹 Baza danych', ['🧹 Optymalizacja bazy']], ['📤 Udostępnianie', ['📤 Udostępnianie']], ['📡 Na żywo', ['📡 Transmisja n01']], ['🎁 Nagrody', ['🎁 Nagrody graczy']], ['🎯 Mecze', ['Tworzenie Nadchodzącego Meczu', 'Oczekujące Protokoły Meczowe', 'Zarządzanie Nadchodzącymi Meczami', 'Zarządzanie Historią Meczów']]];
             const anchor = cards[0];
             cats.forEach(([title, names]) => {
                 const d = document.createElement('details'); d.className = 'adm-cat';
@@ -6096,6 +6103,70 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
         }
         nwEl('ac-player').onchange = renderAdminCoupons;
         nwEl('ac-status').onchange = renderAdminCoupons;
+
+        // ===== Optymalizacja bazy: analiza rozmiaru, kopia, zmniejszanie zdjęć =====
+        const dbBytes = o => new Blob([JSON.stringify(o == null ? null : o)]).size;
+        const dbFmt = b => b > 1048576 ? (b / 1048576).toFixed(2) + ' MB' : Math.round(b / 1024) + ' KB';
+        const dbMsg = (m, ok) => { const e = nwEl('db-msg'); e.className = 'msg ' + (ok ? 'success' : 'error'); e.innerText = m; };
+        function dbShrink(src, maxSide, q) {
+            return new Promise((res, rej) => {
+                const im = new Image(); im.onerror = rej;
+                im.onload = () => {
+                    const sc = Math.min(1, maxSide / Math.max(im.width, im.height)), cv = document.createElement('canvas');
+                    cv.width = Math.max(1, Math.round(im.width * sc)); cv.height = Math.max(1, Math.round(im.height * sc));
+                    const c = cv.getContext('2d'); c.fillStyle = '#fff'; c.fillRect(0, 0, cv.width, cv.height); c.drawImage(im, 0, 0, cv.width, cv.height);
+                    res(cv.toDataURL('image/jpeg', q));
+                };
+                im.src = src;
+            });
+        }
+        function dbReport() {
+            const users = globalUsersData || {}, news = globalNews || {};
+            let photos = 0; const big = [];
+            Object.entries(users).forEach(([u, d]) => { const n = (typeof d.photoUrl === 'string' && d.photoUrl.startsWith('data:')) ? d.photoUrl.length : 0; photos += n; if (n) big.push([shName(u), n]); });
+            big.sort((a, b) => b[1] - a[1]);
+            const imgs = Object.values(news).reduce((s, p) => s + (typeof p.image === 'string' && p.image.startsWith('data:image/jpeg') ? p.image.length : 0), 0);
+            const drafts = typeof globalNewsDrafts !== 'undefined' ? globalNewsDrafts : {};
+            const rows = [['users (profile, zdjęcia, kupony)', dbBytes(users), 1], ['&nbsp;&nbsp;↳ zdjęcia graczy', photos, 0], ['news (aktualności)', dbBytes(news), 1], ['&nbsp;&nbsp;↳ obrazy artykułów', imgs, 0], ['matches', dbBytes(globalMatchesMap), 1], ['upcomingMatches', dbBytes(globalUpcomingMatchesMap), 1], ['seasonState (m.in. archiwum sezonów)', dbBytes(seasonStateData), 1], ['newsDrafts (tylko admin)', dbBytes(drafts), 0]];
+            const visit = rows.filter(r => r[2]).reduce((s, r) => s + r[1], 0);
+            nwEl('db-report').innerHTML = `<table style="width:100%">${rows.map(r => `<tr><td>${r[0]}</td><td style="text-align:right"><b>${dbFmt(r[1])}</b></td></tr>`).join('')}</table>
+                <p style="margin-top:8px">Jedno wejście na stronę pobiera około <b>${dbFmt(visit)}</b>. Przy 1000 wejść to <b>${dbFmt(visit * 1000)}</b>.</p>
+                ${big.length ? `<p style="margin-top:6px">Największe zdjęcia graczy: ${big.slice(0, 5).map(b => `${nwEsc(b[0])} (${dbFmt(b[1])})`).join(', ')}</p>` : ''}`;
+        }
+        nwEl('btn-db-report').onclick = dbReport;
+        nwEl('btn-db-backup').onclick = () => {
+            const data = { users: globalUsersData, news: globalNews, newsDrafts: typeof globalNewsDrafts !== 'undefined' ? globalNewsDrafts : {}, matches: globalMatchesMap, upcomingMatches: globalUpcomingMatchesMap, seasonState: seasonStateData };
+            const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(data)], { type: 'application/json' })); a.download = `adl-kopia-${new Date().toISOString().slice(0, 10)}.json`; a.click();
+            dbMsg('Kopia pobrana (profile, aktualności, mecze, sezony - bez powiadomień i zakładów).', true);
+        };
+        nwEl('btn-db-shrink-users').onclick = async () => {
+            if (!isAdminUser() || !confirm('Zmniejszyć zdjęcia graczy większe niż 40 KB do 256 px? Pobierz najpierw kopię.')) return;
+            let n = 0, saved = 0;
+            for (const [u, d] of Object.entries(globalUsersData)) {
+                const src = d.photoUrl;
+                if (typeof src !== 'string' || !src.startsWith('data:image') || src.length < 40000) continue;
+                try {
+                    const out = await dbShrink(src, 256, 0.8);
+                    if (out.length < src.length) { await update(dbRef(db, 'users/' + u), { photoUrl: out }); n++; saved += src.length - out.length; dbMsg(`Zmniejszono ${n} zdjęć (oszczędność ${dbFmt(saved)})...`, true); }
+                } catch (e) { console.warn(u, e.message); }
+            }
+            dbMsg(n ? `Gotowe: zmniejszono ${n} zdjęć, oszczędność ${dbFmt(saved)} na każdym wejściu na stronę.` : 'Nie ma zdjęć do zmniejszenia.', true);
+        };
+        nwEl('btn-db-shrink-news').onclick = async () => {
+            if (!isAdminUser() || !confirm('Zmniejszyć obrazy artykułów i szkiców większe niż 80 KB do 800 px? Pobierz najpierw kopię.')) return;
+            let n = 0, saved = 0;
+            for (const [node, obj] of [['news', globalNews || {}], ['newsDrafts', typeof globalNewsDrafts !== 'undefined' ? globalNewsDrafts : {}]]) {
+                for (const [id, p] of Object.entries(obj)) {
+                    const src = p.image;
+                    if (typeof src !== 'string' || !/^data:image\/(jpeg|png|webp)/.test(src) || src.length < 80000) continue;
+                    try {
+                        const out = await dbShrink(src, 800, 0.72);
+                        if (out.length < src.length) { await update(dbRef(db, `${node}/${id}`), { image: out }); n++; saved += src.length - out.length; dbMsg(`Zmniejszono ${n} obrazów (oszczędność ${dbFmt(saved)})...`, true); }
+                    } catch (e) { console.warn(id, e.message); }
+                }
+            }
+            dbMsg(n ? `Gotowe: zmniejszono ${n} obrazów, oszczędność ${dbFmt(saved)}.` : 'Nie ma obrazów do zmniejszenia.', true);
+        };
 
         // Firebase Listeners
         onValue(dbRef(db, 'users'), (snapshot) => {
