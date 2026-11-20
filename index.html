@@ -1405,7 +1405,7 @@ body.overlay-mode .lv-event{position:fixed;font-size:max(40px,5vw);background:ra
                 <div class="card">
                     <h2>📤 Udostępnianie</h2>
                     <p style="color:var(--text-muted);font-size:.85rem;margin-bottom:10px">Generuje grafikę gotową na Instagram lub TikTok: wynik meczu, tabelę, profil gracza albo artykuł.</p>
-                    <div class="form-group"><label>Co udostępnić?</label><select id="share-type"><option value="match">🎯 Wynik meczu</option><option value="table">📊 Tabela ligi</option><option value="player">👤 Profil gracza</option><option value="news">📰 Artykuł</option></select></div>
+                    <div class="form-group"><label>Co udostępnić?</label><select id="share-type"><option value="match">🎯 Wynik meczu</option><option value="preview">🔮 Zapowiedź meczu</option><option value="table">📊 Tabela ligi</option><option value="player">👤 Profil gracza</option><option value="news">📰 Artykuł</option></select></div>
                     <div class="form-group"><label>Wybierz</label><select id="share-item"></select></div>
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
                         <div class="form-group"><label>Format</label><select id="share-format"><option value="post">Post 4:5 (1080×1350)</option><option value="story">Story / TikTok 9:16 (1080×1920)</option><option value="square">Kwadrat 1:1 (1080×1080)</option></select></div>
@@ -4690,7 +4690,7 @@ ${board}</svg>`;
                     <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
                         <input type="datetime-local" id="adm-date-${matchId}" value="${m.scheduledDate || ''}" style="width: auto; padding: 6px 8px; font-size: 0.8rem;">
                         <button class="btn-sm btn-primary" onclick="adminSetMatchDate('${matchId}')">📅 Ustaw termin</button>
-                        <select id="rnd-upcoming-${matchId}" style="width:auto;padding:6px 8px;font-size:.8rem">${roundOptions(m)}</select><button class="btn-sm btn-primary" onclick="adminSetRound('upcoming','${matchId}')">Zapisz kolejkę</button>
+                        <select id="rnd-upcoming-${matchId}" style="width:auto;padding:6px 8px;font-size:.8rem">${roundOptions(m)}</select><button class="btn-sm btn-primary" onclick="adminSetRound('upcoming','${matchId}')">Zapisz kolejkę</button><button class="btn-sm btn-primary" onclick="shareOpen('preview','${matchId}')">📤</button>
                         ${m.reportData ? '' : `<button class="btn-sm btn-success" onclick="openAdminEditReport('${matchId}')">📝 Wypełnij protokół</button>`}
                         <button class="btn-sm btn-danger" onclick="deleteUpcomingMatch('${matchId}')">Usuń</button>
                     </div>
@@ -4997,7 +4997,7 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
             if (customUrlInput) {
                 finalAvatarUrl = customUrlInput;
             } else if (fileInput.files && fileInput.files[0]) {
-                try { finalAvatarUrl = await nwResizeImage(fileInput.files[0], 256, 0.8); } // ok. 15-25 KB zamiast kilku MB
+                try { finalAvatarUrl = await dbShrink(fileInput.files[0], 384, 0.82, { square: true, webp: true }); } // ok. 15-25 KB zamiast kilku MB
                 catch (e) { alert('Nie udało się wczytać zdjęcia.'); return; }
             }
 
@@ -5009,7 +5009,7 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
                 // miniatura (96 px, ok. 3 KB) zostaje w profilu, duże zdjęcie (256 px) trafia do osobnego węzła pobieranego na żądanie
                 const cur = currentUserProfileData && currentUserProfileData.photoUrl; let big;
                 if (avatarUrl !== cur) {
-                    if (typeof avatarUrl === 'string' && avatarUrl.startsWith('data:image') && avatarUrl.length > 9000) { big = avatarUrl; avatarUrl = await dbShrink(avatarUrl, 96, 0.7); }
+                    if (typeof avatarUrl === 'string' && avatarUrl.startsWith('data:image') && avatarUrl.length > 9000) { big = avatarUrl; avatarUrl = await dbShrink(avatarUrl, 112, 0.72, { square: true, webp: true }); }
                     else big = null;
                 }
                 await update(dbRef(db, 'users/' + user.uid), {
@@ -5988,6 +5988,55 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
             });
             shFoot(c, W, H, st, m.date ? String(m.date).split(',')[0] : '');
         }
+        function shStatsOf(uid) { const d = globalPlayerDetailsStats[uid] || {}, cs = globalCalculatedStats[uid] || {}, a = globalCalculatedAverages[uid]; return { avg: a !== undefined ? a : 0, m: d.matches || 0, w: d.wins || 0, hf: cs.hf || 0, s180: d.s180 || 0 }; }
+        function shForm(uid) {
+            const out = [];
+            Object.values(getCombinedCareerMatches()).forEach(m => {
+                if (m.p1Uid !== uid && m.p2Uid !== uid) return;
+                const a = parseInt(m.p1Uid === uid ? m.s1 : m.s2) || 0, b = parseInt(m.p1Uid === uid ? m.s2 : m.s1) || 0;
+                out.push(a > b ? 'Z' : (a === b ? 'R' : 'P'));
+            });
+            return out.slice(-5);
+        }
+        async function shPreview(c, W, H, st, id) {
+            const m = globalUpcomingMatchesMap[id]; if (!m) throw new Error('Nie znaleziono meczu.');
+            const [i1, i2] = await Promise.all([shAv(m.p1Uid), shAv(m.p2Uid)]);
+            const s1 = shStatsOf(m.p1Uid), s2 = shStatsOf(m.p2Uid), o = getLiveOdds(id, m), now = new Date();
+            const f = shScale(H), avail = H - SH_TOP - SH_BOT, R = Math.round(120 * f), rh = Math.round(66 * f), gs = Math.round(10 * f), gap = Math.round(26 * f);
+            const rows = [['Średnia', s1.avg.toFixed(2), s2.avg.toFixed(2), s1.avg, s2.avg], ['Mecze (wygrane)', `${s1.m} (${s1.w})`, `${s2.m} (${s2.w})`, s1.w, s2.w], ['Najwyższy finish', s1.hf, s2.hf, s1.hf, s2.hf], ['180-tki', s1.s180, s2.s180, s1.s180, s2.s180]];
+            const avH = 2 * (R + 10) + Math.round(56 * f) + Math.round(46 * f), formH = Math.round(86 * f), oddsH = Math.round(44 * f) + Math.round(130 * f);
+            const used = avH + gap + rows.length * (rh + gs) + formH + gap + oddsH, top = SH_TOP + Math.max(14, (avail - used) / 2), cy = top + R + 10;
+            shBg(c, W, H, st); shHead(c, W, st, (roundLabel(m) || 'ZAPOWIEDŹ MECZU').toUpperCase());
+            [[W * .22, i1, m.p1Name], [W * .78, i2, m.p2Name]].forEach(([x, img, name]) => { shAvatar(c, img, name, x, cy, R, st.accent, 1, st.accent); shT(c, name, x, cy + R + 10 + 44 * f, 38 * f, st.text, { max: W * .4 }); });
+            shT(c, 'VS', W / 2, cy + 30 * f, 90 * f, st.accent);
+            const when = m.scheduledDate ? new Date(m.scheduledDate).toLocaleString('pl-PL', { weekday: 'short', day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'termin do ustalenia';
+            shT(c, '📅 ' + when, W / 2, cy + R + 10 + 44 * f + 46 * f, 30 * f, st.muted, { weight: 700 });
+            let y = top + avH + gap;
+            rows.forEach(([lab, a, b, na, nb]) => {
+                shRR(c, 60, y, W - 120, rh, 22 * f); c.fillStyle = 'rgba(255,255,255,.08)'; c.fill();
+                shT(c, a, W * .2, y + rh * .68, 42 * f, na > nb ? st.accent : st.text); shT(c, b, W * .8, y + rh * .68, 42 * f, nb > na ? st.accent : st.text);
+                shT(c, lab, W / 2, y + rh * .62, 24 * f, st.muted, { weight: 700, max: W * .3 }); y += rh + gs;
+            });
+            // forma: ostatnie 5 meczów (Z - zwycięstwo, R - remis, P - porażka)
+            shRR(c, 60, y, W - 120, formH - gs, 22 * f); c.fillStyle = 'rgba(255,255,255,.08)'; c.fill();
+            shT(c, 'Forma (5 meczów)', W / 2, y + (formH - gs) * .6, 24 * f, st.muted, { weight: 700, max: W * .3 });
+            [[W * .2, shForm(m.p1Uid)], [W * .8, shForm(m.p2Uid)]].forEach(([cx0, form]) => {
+                if (!form.length) { shT(c, '-', cx0, y + (formH - gs) * .65, 36 * f, st.muted); return; }
+                const rr = 17 * f, step = 40 * f, x0 = cx0 - (form.length - 1) * step / 2;
+                form.forEach((r, i) => { const x = x0 + i * step, yy = y + (formH - gs) / 2; c.beginPath(); c.arc(x, yy, rr, 0, Math.PI * 2); c.fillStyle = r === 'Z' ? st.win : (r === 'R' ? '#94a3b8' : '#f87171'); c.fill(); shT(c, r, x, yy + 7 * f, 20 * f, '#0b0f19'); });
+            });
+            y += formH + gap;
+            shT(c, 'KURSY', W / 2, y + 30 * f, 30 * f, st.accent, { weight: 800 });
+            const bw = (W - 120 - 32) / 3, by = y + 44 * f, fav = o.odds1 < o.odds2 ? 1 : (o.odds2 < o.odds1 ? 2 : 0);
+            [[`1 · ${(m.p1Name || '').split(' ')[0]}`, o.odds1, fav === 1], ['Remis', o.oddsDraw, false], [`2 · ${(m.p2Name || '').split(' ')[0]}`, o.odds2, fav === 2]].forEach(([lab, val, isFav], i) => {
+                const x = 60 + i * (bw + 16);
+                shRR(c, x, by, bw, 130 * f, 24 * f); c.fillStyle = isFav ? st.accent + '33' : 'rgba(255,255,255,.08)'; c.fill();
+                if (isFav) { c.lineWidth = 4; c.strokeStyle = st.accent; c.stroke(); }
+                shT(c, lab, x + bw / 2, by + 38 * f, 24 * f, st.muted, { weight: 700, max: bw - 20 });
+                shT(c, Number(val).toFixed(2), x + bw / 2, by + 100 * f, 52 * f, isFav ? st.accent : st.text);
+            });
+            shFoot(c, W, H, st, `Kursy z ${now.toLocaleString('pl-PL', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}`);
+        }
         async function shTable(c, W, H, st) {
             const all = currentSeasonTable(), avail = H - SH_TOP - SH_BOT, head = 150;
             const n = Math.max(1, Math.min(all.length, Math.floor((avail - head - 40) / 80), 12)), rows = all.slice(0, n);
@@ -6054,6 +6103,7 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
             const type = nwEl('share-type'), sel = nwEl('share-item'); if (!type || !sel) return;
             const keep = sel.value; let opts = [];
             if (type.value === 'match') opts = Object.entries(globalMatchesMap).reverse().sort((a, b) => roundKeyOf(b[1]) - roundKeyOf(a[1])).map(([id, m]) => [id, `${m.p1Name} ${m.s1}:${m.s2} ${m.p2Name}${roundLabel(m) ? ' (' + roundLabel(m) + ')' : ''}`]);
+            else if (type.value === 'preview') opts = Object.entries(globalUpcomingMatchesMap).sort((a, b) => (roundKeyOf(a[1]) || 5000) - (roundKeyOf(b[1]) || 5000)).map(([id, m]) => [id, `${m.p1Name} vs ${m.p2Name}${roundLabel(m) ? ' (' + roundLabel(m) + ')' : ''}`]);
             else if (type.value === 'table') opts = [['season', 'Bieżący sezon']];
             else if (type.value === 'player') opts = Object.keys(globalUsersData).map(u => [u, shName(u)]).sort((a, b) => a[1].localeCompare(b[1]));
             else opts = Object.entries(globalNews).sort((a, b) => (b[1].createdAt || 0) - (a[1].createdAt || 0)).map(([id, p]) => [id, p.title]);
@@ -6065,7 +6115,7 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
             const cv = nwEl('share-canvas'); cv.width = W; cv.height = H; const c = cv.getContext('2d');
             try {
                 if (type !== 'table' && !id) throw new Error('Brak pozycji do udostępnienia.');
-                if (type === 'match') await shMatch(c, W, H, st, id); else if (type === 'table') await shTable(c, W, H, st); else if (type === 'player') await shPlayer(c, W, H, st, id); else await shNews(c, W, H, st, id);
+                if (type === 'match') await shMatch(c, W, H, st, id); else if (type === 'preview') await shPreview(c, W, H, st, id); else if (type === 'table') await shTable(c, W, H, st); else if (type === 'player') await shPlayer(c, W, H, st, id); else await shNews(c, W, H, st, id);
                 nwEl('btn-share-dl').classList.remove('hidden');
                 nwEl('btn-share-share').classList.toggle('hidden', !(navigator.canShare && navigator.share));
                 SH_MSG('Gotowe! Pobierz grafikę albo udostępnij ją od razu.', true);
@@ -6137,7 +6187,7 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
         // zdjęcie artykułu: w węźle news zostaje znacznik "@lazy", a miniatura (t) i pełny obraz (f) leżą w newsImages
         async function nwPrepImage(img) {
             if (typeof img === 'string' && /^data:image\/(jpeg|png|webp)/.test(img) && img.length > 20000) {
-                return { image: '@lazy', imgs: { t: await dbShrink(img, 320, 0.6), f: img.length > 90000 ? await dbShrink(img, 800, 0.72) : img } };
+                return { image: '@lazy', imgs: { t: await dbShrink(img, 360, 0.65, { webp: true }), f: img.length > 90000 ? await dbShrink(img, 960, 0.75, { webp: true }) : img } };
             }
             return { image: img, imgs: null };
         }
@@ -6153,16 +6203,29 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
         const dbBytes = o => new Blob([JSON.stringify(o == null ? null : o)]).size;
         const dbFmt = b => b > 1048576 ? (b / 1048576).toFixed(2) + ' MB' : Math.round(b / 1024) + ' KB';
         const dbMsg = (m, ok) => { const e = nwEl('db-msg'); e.className = 'msg ' + (ok ? 'success' : 'error'); e.innerText = m; };
-        function dbShrink(src, maxSide, q) {
+        // Zmniejsza obraz: opcjonalnie przycina do kwadratu (zdjęcia profilowe, kadr lekko ku górze), zmniejsza etapami
+        // (ostrzejszy wynik) i zapisuje jako WebP (ok. 25-30% mniejszy niż JPEG przy tej samej jakości), a gdy przeglądarka nie umie - jako JPEG.
+        function dbShrink(src, maxSide, q, o = {}) {
             return new Promise((res, rej) => {
                 const im = new Image(); im.onerror = rej;
                 im.onload = () => {
-                    const sc = Math.min(1, maxSide / Math.max(im.width, im.height)), cv = document.createElement('canvas');
-                    cv.width = Math.max(1, Math.round(im.width * sc)); cv.height = Math.max(1, Math.round(im.height * sc));
-                    const c = cv.getContext('2d'); c.fillStyle = '#fff'; c.fillRect(0, 0, cv.width, cv.height); c.drawImage(im, 0, 0, cv.width, cv.height);
-                    res(cv.toDataURL('image/jpeg', q));
+                    let sx = 0, sy = 0, sw = im.width, sh = im.height;
+                    if (o.square) { const s = Math.min(sw, sh); sx = (sw - s) / 2; sy = (sh - s) * (sh > sw ? 0.3 : 0.5); sw = sh = s; }
+                    const sc = Math.min(1, maxSide / Math.max(sw, sh)), w = Math.max(1, Math.round(sw * sc)), h = Math.max(1, Math.round(sh * sc));
+                    let cur = im, cx = sx, cy = sy, cw = sw, ch = sh;
+                    while (cw / 2 >= w && ch / 2 >= h) {
+                        const n = document.createElement('canvas'); n.width = Math.round(cw / 2); n.height = Math.round(ch / 2);
+                        const c = n.getContext('2d'); c.imageSmoothingQuality = 'high'; c.drawImage(cur, cx, cy, cw, ch, 0, 0, n.width, n.height);
+                        cur = n; cx = 0; cy = 0; cw = n.width; ch = n.height;
+                    }
+                    const out = document.createElement('canvas'); out.width = w; out.height = h;
+                    const c = out.getContext('2d'); c.imageSmoothingQuality = 'high'; c.fillStyle = '#fff'; c.fillRect(0, 0, w, h); c.drawImage(cur, cx, cy, cw, ch, 0, 0, w, h);
+                    let url = o.webp ? out.toDataURL('image/webp', q) : '';
+                    if (!url.startsWith('data:image/webp')) url = out.toDataURL('image/jpeg', q);
+                    if (typeof src !== 'string') URL.revokeObjectURL(im.src);
+                    res(url);
                 };
-                im.src = src;
+                im.src = typeof src === 'string' ? src : URL.createObjectURL(src);
             });
         }
         function dbReport() {
@@ -6194,7 +6257,7 @@ document.getElementById('btn-admin-restore-season').onclick = async () => {
                 const src = d.photoUrl;
                 if (typeof src !== 'string' || !src.startsWith('data:image') || src.length < 9000) continue;
                 try {
-                    const thumb = await dbShrink(src, 96, 0.7), big = src.length > 40000 ? await dbShrink(src, 256, 0.8) : src;
+                    const thumb = await dbShrink(src, 112, 0.72, { square: true, webp: true }), big = src.length > 40000 ? await dbShrink(src, 320, 0.8, { square: true, webp: true }) : src;
                     await update(dbRef(db), { [`users/${u}/photoUrl`]: thumb, [`userPhotos/${u}`]: big });
                     n++; saved += src.length - thumb.length; dbMsg(`Przeniesiono ${n} zdjęć (oszczędność ${dbFmt(saved)} na wejście)...`, true);
                 } catch (e) { console.warn(u, e.message); }
